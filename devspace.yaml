@@ -1,0 +1,23 @@
+version: v1beta11
+
+deployments:
+- name: loft
+  helm:
+    chart:
+      name: loft
+      repo: https://charts.loft.sh
+
+dev:
+  ports:
+  - imageSelector: loftsh/loft
+    forward:
+    - port: 9898
+      remotePort: 443
+
+commands:
+- name: deploy-loft
+  command: devspace deploy -n loft
+- name: purge-loft
+  command: devspace purge -n loft
+- name: e2e
+  command: devspace dev -n loft -- make testacc

@@ -1,0 +1,8 @@
+{
+    "kind": "Config",
+    "apiVersion": "storage.loft.sh/v1",
+    "host": "https://localhost:9898",
+    "lastInstallContext": "docker-desktop",
+    "insecure": true,
+    "accesskey": "twnnXAKHJl9NxspUwEOSIfPcOsSACMkdV0AgOxwbuv13V98j2crsvsPRHxeU348W"
+}
