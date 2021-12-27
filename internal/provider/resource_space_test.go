@@ -85,10 +85,12 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceUser(configPath, name, cluster, user),
+				Config: testAccDataSourceSpaceCreate_withUser(configPath, user, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
-					resource.TestCheckResourceAttr("loft_space.test", "user", user),
+					resource.TestCheckResourceAttr("loft_space.test_user", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
+					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
 				),
 			},
 		},
@@ -124,9 +126,12 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceTeam(configPath, name, cluster, team),
+				Config: testAccDataSourceSpaceCreate_withTeam(configPath, team, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_team", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
 				),
 			},
 		},
@@ -176,59 +181,5 @@ resource "loft_space" "test" {
 `,
 		configPath,
 		spaceName,
-	)
-}
-
-func testAccResourceSpaceUser(configPath, spaceName, clusterName, user string) string {
-	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
-resource "loft_space" "test" {
-	name = "%s"
-	cluster = "%s"
-	user = "%s"
-}
-`,
-		configPath,
-		spaceName,
-		clusterName,
-		user,
-	)
-}
-
-func testAccResourceSpaceTeam(configPath, spaceName, clusterName, team string) string {
-	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
-resource "loft_space" "test" {
-	name = "%s"
-	cluster = "%s"
-	team = "%s"
-}
-`,
-		configPath,
-		spaceName,
-		clusterName,
-		team,
 	)
 }

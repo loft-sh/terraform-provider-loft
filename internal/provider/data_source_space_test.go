@@ -32,10 +32,10 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 			{
 				Config: testAccDataSourceSpaceCreate_withUser(configPath, user, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
-					resource.TestMatchResourceAttr("loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
-					resource.TestCheckResourceAttr("loft_space.test", "user", user),
-					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
+					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
+					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
 				),
 			},
 			{
@@ -82,10 +82,10 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 			{
 				Config: testAccDataSourceSpaceCreate_withTeam(configPath, team, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
-					resource.TestMatchResourceAttr("loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
-					resource.TestCheckResourceAttr("loft_space.test", "team", team),
-					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
+					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
+					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 				),
 			},
 			{
@@ -99,60 +99,6 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccDataSourceSpaceCreate_withUser(configPath string, user, clusterName, spaceName string) string {
-	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
-resource "loft_space" "test" {
-	name = "%s"
-	cluster = "%s"
-	user = "%s"
-}
-`,
-		configPath,
-		spaceName,
-		clusterName,
-		user,
-	)
-}
-
-func testAccDataSourceSpaceCreate_withTeam(configPath string, team, clusterName, spaceName string) string {
-	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
-resource "loft_space" "test" {
-	name = "%s"
-	cluster = "%s"
-	team = "%s"
-}
-`,
-		configPath,
-		spaceName,
-		clusterName,
-		team,
-	)
 }
 
 func testAccDataSourceSpaceRead(configPath string, clusterName, spaceName string) string {

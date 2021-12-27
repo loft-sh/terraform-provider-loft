@@ -31,7 +31,8 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"loft_space": dataSourceSpace(),
+				"loft_space":  dataSourceSpace(),
+				"loft_spaces": dataSourceSpaces(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"loft_space": resourceSpace(),
