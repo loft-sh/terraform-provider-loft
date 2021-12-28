@@ -1,11 +1,16 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
@@ -91,6 +96,7 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
+					checkSpace(configPath, cluster, name, hasUser(user)),
 				),
 			},
 		},
@@ -132,6 +138,79 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
+					checkSpace(configPath, cluster, name, hasTeam(team)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withAnnotations(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	annotation := names.SimpleNameGenerator.GenerateName("annotation-")
+	cluster := "loft-cluster"
+	user := "admin"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withAnnotations(configPath, cluster, name, annotation),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "annotations.loft.sh/test", annotation),
+					checkSpace(configPath, cluster, name, hasAnnotation("loft.sh/test", annotation)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withLabels(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	label := names.SimpleNameGenerator.GenerateName("annotation-")
+	cluster := "loft-cluster"
+	user := "admin"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withLabels(configPath, cluster, name, label),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_labels", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_labels", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_labels", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_labels", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_labels", "labels.loft.sh/test", label),
+					checkSpace(configPath, cluster, name, hasLabel("loft.sh/test", label)),
 				),
 			},
 		},
@@ -182,4 +261,79 @@ resource "loft_space" "test" {
 		configPath,
 		spaceName,
 	)
+}
+
+func checkSpace(configPath, clusterName, spaceName string, pred func(space *v1.Space) error) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		apiClient, err := client.NewClientFromPath(configPath)
+		if err != nil {
+			return err
+		}
+
+		clusterClient, err := apiClient.Cluster(clusterName)
+		if err != nil {
+			return err
+		}
+
+		space, err := clusterClient.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		return pred(space)
+	}
+}
+
+func hasAnnotation(annotation, value string) func(space *v1.Space) error {
+	return func(space *v1.Space) error {
+		if space.GetAnnotations()[annotation] != value {
+			return fmt.Errorf(
+				"%s: Annotation '%s' didn't match %q, got %#v",
+				space.GetName(),
+				annotation,
+				value,
+				space.GetLabels()[annotation])
+		}
+		return nil
+	}
+}
+
+func hasLabel(label, value string) func(space *v1.Space) error {
+	return func(space *v1.Space) error {
+		if space.GetLabels()[label] != value {
+			return fmt.Errorf(
+				"%s: Label '%s' didn't match %q, got %#v",
+				space.GetName(),
+				label,
+				value,
+				space.GetLabels()[label])
+		}
+		return nil
+	}
+}
+
+func hasUser(user string) func(space *v1.Space) error {
+	return func(space *v1.Space) error {
+		if space.Spec.User != user {
+			return fmt.Errorf(
+				"%s: User didn't match %q, got %#v",
+				space.GetName(),
+				user,
+				space.Spec.User)
+		}
+		return nil
+	}
+}
+
+func hasTeam(team string) func(space *v1.Space) error {
+	return func(space *v1.Space) error {
+		if space.Spec.Team != team {
+			return fmt.Errorf(
+				"%s: Team didn't match %q, got %#v",
+				space.GetName(),
+				team,
+				space.Spec.Team)
+		}
+		return nil
+	}
 }

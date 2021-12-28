@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -33,6 +34,16 @@ func resourceSpace() *schema.Resource {
 				Description: "The cluster where the space is managed",
 				Type:        schema.TypeString,
 				Required:    true,
+			},
+			"annotations": {
+				Description: "Annotations to configure on this space",
+				Type:        schema.TypeMap,
+				Optional:    true,
+			},
+			"labels": {
+				Description: "Labels to configure on this space",
+				Type:        schema.TypeMap,
+				Optional:    true,
 			},
 			"user": {
 				// This description is used by the documentation generator and the language server.
@@ -78,6 +89,24 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		Spec: agentv1.SpaceSpec{},
 	}
 	space.SetName(spaceName)
+
+	annotations := d.Get("annotations").(map[string]interface{})
+	if len(annotations) > 0 {
+		strAnnotations, err := flattenMap(annotations)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		space.SetAnnotations(strAnnotations)
+	}
+
+	labels := d.Get("labels").(map[string]interface{})
+	if len(labels) > 0 {
+		strLabels, err := flattenMap(labels)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		space.SetLabels(strLabels)
+	}
 
 	if user != "" {
 		space.Spec.User = user
@@ -158,4 +187,16 @@ func resourceSpaceDelete(ctx context.Context, d *schema.ResourceData, meta inter
 
 func generateSpaceId(clusterName, spaceName string) string {
 	return strings.Join([]string{clusterName, spaceName}, "/")
+}
+
+func flattenMap(rawMap map[string]interface{}) (map[string]string, error) {
+	strMap := map[string]string{}
+	for k, v := range rawMap {
+		str, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("non-string value used in map")
+		}
+		strMap[k] = str
+	}
+	return strMap, nil
 }
