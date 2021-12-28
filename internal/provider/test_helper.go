@@ -113,3 +113,111 @@ resource "loft_space" "test_labels" {
 		testLabel,
 	)
 }
+
+func testAccDataSourceSpaceCreate_withSleepAfter(configPath, clusterName, spaceName string, sleepAfter int) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_sleep_after" {
+	name = "%s"
+	cluster = "%s"
+	sleep_after = %d
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		sleepAfter,
+	)
+}
+
+func testAccDataSourceSpaceCreate_withDeleteAfter(configPath, clusterName, spaceName string, deleteAfter int) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_delete_after" {
+	name = "%s"
+	cluster = "%s"
+	delete_after = %d
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		deleteAfter,
+	)
+}
+
+func testAccDataSourceSpaceCreate_withScheduledSleep(configPath, clusterName, spaceName, sleepSchedule string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_sleep_schedule" {
+	name = "%s"
+	cluster = "%s"
+	sleep_schedule = "%s"
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		sleepSchedule,
+	)
+}
+
+func testAccDataSourceSpaceCreate_withScheduledWakeup(configPath, clusterName, spaceName, wakeSchedule string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_wakeup_schedule" {
+	name = "%s"
+	cluster = "%s"
+	wakeup_schedule = "%s"
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		wakeSchedule,
+	)
+}

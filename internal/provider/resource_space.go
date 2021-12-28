@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -45,18 +46,38 @@ func resourceSpace() *schema.Resource {
 				Type:        schema.TypeMap,
 				Optional:    true,
 			},
+			"sleep_after": {
+				// This description is used by the documentation generator and the language server.
+				Description: "If set to non zero, will tell the space to sleep after specified seconds of inactivity",
+				Type:        schema.TypeInt,
+				Optional:    true,
+			},
+			"delete_after": {
+				// This description is used by the documentation generator and the language server.
+				Description: "If set to non zero, will tell loft to delete the space after specified seconds of inactivity",
+				Type:        schema.TypeInt,
+				Optional:    true,
+			},
+			"sleep_schedule": {
+				Description: "Put the space to sleep at certain times. See crontab.guru for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
+			"wakeup_schedule": {
+				Description: "Wake up the space at certain times. See crontab.guru for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
 			"user": {
 				// This description is used by the documentation generator and the language server.
 				Description: "The user that owns this space",
 				Type:        schema.TypeString,
-				Required:    false,
 				Optional:    true,
 			},
 			"team": {
 				// This description is used by the documentation generator and the language server.
 				Description: "The team that owns this space",
 				Type:        schema.TypeString,
-				Required:    false,
 				Optional:    true,
 			},
 		},
@@ -79,24 +100,42 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 
-	user := d.Get("user").(string)
-	team := d.Get("team").(string)
-	if user != "" && team != "" {
-		return diag.Errorf("One of user or team expected.")
-	}
-
 	space := &agentv1.Space{
 		Spec: agentv1.SpaceSpec{},
 	}
 	space.SetName(spaceName)
 
-	annotations := d.Get("annotations").(map[string]interface{})
-	if len(annotations) > 0 {
-		strAnnotations, err := flattenMap(annotations)
+	rawAnnotations := d.Get("annotations").(map[string]interface{})
+	annotations := map[string]string{}
+	if len(rawAnnotations) > 0 {
+		annotations, err = flattenMap(rawAnnotations)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		space.SetAnnotations(strAnnotations)
+	}
+
+	sleepAfter := d.Get("sleep_after").(int)
+	if sleepAfter > 0 {
+		annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(sleepAfter)
+	}
+
+	deleteAfter := d.Get("delete_after").(int)
+	if deleteAfter > 0 {
+		annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(deleteAfter)
+	}
+
+	sleepSchedule := d.Get("sleep_schedule").(string)
+	if sleepSchedule != "" {
+		annotations[agentv1.SleepModeSleepScheduleAnnotation] = sleepSchedule
+	}
+
+	wakeupSchedule := d.Get("wakeup_schedule").(string)
+	if wakeupSchedule != "" {
+		annotations[agentv1.SleepModeWakeupScheduleAnnotation] = wakeupSchedule
+	}
+
+	if len(annotations) > 0 {
+		space.SetAnnotations(annotations)
 	}
 
 	labels := d.Get("labels").(map[string]interface{})
@@ -106,6 +145,12 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 			return diag.FromErr(err)
 		}
 		space.SetLabels(strLabels)
+	}
+
+	user := d.Get("user").(string)
+	team := d.Get("team").(string)
+	if user != "" && team != "" {
+		return diag.Errorf("One of user or team expected.")
 	}
 
 	if user != "" {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -211,6 +212,152 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_labels", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test_labels", "labels.loft.sh/test", label),
 					checkSpace(configPath, cluster, name, hasLabel("loft.sh/test", label)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withSleepAfter(t *testing.T) {
+	rxPosNum := regexp.MustCompile("^[1-9][0-9]*$")
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	sleepAfter := 60
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withSleepAfter(configPath, cluster, name, sleepAfter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "team", ""),
+					resource.TestMatchResourceAttr("loft_space.test_sleep_after", "sleep_after", rxPosNum),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, strconv.Itoa(sleepAfter))),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
+	rxPosNum := regexp.MustCompile("^[1-9][0-9]*$")
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	deleteAfter := 60
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withDeleteAfter(configPath, cluster, name, deleteAfter),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_delete_after", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_delete_after", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_delete_after", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_delete_after", "team", ""),
+					resource.TestMatchResourceAttr("loft_space.test_delete_after", "delete_after", rxPosNum),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, strconv.Itoa(deleteAfter))),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	sleepSchedule := "0 0 * * *"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withScheduledSleep(configPath, cluster, name, sleepSchedule),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_sleep_schedule", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_schedule", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_schedule", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_schedule", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_schedule", "sleep_schedule", sleepSchedule),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withWakeSchedule(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	wakeSchedule := "0 0 * * *"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withScheduledWakeup(configPath, cluster, name, wakeSchedule),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "wakeup_schedule", wakeSchedule),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule)),
 				),
 			},
 		},
