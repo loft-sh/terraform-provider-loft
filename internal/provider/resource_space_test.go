@@ -100,6 +100,11 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 					checkSpace(configPath, cluster, name, hasUser(user)),
 				),
 			},
+			{
+				ResourceName:      "loft_space.test_user",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -142,6 +147,11 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 					checkSpace(configPath, cluster, name, hasTeam(team)),
 				),
 			},
+			{
+				ResourceName:      "loft_space.test_team",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -174,9 +184,14 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_annotations", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_annotations", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_annotations", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test_annotations", "annotations.loft.sh/test", annotation),
-					checkSpace(configPath, cluster, name, hasAnnotation("loft.sh/test", annotation)),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "annotations.some.domain/test", annotation),
+					checkSpace(configPath, cluster, name, hasAnnotation("some.domain/test", annotation)),
 				),
+			},
+			{
+				ResourceName:      "loft_space.test_annotations",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -210,16 +225,20 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_labels", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_labels", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_labels", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test_labels", "labels.loft.sh/test", label),
-					checkSpace(configPath, cluster, name, hasLabel("loft.sh/test", label)),
+					resource.TestCheckResourceAttr("loft_space.test_labels", "labels.some.domain/test", label),
+					checkSpace(configPath, cluster, name, hasLabel("some.domain/test", label)),
 				),
+			},
+			{
+				ResourceName:      "loft_space.test_labels",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccResourceSpace_withSleepAfter(t *testing.T) {
-	rxPosNum := regexp.MustCompile("^[1-9][0-9]*$")
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -247,16 +266,20 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "team", ""),
-					resource.TestMatchResourceAttr("loft_space.test_sleep_after", "sleep_after", rxPosNum),
+					resource.TestCheckResourceAttr("loft_space.test_sleep_after", "sleep_after", strconv.Itoa(sleepAfter)),
 					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, strconv.Itoa(sleepAfter))),
 				),
+			},
+			{
+				ResourceName:      "loft_space.test_sleep_after",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
-	rxPosNum := regexp.MustCompile("^[1-9][0-9]*$")
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -284,9 +307,14 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_delete_after", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_delete_after", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_delete_after", "team", ""),
-					resource.TestMatchResourceAttr("loft_space.test_delete_after", "delete_after", rxPosNum),
+					resource.TestCheckResourceAttr("loft_space.test_delete_after", "delete_after", strconv.Itoa(deleteAfter)),
 					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, strconv.Itoa(deleteAfter))),
 				),
+			},
+			{
+				ResourceName:      "loft_space.test_delete_after",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -324,6 +352,11 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule)),
 				),
 			},
+			{
+				ResourceName:      "loft_space.test_sleep_schedule",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -359,6 +392,11 @@ func TestAccResourceSpace_withWakeSchedule(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_wakeup_schedule", "wakeup_schedule", wakeSchedule),
 					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule)),
 				),
+			},
+			{
+				ResourceName:      "loft_space.test_wakeup_schedule",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -74,7 +74,7 @@ resource "loft_space" "test_annotations" {
 	name = "%s"
 	cluster = "%s"
 	annotations = {
-		"loft.sh/test" = "%s"
+		"some.domain/test" = "%s"
 	}
 }
 `,
@@ -103,7 +103,7 @@ resource "loft_space" "test_labels" {
 	name = "%s"
 	cluster = "%s"
 	labels = {
-		"loft.sh/test" = "%s"
+		"some.domain/test" = "%s"
 	}
 }
 `,

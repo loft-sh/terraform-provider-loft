@@ -2,9 +2,7 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -22,65 +20,10 @@ func resourceSpace() *schema.Resource {
 		ReadContext:   resourceSpaceRead,
 		UpdateContext: resourceSpaceUpdate,
 		DeleteContext: resourceSpaceDelete,
-
-		Schema: map[string]*schema.Schema{
-			"name": {
-				// This description is used by the documentation generator and the language server.
-				Description: "The name of the space",
-				Type:        schema.TypeString,
-				Required:    true,
-			},
-			"cluster": {
-				// This description is used by the documentation generator and the language server.
-				Description: "The cluster where the space is managed",
-				Type:        schema.TypeString,
-				Required:    true,
-			},
-			"annotations": {
-				Description: "Annotations to configure on this space",
-				Type:        schema.TypeMap,
-				Optional:    true,
-			},
-			"labels": {
-				Description: "Labels to configure on this space",
-				Type:        schema.TypeMap,
-				Optional:    true,
-			},
-			"sleep_after": {
-				// This description is used by the documentation generator and the language server.
-				Description: "If set to non zero, will tell the space to sleep after specified seconds of inactivity",
-				Type:        schema.TypeInt,
-				Optional:    true,
-			},
-			"delete_after": {
-				// This description is used by the documentation generator and the language server.
-				Description: "If set to non zero, will tell loft to delete the space after specified seconds of inactivity",
-				Type:        schema.TypeInt,
-				Optional:    true,
-			},
-			"sleep_schedule": {
-				Description: "Put the space to sleep at certain times. See crontab.guru for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
-			"wakeup_schedule": {
-				Description: "Wake up the space at certain times. See crontab.guru for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
-			"user": {
-				// This description is used by the documentation generator and the language server.
-				Description: "The user that owns this space",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
-			"team": {
-				// This description is used by the documentation generator and the language server.
-				Description: "The team that owns this space",
-				Type:        schema.TypeString,
-				Optional:    true,
-			},
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
 		},
+		Schema: spaceAttributes(),
 	}
 }
 
@@ -108,7 +51,7 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	rawAnnotations := d.Get("annotations").(map[string]interface{})
 	annotations := map[string]string{}
 	if len(rawAnnotations) > 0 {
-		annotations, err = flattenMap(rawAnnotations)
+		annotations, err = attributesToMap(rawAnnotations)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -134,13 +77,11 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		annotations[agentv1.SleepModeWakeupScheduleAnnotation] = wakeupSchedule
 	}
 
-	if len(annotations) > 0 {
-		space.SetAnnotations(annotations)
-	}
+	space.SetAnnotations(annotations)
 
 	labels := d.Get("labels").(map[string]interface{})
 	if len(labels) > 0 {
-		strLabels, err := flattenMap(labels)
+		strLabels, err := attributesToMap(labels)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -176,14 +117,12 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 func resourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	spaceName := d.Get("name").(string)
-	clusterName := d.Get("cluster").(string)
-
 	apiClient, ok := meta.(*apiClient)
 	if !ok {
 		return diag.Errorf("Could not access apiClient")
 	}
 
+	clusterName, spaceName := parseSpaceId(d.Id())
 	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
@@ -194,9 +133,10 @@ func resourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.FromErr(err)
 	}
 
-	d.SetId(generateSpaceId(clusterName, space.GetName()))
-	d.Set("user", space.Spec.User)
-	d.Set("team", space.Spec.Team)
+	err = readSpace(clusterName, space, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -228,20 +168,4 @@ func resourceSpaceDelete(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	return nil
-}
-
-func generateSpaceId(clusterName, spaceName string) string {
-	return strings.Join([]string{clusterName, spaceName}, "/")
-}
-
-func flattenMap(rawMap map[string]interface{}) (map[string]string, error) {
-	strMap := map[string]string{}
-	for k, v := range rawMap {
-		str, ok := v.(string)
-		if !ok {
-			return nil, fmt.Errorf("non-string value used in map")
-		}
-		strMap[k] = str
-	}
-	return strMap, nil
 }
