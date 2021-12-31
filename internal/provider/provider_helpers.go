@@ -98,3 +98,29 @@ func contains(s []string, str string) bool {
 
 	return false
 }
+
+func getAddedModifiedAndDeleted(old map[string]interface{}, new map[string]interface{}) (map[string]interface{}, map[string]interface{}, map[string]interface{}, error) {
+	added := map[string]interface{}{}
+	modified := map[string]interface{}{}
+	deleted := map[string]interface{}{}
+
+	for k, v := range new {
+		_, oldHasKey := old[k]
+		if !oldHasKey {
+			added[k] = v
+		}
+
+		if oldHasKey {
+			modified[k] = v
+		}
+	}
+
+	for k, v := range old {
+		_, newHasKey := new[k]
+		if !newHasKey {
+			deleted[k] = v
+		}
+	}
+
+	return added, modified, deleted, nil
+}

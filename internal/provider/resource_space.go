@@ -2,10 +2,12 @@ package provider
 
 import (
 	"context"
+	// "fmt"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,11 +52,9 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 
 	rawAnnotations := d.Get("annotations").(map[string]interface{})
 	annotations := map[string]string{}
-	if len(rawAnnotations) > 0 {
-		annotations, err = attributesToMap(rawAnnotations)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+	annotations, err = attributesToMap(rawAnnotations)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	sleepAfter := d.Get("sleep_after").(int)
@@ -107,16 +107,15 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 
-	d.SetId(generateSpaceId(clusterName, space.GetName()))
-	d.Set("user", space.Spec.User)
-	d.Set("team", space.Spec.Team)
+	err = readSpace(clusterName, space, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
 
 func resourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	apiClient, ok := meta.(*apiClient)
 	if !ok {
 		return diag.Errorf("Could not access apiClient")
@@ -138,14 +137,161 @@ func resourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.FromErr(err)
 	}
 
-	return diags
+	return nil
 }
 
 func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
+	apiClient, ok := meta.(*apiClient)
+	if !ok {
+		return diag.Errorf("Could not access apiClient")
+	}
 
-	return diag.Errorf("update not implemented")
+	clusterName, spaceName := parseSpaceId(d.Id())
+	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	oldSpace, err := clusterClient.Agent().ClusterV1().Spaces().Get(ctx, spaceName, metav1.GetOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	modifiedSpace := oldSpace.DeepCopy()
+
+	if d.HasChange("user") {
+		_, newUser := d.GetChange("user")
+		modifiedSpace.Spec.User = newUser.(string)
+	}
+
+	if d.HasChange("team") {
+		_, newTeam := d.GetChange("team")
+		modifiedSpace.Spec.Team = newTeam.(string)
+	}
+
+	if d.HasChange("annotations") {
+		oldAnnotations, newAnnotations := d.GetChange("annotations")
+
+		added, modified, deleted, err := getAddedModifiedAndDeleted(
+			oldAnnotations.(map[string]interface{}),
+			newAnnotations.(map[string]interface{}),
+		)
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		for k, v := range added {
+			modifiedSpace.Annotations[k] = v.(string)
+		}
+
+		for k, v := range modified {
+			modifiedSpace.Annotations[k] = v.(string)
+		}
+
+		for k, _ := range deleted {
+			delete(modifiedSpace.Annotations, k)
+		}
+	}
+
+	if d.HasChange("labels") {
+		oldLabels, newLabels := d.GetChange("labels")
+
+		added, modified, deleted, err := getAddedModifiedAndDeleted(
+			oldLabels.(map[string]interface{}),
+			newLabels.(map[string]interface{}),
+		)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		for k, v := range added {
+			modifiedSpace.Labels[k] = v.(string)
+		}
+
+		for k, v := range modified {
+			modifiedSpace.Labels[k] = v.(string)
+		}
+
+		for k, _ := range deleted {
+			delete(modifiedSpace.Labels, k)
+		}
+	}
+
+	if d.HasChange("sleep_after") {
+		_, newSleepAfter := d.GetChange("sleep_after")
+		sleepAfter, ok := newSleepAfter.(int)
+		if !ok {
+			return diag.Errorf("sleep_after value is not a string")
+		}
+
+		if sleepAfter > 0 {
+			modifiedSpace.Annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(sleepAfter)
+		} else {
+			delete(modifiedSpace.Annotations, agentv1.SleepModeSleepAfterAnnotation)
+		}
+	}
+
+	if d.HasChange("delete_after") {
+		_, newDeleteAfter := d.GetChange("delete_after")
+		deleteAfter, ok := newDeleteAfter.(int)
+		if !ok {
+			return diag.Errorf("delete_after value is not a string")
+		}
+
+		if deleteAfter > 0 {
+			modifiedSpace.Annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(deleteAfter)
+		} else {
+			delete(modifiedSpace.Annotations, agentv1.SleepModeDeleteAfterAnnotation)
+		}
+	}
+
+	if d.HasChange("sleep_schedule") {
+		_, newSleepSchedule := d.GetChange("sleep_schedule")
+		sleepSchedule, ok := newSleepSchedule.(string)
+		if !ok {
+			return diag.Errorf("sleep_schedule value is not a string")
+		}
+
+		if sleepSchedule != "" {
+			modifiedSpace.Annotations[agentv1.SleepModeSleepScheduleAnnotation] = sleepSchedule
+		} else {
+			delete(modifiedSpace.Annotations, agentv1.SleepModeSleepScheduleAnnotation)
+		}
+	}
+
+	if d.HasChange("wakeup_schedule") {
+		_, newWakeupSchedule := d.GetChange("wakeup_schedule")
+		wakeupSchedule, ok := newWakeupSchedule.(string)
+		if !ok {
+			return diag.Errorf("wakeup_schedule value is not a string")
+		}
+
+		if wakeupSchedule != "" {
+			modifiedSpace.Annotations[agentv1.SleepModeWakeupScheduleAnnotation] = wakeupSchedule
+		} else {
+			delete(modifiedSpace.Annotations, agentv1.SleepModeWakeupScheduleAnnotation)
+		}
+	}
+
+	patch := client.MergeFrom(oldSpace)
+	rawPatch, err := patch.Data(modifiedSpace)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	space, err := clusterClient.Agent().ClusterV1().Spaces().Patch(ctx, spaceName, patch.Type(), rawPatch, metav1.PatchOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = readSpace(clusterName, space, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func resourceSpaceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

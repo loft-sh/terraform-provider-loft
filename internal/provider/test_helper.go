@@ -2,6 +2,31 @@ package provider
 
 import "fmt"
 
+func testAccDataSourceSpaceCreate_withoutUserOrTeam(configPath string, clusterName, spaceName string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test" {
+	name = "%s"
+	cluster = "%s"
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+	)
+}
+
 func testAccDataSourceSpaceCreate_withUser(configPath string, user, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
@@ -70,7 +95,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_annotations" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	annotations = {
@@ -99,7 +124,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_labels" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	labels = {
@@ -128,7 +153,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_sleep_after" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	sleep_after = %d
@@ -155,7 +180,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_delete_after" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	delete_after = %d
@@ -182,7 +207,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_sleep_schedule" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	sleep_schedule = "%s"
@@ -209,7 +234,7 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_wakeup_schedule" {
+resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
 	wakeup_schedule = "%s"

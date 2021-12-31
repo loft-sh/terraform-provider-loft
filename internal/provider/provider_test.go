@@ -110,7 +110,7 @@ func newKubeClient() (kube.Interface, error) {
 }
 
 func createUserAccessKey(c kube.Interface, user string, accessKey string) (*v1.OwnedAccessKey, error) {
-	owner, err := c.Loft().ManagementV1().Users().Get(context.Background(), user, metav1.GetOptions{})
+	owner, err := c.Loft().ManagementV1().Users().Get(context.TODO(), user, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -128,14 +128,14 @@ func createUserAccessKey(c kube.Interface, user string, accessKey string) (*v1.O
 	ownedAccessKey.SetGenerateName(ownerAccessKeyName)
 	controllerutil.SetControllerReference(owner, ownedAccessKey, scheme.Scheme)
 
-	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.Background(), ownedAccessKey, metav1.CreateOptions{})
+	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.Background(), ownerAccessKeyName, metav1.DeleteOptions{})
+		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), ownerAccessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.Background(), ownedAccessKey, metav1.CreateOptions{})
+		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +149,7 @@ func createUserAccessKey(c kube.Interface, user string, accessKey string) (*v1.O
 }
 
 func createTeamAccessKey(c kube.Interface, team string, accessKey string) (*v1.OwnedAccessKey, error) {
-	owner, err := c.Loft().ManagementV1().Teams().Get(context.Background(), team, metav1.GetOptions{})
+	owner, err := c.Loft().ManagementV1().Teams().Get(context.TODO(), team, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -167,14 +167,14 @@ func createTeamAccessKey(c kube.Interface, team string, accessKey string) (*v1.O
 	ownedAccessKey.SetGenerateName(ownerAccessKeyName)
 	controllerutil.SetControllerReference(owner, ownedAccessKey, scheme.Scheme)
 
-	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.Background(), ownedAccessKey, metav1.CreateOptions{})
+	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.Background(), ownerAccessKeyName, metav1.DeleteOptions{})
+		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), ownerAccessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.Background(), ownedAccessKey, metav1.CreateOptions{})
+		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func createTeamAccessKey(c kube.Interface, team string, accessKey string) (*v1.O
 }
 
 func deleteAccessKey(c kube.Interface, accessKey *v1.OwnedAccessKey) error {
-	err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.Background(), accessKey.GetName(), metav1.DeleteOptions{})
+	err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
 	if err != nil && errors.IsNotFound(err) {
 		return err
 	}
