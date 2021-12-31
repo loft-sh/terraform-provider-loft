@@ -79,14 +79,18 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 
 	space.SetAnnotations(annotations)
 
-	labels := d.Get("labels").(map[string]interface{})
-	if len(labels) > 0 {
-		strLabels, err := attributesToMap(labels)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		space.SetLabels(strLabels)
+	rawLabels := d.Get("labels").(map[string]interface{})
+	labels, err := attributesToMap(rawLabels)
+	if err != nil {
+		return diag.FromErr(err)
 	}
+
+	spaceConstraints := d.Get("space_constraints").(string)
+	if spaceConstraints != "" {
+		labels[SpaceLabelSpaceConstraints] = spaceConstraints
+	}
+
+	space.SetLabels(labels)
 
 	user := d.Get("user").(string)
 	team := d.Get("team").(string)
@@ -223,7 +227,7 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		_, newSleepAfter := d.GetChange("sleep_after")
 		sleepAfter, ok := newSleepAfter.(int)
 		if !ok {
-			return diag.Errorf("sleep_after value is not a string")
+			return diag.Errorf("sleep_after value is not an integer")
 		}
 
 		if sleepAfter > 0 {
@@ -237,7 +241,7 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		_, newDeleteAfter := d.GetChange("delete_after")
 		deleteAfter, ok := newDeleteAfter.(int)
 		if !ok {
-			return diag.Errorf("delete_after value is not a string")
+			return diag.Errorf("delete_after value is not an integer")
 		}
 
 		if deleteAfter > 0 {
@@ -272,6 +276,20 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 			modifiedSpace.Annotations[agentv1.SleepModeWakeupScheduleAnnotation] = wakeupSchedule
 		} else {
 			delete(modifiedSpace.Annotations, agentv1.SleepModeWakeupScheduleAnnotation)
+		}
+	}
+
+	if d.HasChange("space_constraints") {
+		_, newSpaceConstraints := d.GetChange("space_constraints")
+		spaceConstraints, ok := newSpaceConstraints.(string)
+		if !ok {
+			return diag.Errorf("space_constraints value is not a string")
+		}
+
+		if spaceConstraints != "" {
+			modifiedSpace.Labels[SpaceLabelSpaceConstraints] = spaceConstraints
+		} else {
+			delete(modifiedSpace.Labels, SpaceLabelSpaceConstraints)
 		}
 	}
 

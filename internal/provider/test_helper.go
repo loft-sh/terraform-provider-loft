@@ -246,3 +246,30 @@ resource "loft_space" "test" {
 		wakeSchedule,
 	)
 }
+
+func testAccDataSourceSpaceCreate_withSpaceConstraints(configPath, clusterName, spaceName, spaceConstraints string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test" {
+	name = "%s"
+	cluster = "%s"
+	space_constraints = "%s"
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		spaceConstraints,
+	)
+}

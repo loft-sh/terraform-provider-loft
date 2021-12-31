@@ -8,6 +8,11 @@ import (
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 )
 
+const (
+	SpaceLabelSpaceConstraints = "loft.sh/space-constraints"
+	DefaultSpaceConstraints    = "default"
+)
+
 func generateSpaceId(clusterName, spaceName string) string {
 	return strings.Join([]string{clusterName, spaceName}, "/")
 }
@@ -68,6 +73,11 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"wakeup_schedule": {
 			Description: "Wake up the space at certain times. See crontab.guru for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
+			Type:        schema.TypeString,
+			Optional:    true,
+		},
+		"space_constraints": {
+			Description: "Space Constraints are resources, permissions or namespace metadata that is applied and synced automatically into the space. This is useful to ensure certain Kubernetes objects are present in each namespace to provide namespace isolation or to ensure certain labels or annotations are set on the namespace of the user.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
@@ -136,7 +146,14 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 
 	d.Set("annotations", annotations)
 
-	safeLabels := removeInternalKeys(space.GetLabels(), map[string]interface{}{})
+	rawLabels := space.GetLabels()
+	if rawLabels[SpaceLabelSpaceConstraints] != DefaultSpaceConstraints {
+		spaceConstraints := rawLabels[SpaceLabelSpaceConstraints]
+		delete(rawLabels, SpaceLabelSpaceConstraints)
+		d.Set("space_constraints", spaceConstraints)
+	}
+
+	safeLabels := removeInternalKeys(rawLabels, map[string]interface{}{})
 	labels, err := mapToAttributes(safeLabels)
 	if err != nil {
 		return err

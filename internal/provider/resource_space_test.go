@@ -16,8 +16,6 @@ import (
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
-const SpaceLabelSpaceConstraints = "loft.sh/space-constraints"
-
 func TestAccResourceSpace_noName(t *testing.T) {
 	cluster := "loft-cluster"
 
@@ -624,6 +622,83 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"wakeup_schedule"},
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	spaceConstraints := "default"
+	spaceConstraints2 := "isolated"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withSpaceConstraints(configPath, cluster, name, spaceConstraints),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints),
+					checkSpace(configPath, cluster, name, hasLabel(SpaceLabelSpaceConstraints, spaceConstraints)),
+				),
+			},
+			{
+				ResourceName:            "loft_space.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"space_constraints"},
+			},
+			{
+				Config: testAccDataSourceSpaceCreate_withSpaceConstraints(configPath, cluster, name, spaceConstraints2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints2),
+					checkSpace(configPath, cluster, name, hasLabel(SpaceLabelSpaceConstraints, spaceConstraints2)),
+				),
+			},
+			{
+				ResourceName:            "loft_space.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"space_constraints"},
+			},
+			{
+				Config: testAccDataSourceSpaceCreate_withoutUserOrTeam(configPath, cluster, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", ""),
+					checkSpace(configPath, cluster, name, noLabel(SpaceLabelSpaceConstraints)),
+				),
+			},
+			{
+				ResourceName:            "loft_space.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"space_constraints"},
 			},
 		},
 	})
