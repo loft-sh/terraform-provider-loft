@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -53,19 +54,51 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	spaces := []map[string]string{}
+	spaces := []map[string]interface{}{}
 	for _, space := range spacesList.Items {
-		spaces = append(spaces, map[string]string{
-			// "id":      fmt.Sprint(idx),
-			"name":    space.GetName(),
-			"cluster": clusterName,
-			"user":    space.Spec.User,
-			"team":    space.Spec.Team,
-		})
+		flattenedSpace, err := flattenSpace(clusterName, space)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		spaces = append(spaces, flattenedSpace)
+
+		// flatSpace :=
+
+		// spaces = append(spaces, map[string]string{
+		// 	// "id":      fmt.Sprint(idx),
+		// 	"name":    space.GetName(),
+		// 	"cluster": clusterName,
+		// 	"user":    space.Spec.User,
+		// 	"team":    space.Spec.Team,
+		// })
 	}
 
 	spaceId := strings.Join([]string{clusterName, "spaces"}, "/")
 	d.SetId(spaceId)
 	d.Set("spaces", spaces)
 	return diags
+}
+
+func flattenSpace(clusterName string, space v1.Space) (map[string]interface{}, error) {
+	flattenedSpace := map[string]interface{}{
+		"name":    space.GetName(),
+		"cluster": clusterName,
+		"user":    space.Spec.User,
+		"team":    space.Spec.Team,
+	}
+
+	rawAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
+	annotations, err := mapToAttributes(rawAnnotations)
+	if err != nil {
+		return nil, err
+	}
+
+	flattenedSpace["annotations"] = annotations
+	// annotations := map[string]string{}
+	// for k, v := range annotations {
+	// 	flattenedSpace[strings.Join([]string{"annotations", k}, ".")] = v.(string)
+	// }
+	// fmt.Printf("%+v\n", flatSpace)
+
+	return flattenedSpace, nil
 }
