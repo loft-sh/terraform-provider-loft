@@ -119,7 +119,6 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		delete(annotations, agentv1.SleepModeSleepAfterAnnotation)
 		d.Set("sleep_after", sleepAfter)
 	}
 
@@ -128,19 +127,16 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		delete(annotations, agentv1.SleepModeDeleteAfterAnnotation)
 		d.Set("delete_after", deleteAfter)
 	}
 
 	if safeAnnotations[agentv1.SleepModeSleepScheduleAnnotation] != "" {
 		sleepSchedule := safeAnnotations[agentv1.SleepModeSleepScheduleAnnotation]
-		delete(annotations, agentv1.SleepModeSleepScheduleAnnotation)
 		d.Set("sleep_schedule", sleepSchedule)
 	}
 
 	if safeAnnotations[agentv1.SleepModeWakeupScheduleAnnotation] != "" {
 		wakeupSchedule := safeAnnotations[agentv1.SleepModeWakeupScheduleAnnotation]
-		delete(annotations, agentv1.SleepModeWakeupScheduleAnnotation)
 		d.Set("wakeup_schedule", wakeupSchedule)
 	}
 
@@ -149,7 +145,6 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	rawLabels := space.GetLabels()
 	if rawLabels[SpaceLabelSpaceConstraints] != DefaultSpaceConstraints {
 		spaceConstraints := rawLabels[SpaceLabelSpaceConstraints]
-		delete(rawLabels, SpaceLabelSpaceConstraints)
 		d.Set("space_constraints", spaceConstraints)
 	}
 
