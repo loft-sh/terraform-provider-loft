@@ -4,16 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-
-	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 )
-
-var allowedLoftAnnotations = []string{
-	v1.SleepModeSleepAfterAnnotation,
-	v1.SleepModeDeleteAfterAnnotation,
-	v1.SleepModeSleepScheduleAnnotation,
-	v1.SleepModeWakeupScheduleAnnotation,
-}
 
 func attributesToMap(rawMap map[string]interface{}) (map[string]string, error) {
 	strMap := map[string]string{}
@@ -79,21 +70,7 @@ func isInternalKey(annotationKey string) bool {
 
 	// internal *.loft.sh keys
 	if strings.HasSuffix(u.Hostname(), "loft.sh") {
-		if contains(allowedLoftAnnotations, annotationKey) {
-			return false
-		}
-
 		return true
-	}
-
-	return false
-}
-
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
 	}
 
 	return false

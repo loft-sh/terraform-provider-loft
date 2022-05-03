@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
-	v1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
 	"github.com/loft-sh/api/v2/pkg/client/clientset_generated/clientset/scheme"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
@@ -44,7 +43,7 @@ func testAccPreCheck(t *testing.T) {
 	// function.
 }
 
-func loginUser(c kube.Interface, user string) (client.Client, *v1.OwnedAccessKey, string, error) {
+func loginUser(c kube.Interface, user string) (client.Client, *storagev1.AccessKey, string, error) {
 	uuid := uuid.NewUUID()
 
 	accessKey, err := createUserAccessKey(c, user, string(uuid))
@@ -60,7 +59,7 @@ func loginUser(c kube.Interface, user string) (client.Client, *v1.OwnedAccessKey
 	return client, accessKey, configPath, nil
 }
 
-func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team string) (*v1.OwnedAccessKey, *agentv1.LocalClusterAccess, string, error) {
+func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team string) (*storagev1.AccessKey, *agentv1.LocalClusterAccess, string, error) {
 	teamAccess := fmt.Sprintf("%s-access", team)
 
 	clusterAccess, err := createTeamClusterAccess(loftClient, clusterName, teamAccess, team)
@@ -82,7 +81,7 @@ func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team str
 	return accessKey, clusterAccess, configPath, nil
 }
 
-func logout(c kube.Interface, accessKey *v1.OwnedAccessKey) error {
+func logout(c kube.Interface, accessKey *storagev1.AccessKey) error {
 	err := deleteAccessKey(c, accessKey)
 	if err != nil {
 		return err
@@ -101,6 +100,8 @@ func newKubeClient() (kube.Interface, error) {
 		kubeConfig = filepath.Join(homeDir, ".kube", "config")
 	}
 
+	fmt.Println(kubeConfig)
+
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	if err != nil {
 		return nil, err
@@ -109,33 +110,33 @@ func newKubeClient() (kube.Interface, error) {
 	return kube.NewForConfig(config)
 }
 
-func createUserAccessKey(c kube.Interface, user string, accessKey string) (*v1.OwnedAccessKey, error) {
-	owner, err := c.Loft().ManagementV1().Users().Get(context.TODO(), user, metav1.GetOptions{})
+func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.AccessKey, error) {
+	owner, err := c.Loft().StorageV1().Users().Get(context.TODO(), user, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	ownerAccessKeyName := owner.Spec.Username + "-terraform"
+	accessKeyName := owner.Spec.Username + "-terraform"
 
-	ownedAccessKey := &v1.OwnedAccessKey{
-		Spec: v1.OwnedAccessKeySpec{
-			AccessKeySpec: storagev1.AccessKeySpec{
-				DisplayName: "terraform-provider-loft-tests",
-				User:        user,
-			},
+	accessKey := &storagev1.AccessKey{
+		Spec: storagev1.AccessKeySpec{
+			DisplayName: "terraform-provider-loft-tests",
+			Type:        storagev1.AccessKeyTypeLogin,
+			Key:         key,
+			User:        user,
 		},
 	}
-	ownedAccessKey.SetGenerateName(ownerAccessKeyName)
-	controllerutil.SetControllerReference(owner, ownedAccessKey, scheme.Scheme)
+	accessKey.SetGenerateName(accessKeyName)
+	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
 
-	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
+	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), ownerAccessKeyName, metav1.DeleteOptions{})
+		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
+		accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -145,36 +146,36 @@ func createUserAccessKey(c kube.Interface, user string, accessKey string) (*v1.O
 		return nil, err
 	}
 
-	return ownerAccessKey, nil
+	return accessKey, nil
 }
 
-func createTeamAccessKey(c kube.Interface, team string, accessKey string) (*v1.OwnedAccessKey, error) {
-	owner, err := c.Loft().ManagementV1().Teams().Get(context.TODO(), team, metav1.GetOptions{})
+func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.AccessKey, error) {
+	owner, err := c.Loft().StorageV1().Teams().Get(context.TODO(), team, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	ownerAccessKeyName := owner.Spec.Username + "-terraform"
+	accessKeyName := owner.Spec.Username + "-terraform"
 
-	ownedAccessKey := &v1.OwnedAccessKey{
-		Spec: v1.OwnedAccessKeySpec{
-			AccessKeySpec: storagev1.AccessKeySpec{
-				DisplayName: "terraform-provider-loft-tests",
-				Team:        team,
-			},
+	accessKey := &storagev1.AccessKey{
+		Spec: storagev1.AccessKeySpec{
+			DisplayName: "terraform-provider-loft-tests",
+			Type:        storagev1.AccessKeyTypeLogin,
+			Key:         key,
+			Team:        team,
 		},
 	}
-	ownedAccessKey.SetGenerateName(ownerAccessKeyName)
-	controllerutil.SetControllerReference(owner, ownedAccessKey, scheme.Scheme)
+	accessKey.SetGenerateName(accessKeyName)
+	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
 
-	ownerAccessKey, err := c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
+	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), ownerAccessKeyName, metav1.DeleteOptions{})
+		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		ownerAccessKey, err = c.Loft().ManagementV1().OwnedAccessKeys().Create(context.TODO(), ownedAccessKey, metav1.CreateOptions{})
+		accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -184,11 +185,11 @@ func createTeamAccessKey(c kube.Interface, team string, accessKey string) (*v1.O
 		return nil, err
 	}
 
-	return ownerAccessKey, nil
+	return accessKey, nil
 }
 
-func deleteAccessKey(c kube.Interface, accessKey *v1.OwnedAccessKey) error {
-	err := c.Loft().ManagementV1().OwnedAccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
+func deleteAccessKey(c kube.Interface, accessKey *storagev1.AccessKey) error {
+	err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
 	if err != nil && errors.IsNotFound(err) {
 		return err
 	}

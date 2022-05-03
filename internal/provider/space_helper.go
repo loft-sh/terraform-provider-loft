@@ -108,38 +108,38 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	d.Set("user", space.Spec.User)
 	d.Set("team", space.Spec.Team)
 
-	safeAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
-	annotations, err := mapToAttributes(safeAnnotations)
-	if err != nil {
-		return err
-	}
-
-	if safeAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
-		sleepAfter, err := strconv.Atoi(safeAnnotations[agentv1.SleepModeSleepAfterAnnotation])
+	rawAnnotations := space.GetAnnotations()
+	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
+		sleepAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeSleepAfterAnnotation])
 		if err != nil {
 			return err
 		}
 		d.Set("sleep_after", sleepAfter)
 	}
 
-	if safeAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
-		deleteAfter, err := strconv.Atoi(safeAnnotations[agentv1.SleepModeDeleteAfterAnnotation])
+	if rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
+		deleteAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation])
 		if err != nil {
 			return err
 		}
 		d.Set("delete_after", deleteAfter)
 	}
 
-	if safeAnnotations[agentv1.SleepModeSleepScheduleAnnotation] != "" {
-		sleepSchedule := safeAnnotations[agentv1.SleepModeSleepScheduleAnnotation]
+	if rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation] != "" {
+		sleepSchedule := rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation]
 		d.Set("sleep_schedule", sleepSchedule)
 	}
 
-	if safeAnnotations[agentv1.SleepModeWakeupScheduleAnnotation] != "" {
-		wakeupSchedule := safeAnnotations[agentv1.SleepModeWakeupScheduleAnnotation]
+	if rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation] != "" {
+		wakeupSchedule := rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation]
 		d.Set("wakeup_schedule", wakeupSchedule)
 	}
 
+	safeAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
+	annotations, err := mapToAttributes(safeAnnotations)
+	if err != nil {
+		return err
+	}
 	d.Set("annotations", annotations)
 
 	rawLabels := space.GetLabels()
