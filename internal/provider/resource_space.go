@@ -50,8 +50,7 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	space.SetName(spaceName)
 
 	rawAnnotations := d.Get("annotations").(map[string]interface{})
-	annotations := map[string]string{}
-	annotations, err = attributesToMap(rawAnnotations)
+	annotations, err := attributesToMap(rawAnnotations)
 	if err != nil {
 		return diag.FromErr(err)
 	}
