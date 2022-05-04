@@ -4,9 +4,9 @@ go 1.17
 
 require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.14.0
-	github.com/loft-sh/agentapi/v2 v2.1.8
-	github.com/loft-sh/api/v2 v2.1.8
-	github.com/loft-sh/loftctl/v2 v2.1.8
+	github.com/loft-sh/agentapi/v2 v2.1.5-0.20220429151746-99aad001638d
+	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20220429151752-00cedd4b61d5
+	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20220429152018-ae56d3effdd8
 	k8s.io/api v0.23.5
 	k8s.io/apimachinery v0.23.5
 	k8s.io/apiserver v0.23.5
@@ -154,5 +154,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/loft-sh/agentapi/v2 => ../loft-enterprise/staging/src/github.com/loft-sh/agentapi/v2
