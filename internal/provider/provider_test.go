@@ -6,9 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
@@ -18,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -41,6 +45,32 @@ func testAccPreCheck(t *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
 	// about the appropriate environment variables being set are common to see in a pre-check
 	// function.
+}
+
+func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) error {
+	return func(s *terraform.State) error {
+		spaces := []string{}
+		for _, resource := range s.RootModule().Resources {
+			spaces = append(spaces, resource.Primary.ID)
+		}
+
+		for _, spacePath := range spaces {
+			tokens := strings.Split(spacePath, "/")
+			spaceName := tokens[1]
+
+			err := wait.PollImmediate(1*time.Second, 60*time.Second, func() (bool, error) {
+				_, err := client.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
+				if errors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }
 
 func loginUser(c kube.Interface, user string) (client.Client, *storagev1.AccessKey, string, error) {
@@ -99,8 +129,6 @@ func newKubeClient() (kube.Interface, error) {
 		}
 		kubeConfig = filepath.Join(homeDir, ".kube", "config")
 	}
-
-	fmt.Println(kubeConfig)
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 	if err != nil {
@@ -210,7 +238,7 @@ func loginAndSaveConfigFile(accessKey string) (client.Client, string, error) {
 		return nil, "", err
 	}
 
-	err = loftClient.LoginWithAccessKey("https://localhost:9898", accessKey, true)
+	err = loftClient.LoginWithAccessKey("https://localhost:8443", accessKey, true)
 	if err != nil {
 		return nil, "", err
 	}

@@ -55,23 +55,24 @@ func New(version string) func() *schema.Provider {
 
 type apiClient struct {
 	LoftClient client.Client
+	UserAgent  string
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		// Setup a User-Agent for your API client (replace the provider name for yours):
-		// userAgent := p.UserAgent("terraform-provider-scaffolding", version)
-		// TODO: myClient.UserAgent = userAgent
 		configPath := d.Get("config_path").(string)
-
 		loftClient, err := client.NewClientFromPath(configPath)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		return &apiClient{
+		userAgent := p.UserAgent("terraform-provider-scaffolding", version)
+		apiClient := &apiClient{
 			LoftClient: loftClient,
-		}, nil
+			UserAgent:  userAgent,
+		}
+
+		return apiClient, nil
 	}
 }
 

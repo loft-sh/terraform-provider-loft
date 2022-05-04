@@ -95,6 +95,13 @@ func spaceAttributes() map[string]*schema.Schema {
 			Required:    false,
 			Optional:    true,
 		},
+		"objects": {
+			// This description is used by the documentation generator and the language server.
+			Description: "Objects are Kubernetes style yamls that should get deployed into the space",
+			Type:        schema.TypeString,
+			Required:    false,
+			Optional:    true,
+		},
 	}
 }
 
@@ -107,6 +114,7 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	d.Set("name", spaceName)
 	d.Set("user", space.Spec.User)
 	d.Set("team", space.Spec.Team)
+	d.Set("objects", space.Spec.Objects)
 
 	rawAnnotations := space.GetAnnotations()
 	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {

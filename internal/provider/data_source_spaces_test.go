@@ -20,6 +20,14 @@ func TestAccDataSourceSpaces_all(t *testing.T) {
 	space2Name := names.SimpleNameGenerator.GenerateName("myspace2-")
 	space3Name := names.SimpleNameGenerator.GenerateName("myspace3-")
 	annotation := names.SimpleNameGenerator.GenerateName("annotation-")
+	objectsName := names.SimpleNameGenerator.GenerateName("objects-")
+	objects := `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  foo: bar
+`
 
 	client, err := newKubeClient()
 	if err != nil {
@@ -40,7 +48,8 @@ func TestAccDataSourceSpaces_all(t *testing.T) {
 	defer logout(client, teamAccessKey)
 	defer deleteClusterAccess(loftClient, clusterName, clusterAccess.GetName())
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -66,6 +75,13 @@ func TestAccDataSourceSpaces_all(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccDataSourceSpaceCreate_withSpaceObjects(configPath, clusterName, objectsName, objects),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", clusterName),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "name", objectsName),
+				),
+			},
+			{
 				Config: testAccDataSourceSpacesAll(configPath, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
@@ -80,6 +96,11 @@ func TestAccDataSourceSpaces_all(t *testing.T) {
 					checkSpaceByName("data.loft_spaces.all", space3Name, "name", space3Name),
 					checkSpaceByName("data.loft_spaces.all", space3Name, "cluster", clusterName),
 					checkSpaceByName("data.loft_spaces.all", space3Name, "annotations.some.domain/test", annotation),
+					checkSpaceByName("data.loft_spaces.all", objectsName, "name", objectsName),
+					checkSpaceByName("data.loft_spaces.all", objectsName, "cluster", clusterName),
+					checkSpaceByName("data.loft_spaces.all", objectsName, "user", ""),
+					checkSpaceByName("data.loft_spaces.all", objectsName, "team", ""),
+					checkSpaceByName("data.loft_spaces.all", objectsName, "objects", objects),
 				),
 			},
 		},
@@ -115,7 +136,6 @@ func checkSpaceByName(moduleName, spaceName, key, value string) resource.TestChe
 		spaceNameMatch := regexp.MustCompile(`spaces\.\d+\.name`)
 
 		primaryModule := s.RootModule().Resources[moduleName].Primary
-		// fmt.Printf("%+v\n", primaryModule.Attributes)
 		for key, value := range primaryModule.Attributes {
 			if spaceNameMatch.MatchString(key) && value == spaceName {
 				tokens := strings.Split(key, ".")

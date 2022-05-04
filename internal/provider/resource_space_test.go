@@ -31,7 +31,7 @@ func TestAccResourceSpace_noName(t *testing.T) {
 
 	defer logout(client, accessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -58,7 +58,7 @@ func TestAccResourceSpace_noCluster(t *testing.T) {
 
 	defer logout(client, accessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -87,7 +87,8 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 	}
 	defer logout(client, accessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -145,7 +146,8 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 	defer logout(client, teamAccessKey)
 	defer deleteClusterAccess(loftClient, cluster, clusterAccess.GetName())
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -196,7 +198,8 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -269,7 +272,8 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -345,7 +349,8 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -420,7 +425,8 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -495,7 +501,8 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -570,7 +577,8 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -645,7 +653,8 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -699,6 +708,91 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"space_constraints"},
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withSpaceObjects(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+	user := "admin"
+	objects1 := `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  foo: bar
+`
+	objects2 := `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  foo: bar
+  hello: world
+`
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreate_withSpaceObjects(configPath, cluster, name, objects1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "objects", objects1),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_objects",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDataSourceSpaceCreate_withSpaceObjects(configPath, cluster, name, objects2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "objects", objects2),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_objects",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDataSourceSpaceCreate_withSpaceObjects(configPath, cluster, name, ""),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "objects", ""),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_objects",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
