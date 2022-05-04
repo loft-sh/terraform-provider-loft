@@ -29,8 +29,6 @@ func resourceSpace() *schema.Resource {
 }
 
 func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
 	apiClient, ok := meta.(*apiClient)
 	if !ok {
 		return diag.Errorf("Could not access apiClient")
@@ -104,6 +102,11 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		space.Spec.Team = team
 	}
 
+	objects := d.Get("objects").(string)
+	if objects != "" {
+		space.Spec.Objects = objects
+	}
+
 	space, err = clusterClient.Agent().ClusterV1().Spaces().Create(ctx, space, metav1.CreateOptions{})
 	if err != nil {
 		return diag.FromErr(err)
@@ -170,6 +173,11 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 	if d.HasChange("team") {
 		_, newTeam := d.GetChange("team")
 		modifiedSpace.Spec.Team = newTeam.(string)
+	}
+
+	if d.HasChange("objects") {
+		_, newObjects := d.GetChange("objects")
+		modifiedSpace.Spec.Objects = newObjects.(string)
 	}
 
 	if d.HasChange("annotations") {

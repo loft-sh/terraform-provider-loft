@@ -25,7 +25,8 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 	}
 	defer logout(client, adminAccessKey)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -75,7 +76,8 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	defer logout(client, teamAccessKey)
 	defer deleteClusterAccess(loftClient, cluster, clusterAccess.GetName())
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{

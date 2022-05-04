@@ -626,8 +626,6 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de/go.mod h1:zAbeS9B/r2mtpb6U+EI2rYA5OAXxsYw6wTamcNW+zcE=
 github.com/lithammer/dedent v1.1.0/go.mod h1:jrXYCQtgg0nJiN+StA2KgR7w6CiQNv9Fd/Z9BP0jIOc=
-github.com/loft-sh/agentapi/v2 v2.1.8 h1:keGgE8PTqlyV/7MP1D2B1ydXjhhu9qt5gAC6/CY09nU=
-github.com/loft-sh/agentapi/v2 v2.1.8/go.mod h1:4wTY8fOSKTm1gXFx3bDmKxemP1PEu74UN4dTw5caegk=
 github.com/loft-sh/api/v2 v2.1.8 h1:TC4tlwO51+y+XO1T/4X1o+Bj1OQRILoJdFUrNvt/Ikk=
 github.com/loft-sh/api/v2 v2.1.8/go.mod h1:4itUIIo8g9PHNXurz8vfsIXxOpSaO6ajNDKPDy+2+zY=
 github.com/loft-sh/apiserver v0.0.0-20211216225656-cafe09adc0b8 h1:AwRDdL4KSuT28PXCVyOoPNkMJNrYJgI4pdsjS+D9aRo=

@@ -61,16 +61,6 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 			return diag.FromErr(err)
 		}
 		spaces = append(spaces, flattenedSpace)
-
-		// flatSpace :=
-
-		// spaces = append(spaces, map[string]string{
-		// 	// "id":      fmt.Sprint(idx),
-		// 	"name":    space.GetName(),
-		// 	"cluster": clusterName,
-		// 	"user":    space.Spec.User,
-		// 	"team":    space.Spec.Team,
-		// })
 	}
 
 	spaceId := strings.Join([]string{clusterName, "spaces"}, "/")
@@ -85,6 +75,7 @@ func flattenSpace(clusterName string, space v1.Space) (map[string]interface{}, e
 		"cluster": clusterName,
 		"user":    space.Spec.User,
 		"team":    space.Spec.Team,
+		"objects": space.Spec.Objects,
 	}
 
 	rawAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
@@ -94,11 +85,6 @@ func flattenSpace(clusterName string, space v1.Space) (map[string]interface{}, e
 	}
 
 	flattenedSpace["annotations"] = annotations
-	// annotations := map[string]string{}
-	// for k, v := range annotations {
-	// 	flattenedSpace[strings.Join([]string{"annotations", k}, ".")] = v.(string)
-	// }
-	// fmt.Printf("%+v\n", flatSpace)
 
 	return flattenedSpace, nil
 }

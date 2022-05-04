@@ -273,3 +273,31 @@ resource "loft_space" "test" {
 		spaceConstraints,
 	)
 }
+
+func testAccDataSourceSpaceCreate_withSpaceObjects(configPath, clusterName, spaceName, objects string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_objects" {
+	name = "%s"
+	cluster = "%s"
+	objects = <<YAML
+%sYAML
+}
+`,
+		configPath,
+		spaceName,
+		clusterName,
+		objects,
+	)
+}
