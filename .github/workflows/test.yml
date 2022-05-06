@@ -38,7 +38,7 @@ jobs:
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3.0.2
 
     - name: Get dependencies
       run: |
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '1.17'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.2
       - run: go generate ./...
       - name: git diff
         run: |
@@ -88,7 +88,7 @@ jobs:
   #       terraform_wrapper: false
 
   #   - name: Check out terraform-provider-loft
-  #     uses: actions/checkout@v2
+  #     uses: actions/checkout@v3.0.2
 
   #   - name: Get dependencies
   #     run: |
