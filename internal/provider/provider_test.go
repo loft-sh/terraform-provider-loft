@@ -49,7 +49,7 @@ func testAccPreCheck(t *testing.T) {
 
 func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
-		spaces := []string{}
+		var spaces []string
 		for _, resource := range s.RootModule().Resources {
 			spaces = append(spaces, resource.Primary.ID)
 		}
@@ -74,19 +74,19 @@ func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) er
 }
 
 func loginUser(c kube.Interface, user string) (client.Client, *storagev1.AccessKey, string, error) {
-	uuid := uuid.NewUUID()
+	newUUID := uuid.NewUUID()
 
-	accessKey, err := createUserAccessKey(c, user, string(uuid))
+	accessKey, err := createUserAccessKey(c, user, string(newUUID))
 	if err != nil {
 		return nil, nil, "", err
 	}
 
-	client, configPath, err := loginAndSaveConfigFile(accessKey.Spec.Key)
+	loftClient, configPath, err := loginAndSaveConfigFile(accessKey.Spec.Key)
 	if err != nil {
 		return nil, nil, "", err
 	}
 
-	return client, accessKey, configPath, nil
+	return loftClient, accessKey, configPath, nil
 }
 
 func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team string) (*storagev1.AccessKey, *agentv1.LocalClusterAccess, string, error) {
@@ -97,8 +97,8 @@ func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team str
 		return nil, nil, "", err
 	}
 
-	uuid := uuid.NewUUID()
-	accessKey, err := createTeamAccessKey(c, team, string(uuid))
+	newUUID := uuid.NewUUID()
+	accessKey, err := createTeamAccessKey(c, team, string(newUUID))
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -155,7 +155,7 @@ func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	_ = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
 
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
@@ -194,7 +194,7 @@ func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	_ = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
 
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
@@ -238,7 +238,7 @@ func loginAndSaveConfigFile(accessKey string) (client.Client, string, error) {
 		return nil, "", err
 	}
 
-	err = loftClient.LoginWithAccessKey("https://localhost:8443", accessKey, true)
+	err = loftClient.LoginWithAccessKey("https://localhost:8080", accessKey, true)
 	if err != nil {
 		return nil, "", err
 	}

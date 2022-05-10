@@ -109,12 +109,12 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	spaceName := space.GetName()
 
 	d.SetId(generateSpaceId(clusterName, spaceName))
-	d.Set("name", spaceName)
-	d.Set("cluster", clusterName)
-	d.Set("name", spaceName)
-	d.Set("user", space.Spec.User)
-	d.Set("team", space.Spec.Team)
-	d.Set("objects", space.Spec.Objects)
+	_ = d.Set("name", spaceName)
+	_ = d.Set("cluster", clusterName)
+	_ = d.Set("name", spaceName)
+	_ = d.Set("user", space.Spec.User)
+	_ = d.Set("team", space.Spec.Team)
+	_ = d.Set("objects", space.Spec.Objects)
 
 	rawAnnotations := space.GetAnnotations()
 	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
@@ -122,7 +122,7 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		d.Set("sleep_after", sleepAfter)
+		_ = d.Set("sleep_after", sleepAfter)
 	}
 
 	if rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
@@ -130,17 +130,17 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		d.Set("delete_after", deleteAfter)
+		_ = d.Set("delete_after", deleteAfter)
 	}
 
 	if rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation] != "" {
 		sleepSchedule := rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation]
-		d.Set("sleep_schedule", sleepSchedule)
+		_ = d.Set("sleep_schedule", sleepSchedule)
 	}
 
 	if rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation] != "" {
 		wakeupSchedule := rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation]
-		d.Set("wakeup_schedule", wakeupSchedule)
+		_ = d.Set("wakeup_schedule", wakeupSchedule)
 	}
 
 	safeAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
@@ -148,12 +148,12 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	if err != nil {
 		return err
 	}
-	d.Set("annotations", annotations)
+	_ = d.Set("annotations", annotations)
 
 	rawLabels := space.GetLabels()
 	if rawLabels[SpaceLabelSpaceConstraints] != DefaultSpaceConstraints {
 		spaceConstraints := rawLabels[SpaceLabelSpaceConstraints]
-		d.Set("space_constraints", spaceConstraints)
+		_ = d.Set("space_constraints", spaceConstraints)
 	}
 
 	safeLabels := removeInternalKeys(rawLabels, map[string]interface{}{})
@@ -161,7 +161,7 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	if err != nil {
 		return err
 	}
-	d.Set("labels", labels)
+	_ = d.Set("labels", labels)
 
 	return nil
 }

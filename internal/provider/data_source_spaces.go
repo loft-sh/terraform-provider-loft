@@ -65,7 +65,7 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 
 	spaceId := strings.Join([]string{clusterName, "spaces"}, "/")
 	d.SetId(spaceId)
-	d.Set("spaces", spaces)
+	_ = d.Set("spaces", spaces)
 	return diags
 }
 
