@@ -14,19 +14,19 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 	cluster := "loft-cluster"
 	spaceName := names.SimpleNameGenerator.GenerateName("myspace-")
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -58,26 +58,26 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	cluster := "loft-cluster"
 	spaceName := names.SimpleNameGenerator.GenerateName("myspace-")
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	loftClient, adminAccessKey, configPath, err := loginUser(client, user)
+	loftClient, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, cluster, team)
+	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, teamAccessKey)
+	defer logout(t, kubeClient, teamAccessKey)
 	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{

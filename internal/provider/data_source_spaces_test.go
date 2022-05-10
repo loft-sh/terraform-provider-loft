@@ -29,27 +29,27 @@ data:
   foo: bar
 `
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	loftClient, adminAccessKey, configPath, err := loginUser(client, user)
+	loftClient, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, clusterName, team)
+	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, clusterName, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, teamAccessKey)
+	defer logout(t, kubeClient, teamAccessKey)
 	defer deleteClusterAccess(t, loftClient, clusterName, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{

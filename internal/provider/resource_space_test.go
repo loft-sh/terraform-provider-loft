@@ -19,17 +19,17 @@ import (
 func TestAccResourceSpace_noName(t *testing.T) {
 	cluster := "loft-cluster"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, accessKey, configPath, err := loginUser(client, "admin")
+	_, accessKey, configPath, err := loginUser(kubeClient, "admin")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	defer logout(t, client, accessKey)
+	defer logout(t, kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -46,17 +46,17 @@ func TestAccResourceSpace_noName(t *testing.T) {
 func TestAccResourceSpace_noCluster(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, accessKey, configPath, err := loginUser(client, "admin")
+	_, accessKey, configPath, err := loginUser(kubeClient, "admin")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	defer logout(t, client, accessKey)
+	defer logout(t, kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -76,19 +76,19 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 	user2 := "admin2"
 	cluster := "loft-cluster"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, accessKey, configPath, err := loginUser(client, user)
+	_, accessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, accessKey)
+	defer logout(t, kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -128,26 +128,26 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 	team := "loft-admins"
 	team2 := "loft-admins2"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	loftClient, adminAccessKey, configPath, err := loginUser(client, user)
+	loftClient, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, cluster, team)
+	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, teamAccessKey)
+	defer logout(t, kubeClient, teamAccessKey)
 	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -187,19 +187,19 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 	cluster := "loft-cluster"
 	user := "admin"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -261,19 +261,19 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 	cluster := "loft-cluster"
 	user := "admin"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -338,19 +338,19 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 	sleepAfter := 60
 	sleepAfter2 := 120
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -414,19 +414,19 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 	deleteAfter := 60
 	deleteAfter2 := 120
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -490,19 +490,19 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 	sleepSchedule := "0 0 * * *"
 	sleepSchedule2 := "30 6 * * *"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -566,19 +566,18 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 	wakeSchedule := "0 0 * * *"
 	wakeSchedule2 := "30 18 * * *"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
-
+	defer logout(t, kubeClient, adminAccessKey)
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -642,19 +641,19 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 	spaceConstraints := "default"
 	spaceConstraints2 := "isolated"
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -733,19 +732,19 @@ data:
   hello: world
 `
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(t, client, adminAccessKey)
+	defer logout(t, kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
