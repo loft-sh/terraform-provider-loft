@@ -1,5 +1,9 @@
 version: v1beta11
 
+vars:
+  - name: LOFT_IMAGE
+    value: loft-sh/loft
+
 deployments:
 - name: loft
   helm:
@@ -11,13 +15,37 @@ dev:
   ports:
   - imageSelector: loftsh/loft
     forward:
-    - port: 9898
+    - port: 8443
       remotePort: 443
+
+profiles:
+- name: e2e
+  patches:
+    - op: add
+      path: hooks
+      value:
+        - wait:
+            running: true
+          container:
+            imageSelector: ${LOFT_IMAGE}
+          events: ["after:deploy:loft"]
+        - command: make testacc
+          events: ["devCommand:after:portForwarding"]
+    - op: add
+      path: dev
+      value:
+        terminal:
+          command:
+          - sh
+          - -c
+          - exit 0
 
 commands:
 - name: deploy-loft
   command: devspace deploy -n loft
 - name: purge-loft
   command: devspace purge -n loft
+- name: dev
+  command: devspace dev -n loft
 - name: e2e
-  command: devspace dev -n loft -- make testacc
+  command: devspace dev -n loft -p e2e

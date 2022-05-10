@@ -44,6 +44,24 @@ func New(version string) func() *schema.Provider {
 					Optional:    true,
 					Default:     defaultConfigPath(),
 				},
+				"host": {
+					Description:  "The Loft host",
+					Type:         schema.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"access_key"},
+				},
+				"insecure": {
+					Description: "Allow login into an insecure Loft instance",
+					Type:        schema.TypeBool,
+					Optional:    true,
+					Default:     false,
+				},
+				"access_key": {
+					Description:  "The Loft user's access key",
+					Type:         schema.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"host"},
+				},
 			},
 		}
 
@@ -60,13 +78,33 @@ type apiClient struct {
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		var (
+			loftClient client.Client
+			err        error
+		)
+
 		configPath := d.Get("config_path").(string)
-		loftClient, err := client.NewClientFromPath(configPath)
-		if err != nil {
-			return nil, diag.FromErr(err)
+		if configPath != "" {
+			loftClient, err = client.NewClientFromPath(configPath)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+		} else {
+			loftClient = client.NewClient()
 		}
 
-		userAgent := p.UserAgent("terraform-provider-scaffolding", version)
+		// Login if access key is provided
+		accessKey := d.Get("access_key").(string)
+		if accessKey != "" {
+			host := d.Get("host").(string)
+			insecure := d.Get("insecure").(bool)
+			err := loftClient.LoginWithAccessKey(host, accessKey, insecure)
+			if err != nil {
+				return nil, diag.FromErr(err)
+			}
+		}
+
+		userAgent := p.UserAgent("terraform-provider-loft", version)
 		apiClient := &apiClient{
 			LoftClient: loftClient,
 			UserAgent:  userAgent,

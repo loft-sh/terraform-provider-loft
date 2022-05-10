@@ -37,7 +37,7 @@ jobs:
         go-version: '1.17'
       id: go
 
-    - name: Check out code into the Go module directory
+    - name: Check out terraform-provider-loft
       uses: actions/checkout@v3.0.2
 
     - name: Get dependencies
@@ -52,75 +52,85 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
           go-version: '1.17'
-      - uses: actions/checkout@v3.0.2
-      - run: go generate ./...
-      - name: git diff
+      
+      - name: Check out terraform-provider-loft
+        uses: actions/checkout@v3.0.2
+      
+      - name: Generate docs
+        run: go generate ./...
+      
+      - name: Check that docs were already generated
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
   
-   # # run acceptance tests in a matrix with Terraform core versions
-  # test:
-  #   name: Matrix Test
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 15
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       # list whatever Terraform versions here you would like to support
-  #       terraform:
-  #         - '1.0.*'
-  #         - '1.1.*'
-  #   steps:
-  #   - name: Set up Go
-  #     uses: actions/setup-go@v3
-  #     with:
-  #       go-version: '1.17'
-  #     id: go
-  
-  #   - uses: hashicorp/setup-terraform@v2
-  #     with:
-  #       terraform_version: ${{ matrix.terraform }}
-  #       terraform_wrapper: false
+  # Run Acceptance Tests
+  test:
+    name: Acceptance Test
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # list whatever Terraform versions here you would like to support
+        terraform:
+          - '1.0.*'
+          - '1.1.*'
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.17'
+      id: go
+    
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ matrix.terraform }}
+        terraform_wrapper: false
+    
+    - name: Check out terraform-provider-loft
+      uses: actions/checkout@v3.0.2
+    
+    - name: Get Dependencies
+      run: |
+        go mod download
 
-  #   - name: Check out terraform-provider-loft
-  #     uses: actions/checkout@v3.0.2
-
-  #   - name: Get dependencies
-  #     run: |
-  #       go mod download
+    - name: Create KinD Cluster
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        version: "v0.13.0"
+        image: kindest/node:v1.24.0@sha256:406fd86d48eaf4c04c7280cd1d2ca1d61e7d0d61ddef0125cb097bc7b82ed6a1
         
-  #   - name: TF acceptance tests
-  #     timeout-minutes: 10
-  #     env:
-  #       TF_ACC: "1"
-  #       TF_ACC_PROVIDER_NAMESPACE: "loft-sh"
+    - name: TF acceptance tests
+      timeout-minutes: 10
+      run: |
+        devspace run e2e  
 
-  #     run: |
-  #       go test -v -cover ./internal/provider/
-
+  # Auto Approve passing Dependabot Patch & Minor PRs
   auto-approve-dependabot:
     runs-on: ubuntu-latest
-    # needs: [build, generate, test]
-    needs: [build, generate]
+    needs: [build, generate, test]
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
-      - name: Approve the PR
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v1.3.1
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Enable auto-merge for Dependabot PRs
-        if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor' }}
+      - name: Approve the PR
+        if : ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor' }}
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Auto-merge the PR
+        if : ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor' }}
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
