@@ -31,11 +31,14 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"loft_space":  dataSourceSpace(),
-				"loft_spaces": dataSourceSpaces(),
+				"loft_space":            dataSourceSpace(),
+				"loft_spaces":           dataSourceSpaces(),
+				"loft_virtual_cluster":  dataSourceVirtualCluster(),
+				"loft_virtual_clusters": dataSourceVirtualClusters(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"loft_space": resourceSpace(),
+				"loft_space":           resourceSpace(),
+				"loft_virtual_cluster": resourceVirtualCluster(),
 			},
 			Schema: map[string]*schema.Schema{
 				"config_path": {
