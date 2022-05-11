@@ -3,7 +3,7 @@ module github.com/loft-sh/terraform-provider-loft
 go 1.17
 
 require (
-	github.com/hashicorp/terraform-plugin-docs v0.8.0
+	github.com/hashicorp/terraform-plugin-docs v0.8.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.16.0
 	github.com/loft-sh/agentapi/v2 v2.1.5-0.20220429151746-99aad001638d
 	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20220429151752-00cedd4b61d5
