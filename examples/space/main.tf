@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     loft = {
-      source = "registry.terraform.io/loft-sh/loft"
+      source  = "registry.terraform.io/loft-sh/loft"
       version = "0.0.1"
     }
   }
@@ -10,13 +10,18 @@ terraform {
 provider "loft" {}
 
 resource "loft_space" "example" {
-  name = "example"
+  name    = "example"
   cluster = "loft-cluster"
 }
 
+resource "loft_space" "dynamic" {
+  generate_name = "example-"
+  cluster       = "loft-cluster"
+}
+
 resource "loft_space" "sleepy_space" {
-  name = "sleepy"
-  cluster = "loft-cluster"
+  name        = "sleepy"
+  cluster     = "loft-cluster"
   sleep_after = 3600
   annotations = {
     "custom-annotation" = "special"
@@ -24,7 +29,7 @@ resource "loft_space" "sleepy_space" {
 }
 
 data "loft_spaces" "all" {
-	cluster = "loft-cluster"
+  cluster = "loft-cluster"
 }
 
 output "spaces" {

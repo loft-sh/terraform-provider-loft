@@ -18,13 +18,14 @@ A Loft Space.
 ### Required
 
 - `cluster` (String) The cluster where the space is located
-- `name` (String) The name of the space
 
 ### Optional
 
 - `annotations` (Map of String) Annotations to configure on this space
 - `delete_after` (Number) If set to non zero, will tell loft to delete the space after specified seconds of inactivity
+- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency
 - `labels` (Map of String) Labels to configure on this space
+- `name` (String) The name of the space
 - `objects` (String) Objects are Kubernetes style yamls that should get deployed into the space
 - `sleep_after` (Number) If set to non zero, will tell the space to sleep after specified seconds of inactivity
 - `sleep_schedule` (String) Put the space to sleep at certain times. See crontab.guru for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.
