@@ -2,6 +2,9 @@ package provider
 
 import (
 	"fmt"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/loftctl/v2/pkg/kube"
 	"regexp"
 	"strings"
 	"testing"
@@ -29,27 +32,42 @@ data:
   foo: bar
 `
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	loftClient, adminAccessKey, configPath, err := loginUser(client, user)
+	loftClient, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer func(kubeClient kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(kubeClient, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, clusterName, team)
+	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, clusterName, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, teamAccessKey)
-	defer deleteClusterAccess(loftClient, clusterName, clusterAccess.GetName())
+	defer func(kubeClient kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(kubeClient, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(kubeClient, teamAccessKey)
+	defer func(loftClient client.Client, clusterName string, teamName string) {
+		err := deleteClusterAccess(loftClient, clusterName, teamName)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(loftClient, clusterName, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{

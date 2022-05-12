@@ -47,7 +47,7 @@ func testAccPreCheck(t *testing.T) {
 	// function.
 }
 
-func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) error {
+func testAccSpaceCheckDestroy(kubeClient kube.Interface) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		var spaces []string
 		for _, resource := range s.RootModule().Resources {
@@ -59,7 +59,7 @@ func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) er
 			spaceName := tokens[1]
 
 			err := wait.PollImmediate(1*time.Second, 60*time.Second, func() (bool, error) {
-				_, err := client.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
+				_, err := kubeClient.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
 				if errors.IsNotFound(err) {
 					return true, nil
 				}
@@ -73,10 +73,10 @@ func testAccSpaceCheckDestroy(client kube.Interface) func(s *terraform.State) er
 	}
 }
 
-func loginUser(c kube.Interface, user string) (client.Client, *storagev1.AccessKey, string, error) {
+func loginUser(kubeClient kube.Interface, user string) (client.Client, *storagev1.AccessKey, string, error) {
 	newUUID := uuid.NewUUID()
 
-	accessKey, err := createUserAccessKey(c, user, string(newUUID))
+	accessKey, err := createUserAccessKey(kubeClient, user, string(newUUID))
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -89,7 +89,7 @@ func loginUser(c kube.Interface, user string) (client.Client, *storagev1.AccessK
 	return loftClient, accessKey, configPath, nil
 }
 
-func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team string) (*storagev1.AccessKey, *agentv1.LocalClusterAccess, string, error) {
+func loginTeam(kubeClient kube.Interface, loftClient client.Client, clusterName, team string) (*storagev1.AccessKey, *agentv1.LocalClusterAccess, string, error) {
 	teamAccess := fmt.Sprintf("%s-access", team)
 
 	clusterAccess, err := createTeamClusterAccess(loftClient, clusterName, teamAccess, team)
@@ -98,7 +98,7 @@ func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team str
 	}
 
 	newUUID := uuid.NewUUID()
-	accessKey, err := createTeamAccessKey(c, team, string(newUUID))
+	accessKey, err := createTeamAccessKey(kubeClient, team, string(newUUID))
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -111,8 +111,8 @@ func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team str
 	return accessKey, clusterAccess, configPath, nil
 }
 
-func logout(c kube.Interface, accessKey *storagev1.AccessKey) error {
-	err := deleteAccessKey(c, accessKey)
+func logout(kubeClient kube.Interface, accessKey *storagev1.AccessKey) error {
+	err := deleteAccessKey(kubeClient, accessKey)
 	if err != nil {
 		return err
 	}
@@ -138,8 +138,8 @@ func newKubeClient() (kube.Interface, error) {
 	return kube.NewForConfig(config)
 }
 
-func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.AccessKey, error) {
-	owner, err := c.Loft().StorageV1().Users().Get(context.TODO(), user, metav1.GetOptions{})
+func createUserAccessKey(kubeClient kube.Interface, user string, key string) (*storagev1.AccessKey, error) {
+	owner, err := kubeClient.Loft().StorageV1().Users().Get(context.TODO(), user, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +159,14 @@ func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.
 	if err != nil {
 		fmt.Println(err)
 	}
-	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
+	accessKey, err = kubeClient.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
+		err := kubeClient.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
+		accessKey, err = kubeClient.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -179,8 +179,8 @@ func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.
 	return accessKey, nil
 }
 
-func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.AccessKey, error) {
-	owner, err := c.Loft().StorageV1().Teams().Get(context.TODO(), team, metav1.GetOptions{})
+func createTeamAccessKey(kubeClient kube.Interface, team string, key string) (*storagev1.AccessKey, error) {
+	owner, err := kubeClient.Loft().StorageV1().Teams().Get(context.TODO(), team, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -200,14 +200,14 @@ func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.
 	if err != nil {
 		fmt.Println(err)
 	}
-	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
+	accessKey, err = kubeClient.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
-		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
+		err := kubeClient.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
 		if err != nil && errors.IsNotFound(err) {
 			return nil, err
 		}
 
-		accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
+		accessKey, err = kubeClient.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -220,8 +220,8 @@ func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.
 	return accessKey, nil
 }
 
-func deleteAccessKey(c kube.Interface, accessKey *storagev1.AccessKey) error {
-	err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
+func deleteAccessKey(kubeClient kube.Interface, accessKey *storagev1.AccessKey) error {
+	err := kubeClient.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
 	if err != nil && errors.IsNotFound(err) {
 		return err
 	}
@@ -255,8 +255,8 @@ func loginAndSaveConfigFile(accessKey string) (client.Client, string, error) {
 	return loftClient, configPath, nil
 }
 
-func createTeamClusterAccess(c client.Client, clusterName string, teamName string, teamAccess string) (*agentv1.LocalClusterAccess, error) {
-	clusterClient, err := c.Cluster(clusterName)
+func createTeamClusterAccess(loftClient client.Client, clusterName string, teamName string, teamAccess string) (*agentv1.LocalClusterAccess, error) {
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return nil, err
 	}
@@ -281,8 +281,8 @@ func createTeamClusterAccess(c client.Client, clusterName string, teamName strin
 	return clusterAccess, nil
 }
 
-func deleteClusterAccess(c client.Client, clusterName string, teamName string) error {
-	clusterClient, err := c.Cluster(clusterName)
+func deleteClusterAccess(loftClient client.Client, clusterName string, teamName string) error {
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return err
 	}

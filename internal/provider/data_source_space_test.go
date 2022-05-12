@@ -17,24 +17,24 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 	cluster := "loft-cluster"
 	spaceName := names.SimpleNameGenerator.GenerateName("myspace-")
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, adminAccessKey, configPath, err := loginUser(client, user)
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		err = logout(c, accessKey)
+	defer func(kubeClient kube.Interface, accessKey *storagev1.AccessKey) {
+		err = logout(kubeClient, accessKey)
 		if err != nil {
 			fmt.Println(err)
 		}
-	}(client, adminAccessKey)
+	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -75,8 +75,8 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		err := logout(c, accessKey)
+	defer func(kubeClient kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(kubeClient, accessKey)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -86,14 +86,14 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		err := logout(c, accessKey)
+	defer func(kubeClient kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(kubeClient, accessKey)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}(kubeClient, teamAccessKey)
-	defer func(c client.Client, clusterName string, teamName string) {
-		err := deleteClusterAccess(c, clusterName, teamName)
+	defer func(loftClient client.Client, clusterName string, teamName string) {
+		err := deleteClusterAccess(loftClient, clusterName, teamName)
 		if err != nil {
 			fmt.Println(err)
 		}
