@@ -6,10 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
@@ -29,16 +31,246 @@ import (
 // providerFactories are used to instantiate a provider during acceptance testing.
 // The factory function will be invoked for every Terraform CLI command executed
 // to create a provider server to which the CLI can reattach.
-var providerFactories = map[string]func() (*schema.Provider, error){
-	"loft": func() (*schema.Provider, error) {
-		return New("dev")(), nil
-	},
-}
+var (
+	providerFactories = map[string]func() (*schema.Provider, error){
+		"loft": func() (*schema.Provider, error) {
+			return New("dev")(), nil
+		},
+	}
+	rxPosNum = regexp.MustCompile("^[1-9][0-9]*$")
+)
 
 func TestProvider(t *testing.T) {
 	if err := New("dev")().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
+}
+
+func TestAccProvider_withConfigPath(t *testing.T) {
+	user := "admin"
+	clusterName := "loft-cluster"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(client, adminAccessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProvider_withConfigPath(configPath, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProvider_withAccessKey(t *testing.T) {
+	user := "admin"
+	clusterName := "loft-cluster"
+	host := "https://localhost:8443"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	uuid := uuid.NewUUID()
+	accessKey, err := createUserAccessKey(client, user, string(uuid))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	defer logout(client, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccProvider_withAccessKey(host, accessKey.Spec.Key, true, clusterName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
+				),
+			},
+		},
+	})
+}
+
+func TestAccProvider_withAccessKeyNoHost(t *testing.T) {
+	user := "admin"
+	clusterName := "loft-cluster"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	uuid := uuid.NewUUID()
+	accessKey, err := createUserAccessKey(client, user, string(uuid))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	defer logout(client, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					terraform {
+						required_providers {
+							loft = {
+								source = "registry.terraform.io/loft-sh/loft"
+							}
+						}
+					}
+					
+					provider "loft" {
+						access_key = "%s"
+					}
+					
+					data "loft_spaces" "all" {
+						cluster = "%s"
+					}
+					`,
+					accessKey.Spec.Key,
+					clusterName,
+				),
+				ExpectError: regexp.MustCompile("all of `access_key,host` must be specified"),
+			},
+		},
+	})
+}
+
+func TestAccProvider_withHostNoAccessKey(t *testing.T) {
+	clusterName := "loft-cluster"
+	host := "https://localhost:8443"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					terraform {
+						required_providers {
+							loft = {
+								source = "registry.terraform.io/loft-sh/loft"
+							}
+						}
+					}
+					
+					provider "loft" {
+						host = "%s"
+					}
+					
+					data "loft_spaces" "all" {
+						cluster = "%s"
+					}
+					`,
+					host,
+					clusterName,
+				),
+				ExpectError: regexp.MustCompile("all of `access_key,host` must be specified"),
+			},
+		},
+	})
+}
+
+func TestAccProvider_withInvalidAccessKey(t *testing.T) {
+	clusterName := "loft-cluster"
+	host := "https://localhost:8443"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	uuid := uuid.NewUUID()
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccProvider_withAccessKey(host, string(uuid), true, clusterName),
+				ExpectError: regexp.MustCompile(`loft access key not found`),
+			},
+		},
+	})
+}
+
+func testAccProvider_withConfigPath(configPath, clusterName string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+data "loft_spaces" "all" {
+	cluster = "%s"
+}
+`,
+		configPath,
+		clusterName,
+	)
+}
+
+func testAccProvider_withAccessKey(host, accessKey string, insecure bool, clusterName string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	host = "%s"
+	access_key = "%s"
+	insecure = %t
+}
+
+data "loft_spaces" "all" {
+	cluster = "%s"
+}
+`,
+		host,
+		accessKey,
+		insecure,
+		clusterName,
+	)
 }
 
 func testAccPreCheck(t *testing.T) {

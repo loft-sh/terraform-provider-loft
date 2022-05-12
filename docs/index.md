@@ -23,4 +23,7 @@ provider "loft" {
 
 ### Optional
 
+- `access_key` (String) The Loft user's access key
 - `config_path` (String) The loft config file path
+- `host` (String) The Loft host
+- `insecure` (Boolean) Allow login into an insecure Loft instance

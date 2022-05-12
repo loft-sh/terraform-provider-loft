@@ -5,9 +5,9 @@ go 1.17
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.8.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.16.0
-	github.com/loft-sh/agentapi/v2 v2.1.5-0.20220429151746-99aad001638d
-	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20220429151752-00cedd4b61d5
-	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20220429152018-ae56d3effdd8
+	github.com/loft-sh/agentapi/v2 v2.2.1-0.20220510130445-d5a1d637aa6a
+	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20220510130528-8dcd7b74b37a
+	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20220511152413-680a9673d059
 	k8s.io/api v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/apiserver v0.24.0
@@ -82,7 +82,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/loft-sh/apiserver v0.0.0-20211216225656-cafe09adc0b8 // indirect
+	github.com/loft-sh/apiserver v0.0.0-20220507140345-294e3e3117e3 // indirect
 	github.com/loft-sh/jspolicy v0.1.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -160,7 +160,7 @@ require (
 	k8s.io/component-base v0.24.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
-	k8s.io/kubectl v0.23.5 // indirect
+	k8s.io/kubectl v0.24.0 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.30 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
