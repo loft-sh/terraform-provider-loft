@@ -126,7 +126,7 @@ func resourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta interfa
 		return diag.Errorf("Could not access apiClient")
 	}
 
-	clusterName, spaceName := parseSpaceId(d.Id())
+	clusterName, spaceName := parseSpaceID(d.Id())
 	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
@@ -152,7 +152,7 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.Errorf("Could not access apiClient")
 	}
 
-	clusterName, spaceName := parseSpaceId(d.Id())
+	clusterName, spaceName := parseSpaceID(d.Id())
 	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
@@ -200,7 +200,7 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 			modifiedSpace.Annotations[k] = v.(string)
 		}
 
-		for k, _ := range deleted {
+		for k := range deleted {
 			delete(modifiedSpace.Annotations, k)
 		}
 	}
@@ -224,7 +224,7 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 			modifiedSpace.Labels[k] = v.(string)
 		}
 
-		for k, _ := range deleted {
+		for k := range deleted {
 			delete(modifiedSpace.Labels, k)
 		}
 	}

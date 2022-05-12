@@ -13,11 +13,11 @@ const (
 	DefaultSpaceConstraints    = "default"
 )
 
-func generateSpaceId(clusterName, spaceName string) string {
+func generateSpaceID(clusterName, spaceName string) string {
 	return strings.Join([]string{clusterName, spaceName}, "/")
 }
 
-func parseSpaceId(id string) (clusterName, spaceName string) {
+func parseSpaceID(id string) (clusterName, spaceName string) {
 	clusterName = ""
 	spaceName = ""
 
@@ -108,13 +108,25 @@ func spaceAttributes() map[string]*schema.Schema {
 func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData) error {
 	spaceName := space.GetName()
 
-	d.SetId(generateSpaceId(clusterName, spaceName))
-	d.Set("name", spaceName)
-	d.Set("cluster", clusterName)
-	d.Set("name", spaceName)
-	d.Set("user", space.Spec.User)
-	d.Set("team", space.Spec.Team)
-	d.Set("objects", space.Spec.Objects)
+	d.SetId(generateSpaceID(clusterName, spaceName))
+	if err := d.Set("name", spaceName); err != nil {
+		return err
+	}
+	if err := d.Set("cluster", clusterName); err != nil {
+		return err
+	}
+	if err := d.Set("name", spaceName); err != nil {
+		return err
+	}
+	if err := d.Set("user", space.Spec.User); err != nil {
+		return err
+	}
+	if err := d.Set("team", space.Spec.Team); err != nil {
+		return err
+	}
+	if err := d.Set("objects", space.Spec.Objects); err != nil {
+		return err
+	}
 
 	rawAnnotations := space.GetAnnotations()
 	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
@@ -122,7 +134,9 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		d.Set("sleep_after", sleepAfter)
+		if err := d.Set("sleep_after", sleepAfter); err != nil {
+			return err
+		}
 	}
 
 	if rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
@@ -130,17 +144,23 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 		if err != nil {
 			return err
 		}
-		d.Set("delete_after", deleteAfter)
+		if err := d.Set("delete_after", deleteAfter); err != nil {
+			return err
+		}
 	}
 
 	if rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation] != "" {
 		sleepSchedule := rawAnnotations[agentv1.SleepModeSleepScheduleAnnotation]
-		d.Set("sleep_schedule", sleepSchedule)
+		if err := d.Set("sleep_schedule", sleepSchedule); err != nil {
+			return err
+		}
 	}
 
 	if rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation] != "" {
 		wakeupSchedule := rawAnnotations[agentv1.SleepModeWakeupScheduleAnnotation]
-		d.Set("wakeup_schedule", wakeupSchedule)
+		if err := d.Set("wakeup_schedule", wakeupSchedule); err != nil {
+			return err
+		}
 	}
 
 	safeAnnotations := removeInternalKeys(space.GetAnnotations(), map[string]interface{}{})
@@ -148,12 +168,16 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	if err != nil {
 		return err
 	}
-	d.Set("annotations", annotations)
+	if err := d.Set("annotations", annotations); err != nil {
+		return err
+	}
 
 	rawLabels := space.GetLabels()
 	if rawLabels[SpaceLabelSpaceConstraints] != DefaultSpaceConstraints {
 		spaceConstraints := rawLabels[SpaceLabelSpaceConstraints]
-		d.Set("space_constraints", spaceConstraints)
+		if err := d.Set("space_constraints", spaceConstraints); err != nil {
+			return err
+		}
 	}
 
 	safeLabels := removeInternalKeys(rawLabels, map[string]interface{}{})
@@ -161,7 +185,9 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	if err != nil {
 		return err
 	}
-	d.Set("labels", labels)
+	if err := d.Set("labels", labels); err != nil {
+		return err
+	}
 
 	return nil
 }

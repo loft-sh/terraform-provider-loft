@@ -23,7 +23,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer logout(t, client, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -31,7 +31,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreate_withUser(configPath, user, cluster, spaceName),
+				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -67,14 +67,14 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer logout(t, client, adminAccessKey)
 
 	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, teamAccessKey)
-	defer deleteClusterAccess(loftClient, cluster, clusterAccess.GetName())
+	defer logout(t, client, teamAccessKey)
+	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -82,7 +82,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreate_withTeam(configPath, team, cluster, spaceName),
+				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace\-.*`)),

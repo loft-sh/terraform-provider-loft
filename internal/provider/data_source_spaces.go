@@ -63,9 +63,11 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 		spaces = append(spaces, flattenedSpace)
 	}
 
-	spaceId := strings.Join([]string{clusterName, "spaces"}, "/")
-	d.SetId(spaceId)
-	d.Set("spaces", spaces)
+	spaceID := strings.Join([]string{clusterName, "spaces"}, "/")
+	d.SetId(spaceID)
+	if err := d.Set("spaces", spaces); err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
 }
 

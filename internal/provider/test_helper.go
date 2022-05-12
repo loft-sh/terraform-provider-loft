@@ -2,7 +2,7 @@ package provider
 
 import "fmt"
 
-func testAccDataSourceSpaceCreate_withoutUserOrTeam(configPath string, clusterName, spaceName string) string {
+func testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath string, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -27,7 +27,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withUser(configPath string, user, clusterName, spaceName string) string {
+func testAccDataSourceSpaceCreateWithUser(configPath string, user, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -54,7 +54,7 @@ resource "loft_space" "test_user" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withTeam(configPath, team, clusterName, spaceName string) string {
+func testAccDataSourceSpaceCreateWithTeam(configPath, team, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -81,7 +81,7 @@ resource "loft_space" "test_team" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withAnnotations(configPath, clusterName, spaceName, testAnnotation string) string {
+func testAccDataSourceSpaceCreateWithAnnotations(configPath, clusterName, spaceName, testAnnotation string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -110,7 +110,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withLabels(configPath, clusterName, spaceName, testLabel string) string {
+func testAccDataSourceSpaceCreateWithLabels(configPath, clusterName, spaceName, testLabel string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -139,7 +139,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withSleepAfter(configPath, clusterName, spaceName string, sleepAfter int) string {
+func testAccDataSourceSpaceCreateWithSleepAfter(configPath, clusterName, spaceName string, sleepAfter int) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -166,7 +166,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withDeleteAfter(configPath, clusterName, spaceName string, deleteAfter int) string {
+func testAccDataSourceSpaceCreateWithDeleteAfter(configPath, clusterName, spaceName string, deleteAfter int) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -193,7 +193,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withScheduledSleep(configPath, clusterName, spaceName, sleepSchedule string) string {
+func testAccDataSourceSpaceCreateWithScheduledSleep(configPath, clusterName, spaceName, sleepSchedule string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -220,7 +220,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withScheduledWakeup(configPath, clusterName, spaceName, wakeSchedule string) string {
+func testAccDataSourceSpaceCreateWithScheduledWakeup(configPath, clusterName, spaceName, wakeSchedule string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -247,7 +247,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withSpaceConstraints(configPath, clusterName, spaceName, spaceConstraints string) string {
+func testAccDataSourceSpaceCreateWithSpaceConstraints(configPath, clusterName, spaceName, spaceConstraints string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -274,7 +274,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccDataSourceSpaceCreate_withSpaceObjects(configPath, clusterName, spaceName, objects string) string {
+func testAccDataSourceSpaceCreateWithSpaceObjects(configPath, clusterName, spaceName, objects string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
