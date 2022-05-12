@@ -301,3 +301,55 @@ resource "loft_space" "test_objects" {
 		objects,
 	)
 }
+
+func testAccDataSourceSpaceCreateWithGenerateName(configPath, clusterName, prefix string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_generate_name" {
+	cluster = "%s"
+	generate_name = "%s"
+}
+`,
+		configPath,
+		clusterName,
+		prefix,
+	)
+}
+
+func testAccDataSourceSpaceCreateWithNameAndGenerateName(configPath, clusterName, name, prefix string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_space" "test_name_and_generate_name" {
+	cluster = "%s"
+	name = "%s"
+	generate_name = "%s"
+}
+`,
+		configPath,
+		clusterName,
+		name,
+		prefix,
+	)
+}

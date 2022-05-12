@@ -37,7 +37,7 @@ func TestAccResourceSpace_noName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceSpaceNoName(configPath, cluster),
-				ExpectError: regexp.MustCompile(`The argument "name" is required, but no definition was found.`),
+				ExpectError: regexp.MustCompile(`Required value: name or generateName is required`),
 			},
 		},
 	})
@@ -793,6 +793,106 @@ data:
 				ResourceName:      "loft_space.test_objects",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withGenerateName(t *testing.T) {
+	prefix := "test-space-"
+	cluster := "loft-cluster"
+	user := "admin"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(t, client, adminAccessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSpaceCreateWithGenerateName(configPath, cluster, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("loft_space.test_generate_name", "name", regexp.MustCompile(prefix)),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "generate_name", prefix),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "team", ""),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_generate_name",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDataSourceSpaceCreateWithGenerateName(configPath, cluster, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("loft_space.test_generate_name", "name", regexp.MustCompile(prefix)),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "generate_name", prefix),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "team", ""),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_generate_name",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDataSourceSpaceCreateWithGenerateName(configPath, cluster, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("loft_space.test_generate_name", "name", regexp.MustCompile(prefix)),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "generate_name", prefix),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "objects", ""),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_generate_name",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withNameAndGenerateName(t *testing.T) {
+	cluster := "loft-cluster"
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	prefix := "mycluster-"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, accessKey, configPath, err := loginUser(client, "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer logout(t, client, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDataSourceSpaceCreateWithNameAndGenerateName(configPath, cluster, name, prefix),
+				ExpectError: regexp.MustCompile(`"generate_name": conflicts with name`),
 			},
 		},
 	})

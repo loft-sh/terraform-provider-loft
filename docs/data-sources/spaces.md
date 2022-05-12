@@ -32,6 +32,7 @@ Read-Only:
 - `annotations` (Map of String)
 - `cluster` (String)
 - `delete_after` (Number)
+- `generate_name` (String)
 - `labels` (Map of String)
 - `name` (String)
 - `objects` (String)
