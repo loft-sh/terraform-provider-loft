@@ -2,6 +2,9 @@ package provider
 
 import (
 	"fmt"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/loftctl/v2/pkg/kube"
 	"regexp"
 	"testing"
 
@@ -23,7 +26,12 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(client, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -58,26 +66,41 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	cluster := "loft-cluster"
 	spaceName := names.SimpleNameGenerator.GenerateName("myspace-")
 
-	client, err := newKubeClient()
+	kubeClient, err := newKubeClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	loftClient, adminAccessKey, configPath, err := loginUser(client, user)
+	loftClient, adminAccessKey, configPath, err := loginUser(kubeClient, user)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, cluster, team)
+	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, teamAccessKey)
-	defer deleteClusterAccess(loftClient, cluster, clusterAccess.GetName())
+	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
+		err := logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(kubeClient, teamAccessKey)
+	defer func(c client.Client, clusterName string, teamName string) {
+		err := deleteClusterAccess(c, clusterName, teamName)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{

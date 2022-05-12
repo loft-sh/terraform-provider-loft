@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -71,7 +72,10 @@ func dataSourceVirtualClustersRead(ctx context.Context, d *schema.ResourceData, 
 
 	virtualClusterId := strings.Join([]string{clusterName, namespace, "virtual_clusters"}, "/")
 	d.SetId(virtualClusterId)
-	_ = d.Set("virtual_clusters", virtualClusters)
+	err = d.Set("virtual_clusters", virtualClusters)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return diags
 }
 

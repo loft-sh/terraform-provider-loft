@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -65,7 +66,10 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 
 	spaceId := strings.Join([]string{clusterName, "spaces"}, "/")
 	d.SetId(spaceId)
-	_ = d.Set("spaces", spaces)
+	err = d.Set("spaces", spaces)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return diags
 }
 

@@ -73,11 +73,6 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	virtualClusterConstraints := d.Get("virtual_cluster_constraints").(string)
-	if virtualClusterConstraints != "" {
-		labels[VirtualClusterLabelVirtualClusterConstraints] = virtualClusterConstraints
-	}
-
 	virtualCluster.SetLabels(labels)
 
 	objects := d.Get("objects").(string)
@@ -194,20 +189,6 @@ func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 
 		for k, _ := range deleted {
 			delete(modifiedVirtualCluster.Labels, k)
-		}
-	}
-
-	if d.HasChange("virtual_cluster_constraints") {
-		_, newVirtualClusterConstraints := d.GetChange("virtual_cluster_constraints")
-		virtualClusterConstraints, ok := newVirtualClusterConstraints.(string)
-		if !ok {
-			return diag.Errorf("virtual_cluster_constraints value is not a string")
-		}
-
-		if virtualClusterConstraints != "" {
-			modifiedVirtualCluster.Labels[VirtualClusterLabelVirtualClusterConstraints] = virtualClusterConstraints
-		} else {
-			delete(modifiedVirtualCluster.Labels, VirtualClusterLabelVirtualClusterConstraints)
 		}
 	}
 

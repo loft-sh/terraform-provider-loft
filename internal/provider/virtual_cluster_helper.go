@@ -1,15 +1,11 @@
 package provider
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-)
-
-const (
-	VirtualClusterLabelVirtualClusterConstraints = "loft.sh/virtual-cluster-constraints"
-	DefaultVirtualClusterConstraints             = "default"
 )
 
 func generateVirtualClusterId(clusterName, namespace, virtualClusterName string) string {
@@ -71,11 +67,6 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
-		"virtual_cluster_constraints": {
-			Description: "VirtualCluster Constraints are resources, permissions or namespace metadata that is applied and synced automatically into the virtualCluster. This is useful to ensure certain Kubernetes objects are present in each namespace to provide namespace isolation or to ensure certain labels or annotations are set on the namespace of the user.",
-			Type:        schema.TypeString,
-			Optional:    true,
-		},
 		"objects": {
 			// This description is used by the documentation generator and the language server.
 			Description: "Objects are Kubernetes style yamls that should get deployed into the virtualCluster",
@@ -90,31 +81,50 @@ func readVirtualCluster(clusterName, namespace string, virtualCluster *agentv1.V
 	virtualClusterName := virtualCluster.GetName()
 
 	d.SetId(generateVirtualClusterId(clusterName, namespace, virtualClusterName))
-	_ = d.Set("name", virtualClusterName)
-	_ = d.Set("cluster", clusterName)
-	_ = d.Set("namespace", namespace)
-	_ = d.Set("objects", virtualCluster.Spec.Objects)
-	_ = d.Set("chart_name", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Name)
-	_ = d.Set("chart_version", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Version)
+	err := d.Set("name", virtualClusterName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = d.Set("cluster", clusterName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = d.Set("namespace", namespace)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = d.Set("objects", virtualCluster.Spec.Objects)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = d.Set("chart_name", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Name)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = d.Set("chart_version", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Version)
+	if err != nil {
+		fmt.Println(err)
+	}
 	safeAnnotations := removeInternalKeys(virtualCluster.GetAnnotations(), map[string]interface{}{})
 	annotations, err := mapToAttributes(safeAnnotations)
 	if err != nil {
 		return err
 	}
-	_ = d.Set("annotations", annotations)
 
-	rawLabels := virtualCluster.GetLabels()
-	if rawLabels[VirtualClusterLabelVirtualClusterConstraints] != DefaultVirtualClusterConstraints {
-		virtualClusterConstraints := rawLabels[VirtualClusterLabelVirtualClusterConstraints]
-		_ = d.Set("virtual_cluster_constraints", virtualClusterConstraints)
+	err = d.Set("annotations", annotations)
+	if err != nil {
+		fmt.Println(err)
 	}
 
+	rawLabels := virtualCluster.GetLabels()
 	safeLabels := removeInternalKeys(rawLabels, map[string]interface{}{})
 	labels, err := mapToAttributes(safeLabels)
 	if err != nil {
 		return err
 	}
-	_ = d.Set("labels", labels)
-
+	err = d.Set("labels", labels)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return nil
 }

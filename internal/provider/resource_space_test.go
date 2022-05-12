@@ -32,7 +32,10 @@ func TestAccResourceSpace_noName(t *testing.T) {
 	}
 
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -61,7 +64,10 @@ func TestAccResourceSpace_noCluster(t *testing.T) {
 	}
 
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -92,7 +98,10 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -146,7 +155,10 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
@@ -154,10 +166,16 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, teamAccessKey)
 	defer func(c client.Client, clusterName string, teamName string) {
-		_ = deleteClusterAccess(c, clusterName, teamName)
+		err = deleteClusterAccess(c, clusterName, teamName)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
@@ -211,7 +229,10 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -287,7 +308,10 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -366,7 +390,10 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -444,7 +471,10 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -522,7 +552,10 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -600,7 +633,10 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -678,7 +714,10 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
@@ -771,7 +810,10 @@ data:
 		t.Fatal(err)
 	}
 	defer func(c kube.Interface, accessKey *storagev1.AccessKey) {
-		_ = logout(c, accessKey)
+		err = logout(c, accessKey)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}(kubeClient, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{

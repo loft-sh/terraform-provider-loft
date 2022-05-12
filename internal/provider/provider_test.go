@@ -155,8 +155,10 @@ func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	_ = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
-
+	err = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	if err != nil {
+		fmt.Println(err)
+	}
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
 		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
@@ -194,8 +196,10 @@ func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	_ = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
-
+	err = controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	if err != nil {
+		fmt.Println(err)
+	}
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
 		err := c.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKeyName, metav1.DeleteOptions{})
