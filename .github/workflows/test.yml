@@ -12,6 +12,7 @@ on:
       - "go.sum"
       - ".github/workflows/*.yml"
       - ".github/workflows/*.yaml"
+      - ".golangci.yaml"
   # For systems with an upstream API that could drift unexpectedly (like most SaaS systems, etc.),
   # we recommend testing at a regular interval not necessarily tied to code changes. This will 
   # ensure you are alerted to something breaking due to an API change, even if the code did not
@@ -47,9 +48,23 @@ jobs:
     - name: Build
       run: |
         go build -v .
+  
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+      - uses: actions/checkout@v3
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: -v --max-same-issues=50 --timeout=5m
 
   # Ensure docs were generated
   generate:
+    name: Generate
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
@@ -117,8 +132,9 @@ jobs:
 
   # Auto Approve passing Dependabot Patch & Minor PRs
   auto-approve-dependabot:
+    name: Auto-merge Dependabot PRs
     runs-on: ubuntu-latest
-    needs: [build, generate, test]
+    needs: [build, lint, generate, test]
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata

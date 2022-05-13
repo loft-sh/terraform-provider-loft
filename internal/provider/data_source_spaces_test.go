@@ -39,14 +39,14 @@ data:
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer logout(t, client, adminAccessKey)
 
 	teamAccessKey, clusterAccess, _, err := loginTeam(client, loftClient, clusterName, team)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, teamAccessKey)
-	defer deleteClusterAccess(loftClient, clusterName, clusterAccess.GetName())
+	defer logout(t, client, teamAccessKey)
+	defer deleteClusterAccess(t, loftClient, clusterName, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -54,28 +54,28 @@ data:
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreate_withUser(configPath, user, clusterName, space1Name),
+				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, clusterName, space1Name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test_user", "name", space1Name),
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceCreate_withTeam(configPath, team, clusterName, space2Name),
+				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, clusterName, space2Name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test_team", "name", space2Name),
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceCreate_withAnnotations(configPath, clusterName, space3Name, annotation),
+				Config: testAccDataSourceSpaceCreateWithAnnotations(configPath, clusterName, space3Name, annotation),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test", "name", space3Name),
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceCreate_withSpaceObjects(configPath, clusterName, objectsName, objects),
+				Config: testAccDataSourceSpaceCreateWithSpaceObjects(configPath, clusterName, objectsName, objects),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", objectsName),

@@ -60,7 +60,7 @@ func TestAccProvider_withConfigPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer logout(client, adminAccessKey)
+	defer logout(t, client, adminAccessKey)
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -68,7 +68,7 @@ func TestAccProvider_withConfigPath(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProvider_withConfigPath(configPath, clusterName),
+				Config: testAccProviderWithConfigPath(configPath, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
 				),
@@ -95,7 +95,7 @@ func TestAccProvider_withAccessKey(t *testing.T) {
 		return
 	}
 
-	defer logout(client, accessKey)
+	defer logout(t, client, accessKey)
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -103,7 +103,7 @@ func TestAccProvider_withAccessKey(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProvider_withAccessKey(host, accessKey.Spec.Key, true, clusterName),
+				Config: testAccProviderWithAccessKey(host, accessKey.Spec.Key, true, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
 				),
@@ -129,7 +129,7 @@ func TestAccProvider_withAccessKeyNoHost(t *testing.T) {
 		return
 	}
 
-	defer logout(client, accessKey)
+	defer logout(t, client, accessKey)
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(client),
@@ -216,14 +216,14 @@ func TestAccProvider_withInvalidAccessKey(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccProvider_withAccessKey(host, string(uuid), true, clusterName),
+				Config:      testAccProviderWithAccessKey(host, string(uuid), true, clusterName),
 				ExpectError: regexp.MustCompile(`loft access key not found`),
 			},
 		},
 	})
 }
 
-func testAccProvider_withConfigPath(configPath, clusterName string) string {
+func testAccProviderWithConfigPath(configPath, clusterName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -246,7 +246,7 @@ data "loft_spaces" "all" {
 	)
 }
 
-func testAccProvider_withAccessKey(host, accessKey string, insecure bool, clusterName string) string {
+func testAccProviderWithAccessKey(host, accessKey string, insecure bool, clusterName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -343,13 +343,11 @@ func loginTeam(c kube.Interface, loftClient client.Client, clusterName, team str
 	return accessKey, clusterAccess, configPath, nil
 }
 
-func logout(c kube.Interface, accessKey *storagev1.AccessKey) error {
+func logout(t *testing.T, c kube.Interface, accessKey *storagev1.AccessKey) {
 	err := deleteAccessKey(c, accessKey)
 	if err != nil {
-		return err
+		t.Error(err)
 	}
-
-	return nil
 }
 
 func newKubeClient() (kube.Interface, error) {
@@ -387,7 +385,9 @@ func createUserAccessKey(c kube.Interface, user string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	if err := controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme); err != nil {
+		return nil, err
+	}
 
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
@@ -426,7 +426,9 @@ func createTeamAccessKey(c kube.Interface, team string, key string) (*storagev1.
 		},
 	}
 	accessKey.SetGenerateName(accessKeyName)
-	controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme)
+	if err := controllerutil.SetControllerReference(owner, accessKey, scheme.Scheme); err != nil {
+		return nil, err
+	}
 
 	accessKey, err = c.Loft().StorageV1().AccessKeys().Create(context.TODO(), accessKey, metav1.CreateOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
@@ -509,16 +511,14 @@ func createTeamClusterAccess(c client.Client, clusterName string, teamName strin
 	return clusterAccess, nil
 }
 
-func deleteClusterAccess(c client.Client, clusterName string, teamName string) error {
+func deleteClusterAccess(t *testing.T, c client.Client, clusterName string, teamName string) {
 	clusterClient, err := c.Cluster(clusterName)
 	if err != nil {
-		return err
+		t.Error(err)
 	}
 
 	err = clusterClient.Agent().ClusterV1().LocalClusterAccesses().Delete(context.TODO(), teamName, metav1.DeleteOptions{})
 	if err != nil {
-		return err
+		t.Error(err)
 	}
-
-	return nil
 }
