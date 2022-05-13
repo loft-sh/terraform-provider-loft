@@ -20,7 +20,7 @@ func TestAccDataSourceSpaces_all(t *testing.T) {
 	space2Name := names.SimpleNameGenerator.GenerateName("myspace2-")
 	space3Name := names.SimpleNameGenerator.GenerateName("myspace3-")
 	annotation := names.SimpleNameGenerator.GenerateName("annotation-")
-	objectsName := names.SimpleNameGenerator.GenerateName("objects-")
+	space4Name := names.SimpleNameGenerator.GenerateName("objects-")
 	objects := `apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -54,35 +54,21 @@ data:
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, clusterName, space1Name),
+				Config: testAccDataSourceSpacesCreate(configPath, clusterName, space1Name, user, space2Name, team, space3Name, annotation, space4Name, objects),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test_user", "name", space1Name),
-				),
-			},
-			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, clusterName, space2Name),
-				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", clusterName),
 					resource.TestCheckResourceAttr("loft_space.test_team", "name", space2Name),
-				),
-			},
-			{
-				Config: testAccDataSourceSpaceCreateWithAnnotations(configPath, clusterName, space3Name, annotation),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("loft_space.test", "cluster", clusterName),
-					resource.TestCheckResourceAttr("loft_space.test", "name", space3Name),
-				),
-			},
-			{
-				Config: testAccDataSourceSpaceCreateWithSpaceObjects(configPath, clusterName, objectsName, objects),
-				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "cluster", clusterName),
+					resource.TestCheckResourceAttr("loft_space.test_annotations", "name", space3Name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", clusterName),
-					resource.TestCheckResourceAttr("loft_space.test_objects", "name", objectsName),
+					resource.TestCheckResourceAttr("loft_space.test_objects", "name", space4Name),
 				),
 			},
 			{
-				Config: testAccDataSourceSpacesAll(configPath, clusterName),
+				Config: testAccDataSourceSpacesCreate(configPath, clusterName, space1Name, user, space2Name, team, space3Name, annotation, space4Name, objects) +
+					testAccDataSourceSpacesAll(clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
 					checkSpaceByName("data.loft_spaces.all", space1Name, "name", space1Name),
@@ -96,18 +82,29 @@ data:
 					checkSpaceByName("data.loft_spaces.all", space3Name, "name", space3Name),
 					checkSpaceByName("data.loft_spaces.all", space3Name, "cluster", clusterName),
 					checkSpaceByName("data.loft_spaces.all", space3Name, "annotations.some.domain/test", annotation),
-					checkSpaceByName("data.loft_spaces.all", objectsName, "name", objectsName),
-					checkSpaceByName("data.loft_spaces.all", objectsName, "cluster", clusterName),
-					checkSpaceByName("data.loft_spaces.all", objectsName, "user", ""),
-					checkSpaceByName("data.loft_spaces.all", objectsName, "team", ""),
-					checkSpaceByName("data.loft_spaces.all", objectsName, "objects", objects),
+					checkSpaceByName("data.loft_spaces.all", space4Name, "name", space4Name),
+					checkSpaceByName("data.loft_spaces.all", space4Name, "cluster", clusterName),
+					checkSpaceByName("data.loft_spaces.all", space4Name, "user", ""),
+					checkSpaceByName("data.loft_spaces.all", space4Name, "team", ""),
+					checkSpaceByName("data.loft_spaces.all", space4Name, "objects", objects),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceSpacesAll(configPath string, clusterName string) string {
+func testAccDataSourceSpacesCreate(
+	configPath,
+	clusterName,
+	space1Name,
+	user,
+	space2Name,
+	team,
+	space3Name,
+	annotation,
+	space4Name,
+	objects string,
+) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -118,14 +115,55 @@ terraform {
 }
 
 provider "loft" {
-	config_path = "%s"
+	config_path = "%[1]s"
 }
 
+resource "loft_space" "test_user" {
+	name = "%[3]s"
+	cluster = "%[2]s"
+	user = "%[4]s"
+}
+
+resource "loft_space" "test_team" {
+	name = "%[5]s"
+	cluster = "%[2]s"
+	team = "%[6]s"
+}
+
+resource "loft_space" "test_annotations" {
+	name = "%[7]s"
+	cluster = "%[2]s"
+	annotations = {
+		"some.domain/test" = "%[8]s"
+	}
+}
+
+resource "loft_space" "test_objects" {
+	name = "%[9]s"
+	cluster = "%[2]s"
+	objects = <<YAML
+%[10]sYAML
+}
+`,
+		configPath,
+		clusterName,
+		space1Name,
+		user,
+		space2Name,
+		team,
+		space3Name,
+		annotation,
+		space4Name,
+		objects,
+	)
+}
+
+func testAccDataSourceSpacesAll(clusterName string) string {
+	return fmt.Sprintf(`
 data "loft_spaces" "all" {
 	cluster = "%s"
 }
 `,
-		configPath,
 		clusterName,
 	)
 }
