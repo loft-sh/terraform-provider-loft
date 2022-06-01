@@ -31,7 +31,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -40,7 +40,8 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceRead(configPath, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, spaceName) +
+					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),
 					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -82,7 +83,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -91,7 +92,8 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceRead(configPath, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, spaceName) +
+					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),
 					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -103,26 +105,13 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	})
 }
 
-func testAccDataSourceSpaceRead(configPath string, clusterName, spaceName string) string {
+func testAccDataSourceSpaceRead(clusterName, spaceName string) string {
 	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
 data "loft_space" "test" {
 	cluster = "%s"
 	name = "%s"
 }
 `,
-		configPath,
 		clusterName,
 		spaceName,
 	)

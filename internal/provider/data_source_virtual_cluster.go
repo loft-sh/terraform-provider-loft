@@ -16,7 +16,7 @@ func dataSourceVirtualCluster() *schema.Resource {
 
 		ReadContext: dataSourceVirtualClusterRead,
 
-		Schema: virtualClusterAttributes(),
+		Schema: virtualClustersAttributes(),
 	}
 }
 
@@ -46,4 +46,11 @@ func dataSourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	return diags
+}
+
+func virtualClustersAttributes() map[string]*schema.Schema {
+	schema := virtualClusterAttributes()
+	schema["name"].ConflictsWith = nil
+	schema["generate_name"].ConflictsWith = nil
+	return schema
 }

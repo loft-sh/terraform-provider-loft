@@ -35,7 +35,6 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	clusterName := d.Get("cluster").(string)
-	spaceName := d.Get("name").(string)
 
 	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
 	if err != nil {
@@ -45,7 +44,16 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 	space := &agentv1.Space{
 		Spec: agentv1.SpaceSpec{},
 	}
-	space.SetName(spaceName)
+
+	name := d.Get("name").(string)
+	if name != "" {
+		space.SetName(name)
+	}
+
+	generateName := d.Get("generate_name").(string)
+	if generateName != "" {
+		space.SetGenerateName(generateName)
+	}
 
 	rawAnnotations := d.Get("annotations").(map[string]interface{})
 	annotations, err := attributesToMap(rawAnnotations)

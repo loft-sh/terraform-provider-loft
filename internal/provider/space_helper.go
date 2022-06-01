@@ -2,11 +2,12 @@ package provider
 
 import (
 	"context"
+	"strconv"
+	"strings"
+
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
@@ -44,9 +45,21 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"name": {
 			// This description is used by the documentation generator and the language server.
-			Description: "The name of the space",
-			Type:        schema.TypeString,
-			Required:    true,
+			Description:   "The name of the space",
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"generate_name"},
+		},
+		"generate_name": {
+			// This description is used by the documentation generator and the language server.
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"name"},
 		},
 		"annotations": {
 			Description: "Annotations to configure on this space",
@@ -113,13 +126,13 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 	spaceName := space.GetName()
 
 	d.SetId(generateSpaceID(clusterName, spaceName))
-	if err := d.Set("name", spaceName); err != nil {
-		return err
-	}
 	if err := d.Set("cluster", clusterName); err != nil {
 		return err
 	}
 	if err := d.Set("name", spaceName); err != nil {
+		return err
+	}
+	if err := d.Set("generate_name", space.GetGenerateName()); err != nil {
 		return err
 	}
 	if err := d.Set("user", space.Spec.User); err != nil {

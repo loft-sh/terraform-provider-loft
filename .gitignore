@@ -18,3 +18,9 @@
 # Ignore DevSpace cache and log folder
 .devspace/
 /terraform-provider-loft
+
+# Ignore locally initialized .terraform
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*

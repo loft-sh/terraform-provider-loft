@@ -16,7 +16,7 @@ import (
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
-func TestAccResourceSpace_noName(t *testing.T) {
+func TestAccResourceSpace_noNameOrGenerateName(t *testing.T) {
 	cluster := "loft-cluster"
 
 	kubeClient, err := newKubeClient()
@@ -37,7 +37,7 @@ func TestAccResourceSpace_noName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceSpaceNoName(configPath, cluster),
-				ExpectError: regexp.MustCompile(`The argument "name" is required, but no definition was found.`),
+				ExpectError: regexp.MustCompile(`Required value: name or generateName is required`),
 			},
 		},
 	})
@@ -93,7 +93,7 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, cluster, name),
+				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
@@ -108,7 +108,7 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user2, cluster, name),
+				Config: testAccResourceSpaceCreateWithUser(configPath, user2, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
@@ -152,7 +152,7 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, cluster, name),
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
@@ -167,7 +167,7 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team2, cluster, name),
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team2, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
@@ -204,7 +204,7 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithAnnotations(configPath, cluster, name, annotation),
+				Config: testAccResourceSpaceCreateWithAnnotations(configPath, cluster, name, annotation),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -220,7 +220,7 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithAnnotations(configPath, cluster, name, annotation2),
+				Config: testAccResourceSpaceCreateWithAnnotations(configPath, cluster, name, annotation2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -236,7 +236,7 @@ func TestAccResourceSpace_withAnnotations(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -278,7 +278,7 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithLabels(configPath, cluster, name, label),
+				Config: testAccResourceSpaceCreateWithLabels(configPath, cluster, name, label),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -295,7 +295,7 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithLabels(configPath, cluster, name, label2),
+				Config: testAccResourceSpaceCreateWithLabels(configPath, cluster, name, label2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -312,7 +312,7 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -355,7 +355,7 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithSleepAfter(configPath, cluster, name, sleepAfter),
+				Config: testAccResourceSpaceCreateWithSleepAfter(configPath, cluster, name, sleepAfter),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -371,7 +371,7 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithSleepAfter(configPath, cluster, name, sleepAfter2),
+				Config: testAccResourceSpaceCreateWithSleepAfter(configPath, cluster, name, sleepAfter2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -387,7 +387,7 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -431,7 +431,7 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter),
+				Config: testAccResourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -447,7 +447,7 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter2),
+				Config: testAccResourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -463,7 +463,7 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -507,7 +507,7 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule),
+				Config: testAccResourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -523,7 +523,7 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule2),
+				Config: testAccResourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -539,7 +539,7 @@ func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -582,7 +582,7 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule),
+				Config: testAccResourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -598,7 +598,7 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule2),
+				Config: testAccResourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -614,7 +614,7 @@ func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -658,7 +658,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints),
+				Config: testAccResourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -675,7 +675,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"space_constraints"},
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints2),
+				Config: testAccResourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -692,7 +692,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"space_constraints"},
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
@@ -749,7 +749,7 @@ data:
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects1),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -764,7 +764,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects2),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -779,7 +779,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithSpaceObjects(configPath, cluster, name, ""),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -792,6 +792,76 @@ data:
 				ResourceName:      "loft_space.test_objects",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withGenerateName(t *testing.T) {
+	prefix := "test-space-"
+	cluster := "loft-cluster"
+	user := "admin"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(client, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(t, client, adminAccessKey)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccSpaceCheckDestroy(client),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceSpaceCreateWithGenerateName(configPath, cluster, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("loft_space.test_generate_name", "name", regexp.MustCompile(prefix)),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "generate_name", prefix),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "user", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "team", ""),
+					resource.TestCheckResourceAttr("loft_space.test_generate_name", "objects", ""),
+				),
+			},
+			{
+				ResourceName:      "loft_space.test_generate_name",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceSpace_withNameAndGenerateName(t *testing.T) {
+	cluster := "loft-cluster"
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	prefix := "mycluster-"
+
+	client, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, accessKey, configPath, err := loginUser(client, "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer logout(t, client, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccResourceSpaceCreateWithNameAndGenerateName(configPath, cluster, name, prefix),
+				ExpectError: regexp.MustCompile(`"generate_name": conflicts with name`),
 			},
 		},
 	})

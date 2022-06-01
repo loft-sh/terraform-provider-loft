@@ -23,7 +23,13 @@ func dataSourceSpaces() *schema.Resource {
 				Description: "All spaces, or the spaces matching the given label selector",
 				Type:        schema.TypeList,
 				Computed:    true,
-				Elem:        dataSourceSpace(),
+				Elem: &schema.Resource{
+					Description: "A Loft Space.",
+
+					ReadContext: dataSourceSpaceRead,
+
+					Schema: spacesAttributes(),
+				},
 			},
 			"cluster": {
 				Description: "The cluster to list spaces from.",
@@ -89,4 +95,11 @@ func flattenSpace(clusterName string, space v1.Space) (map[string]interface{}, e
 	flattenedSpace["annotations"] = annotations
 
 	return flattenedSpace, nil
+}
+
+func spacesAttributes() map[string]*schema.Schema {
+	schema := spaceAttributes()
+	schema["name"].ConflictsWith = nil
+	schema["generate_name"].ConflictsWith = nil
+	return schema
 }

@@ -14,7 +14,7 @@ import (
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
-func TestAccResourceVirtualCluster_noName(t *testing.T) {
+func TestAccResourceVirtualCluster_noNameOrGenerateName(t *testing.T) {
 	cluster := "loft-cluster"
 	namespace := names.SimpleNameGenerator.GenerateName("namespace-")
 
@@ -30,13 +30,23 @@ func TestAccResourceVirtualCluster_noName(t *testing.T) {
 
 	defer logout(t, kubeClient, accessKey)
 
+	// Create space
+	if err := createSpace(configPath, cluster, namespace); err != nil {
+		t.Fatal(err)
+	}
+	defer func(configPath, clusterName, spaceName string) {
+		if err := deleteSpace(configPath, clusterName, spaceName); err != nil {
+			t.Fatal(err)
+		}
+	}(configPath, cluster, namespace)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccResourceVirtualClusterNoName(configPath, cluster, namespace),
-				ExpectError: regexp.MustCompile(`The argument "name" is required, but no definition was found.`),
+				ExpectError: regexp.MustCompile(`Required value: name or generateName is required`),
 			},
 		},
 	})
@@ -98,6 +108,98 @@ func TestAccResourceVirtualCluster_noNamespace(t *testing.T) {
 	})
 }
 
+func TestAccResourceVirtualCluster_withGenerateName(t *testing.T) {
+	generateName := "name-"
+	namespace := names.SimpleNameGenerator.GenerateName("namespace-")
+
+	cluster := "loft-cluster"
+	user := "admin"
+
+	kubeClient, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(t, kubeClient, adminAccessKey)
+
+	// Create space
+	if err := createSpace(configPath, cluster, namespace); err != nil {
+		t.Fatal(err)
+	}
+	defer func(configPath, clusterName, spaceName string) {
+		if err := deleteSpace(configPath, clusterName, spaceName); err != nil {
+			t.Fatal(err)
+		}
+	}(configPath, cluster, namespace)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccVirtualClusterCheckDestroy(kubeClient),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceVirtualClusterCreateWithGenerateName(configPath, cluster, namespace, generateName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_virtual_cluster.test_generate_name", "generate_name", generateName),
+					resource.TestCheckResourceAttr("loft_virtual_cluster.test_generate_name", "cluster", cluster),
+					resource.TestCheckResourceAttr("loft_virtual_cluster.test_generate_name", "namespace", namespace),
+				),
+			},
+			{
+				ResourceName:      "loft_virtual_cluster.test_generate_name",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccResourceVirtualCluster_withNameAndGenerateName(t *testing.T) {
+	generateName := "myspace-"
+	name := names.SimpleNameGenerator.GenerateName("myspace-")
+	namespace := names.SimpleNameGenerator.GenerateName("namespace-")
+
+	cluster := "loft-cluster"
+	user := "admin"
+
+	kubeClient, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, adminAccessKey, configPath, err := loginUser(kubeClient, user)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logout(t, kubeClient, adminAccessKey)
+
+	// Create space
+	if err := createSpace(configPath, cluster, namespace); err != nil {
+		t.Fatal(err)
+	}
+	defer func(configPath, clusterName, spaceName string) {
+		if err := deleteSpace(configPath, clusterName, spaceName); err != nil {
+			t.Fatal(err)
+		}
+	}(configPath, cluster, namespace)
+
+	resource.Test(t, resource.TestCase{
+		CheckDestroy:      testAccVirtualClusterCheckDestroy(kubeClient),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccResourceVirtualClusterCreateWithNameAndGenerateName(configPath, cluster, namespace, generateName, name),
+				ExpectError: regexp.MustCompile(`"generate_name": conflicts with name`),
+			},
+		},
+	})
+}
+
 func TestAccResourceVirtualCluster_withAnnotations(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("name-")
 	namespace := names.SimpleNameGenerator.GenerateName("namespace-")
@@ -134,7 +236,7 @@ func TestAccResourceVirtualCluster_withAnnotations(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, name, annotation1),
+				Config: testAccResourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, name, annotation1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "cluster", cluster),
@@ -149,7 +251,7 @@ func TestAccResourceVirtualCluster_withAnnotations(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, name, annotation2),
+				Config: testAccResourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, name, annotation2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "cluster", cluster),
@@ -202,7 +304,7 @@ func TestAccResourceVirtualCluster_withLabels(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithLabels(configPath, cluster, namespace, name, label1),
+				Config: testAccResourceVirtualClusterCreateWithLabels(configPath, cluster, namespace, name, label1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_labels", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_labels", "cluster", cluster),
@@ -217,7 +319,7 @@ func TestAccResourceVirtualCluster_withLabels(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithLabels(configPath, cluster, namespace, name, label2),
+				Config: testAccResourceVirtualClusterCreateWithLabels(configPath, cluster, namespace, name, label2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_labels", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_labels", "cluster", cluster),
@@ -270,7 +372,7 @@ func TestAccResourceVirtualCluster_withValues(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithVirtualClusterValues(configPath, cluster, namespace, name, values),
+				Config: testAccResourceVirtualClusterCreateWithVirtualClusterValues(configPath, cluster, namespace, name, values),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_values", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_values", "cluster", cluster),
@@ -336,7 +438,7 @@ data:
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, objects1),
+				Config: testAccResourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, objects1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "cluster", cluster),
@@ -350,7 +452,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, objects2),
+				Config: testAccResourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, objects2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "cluster", cluster),
@@ -364,7 +466,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, ""),
+				Config: testAccResourceVirtualClusterCreateWithVirtualClusterObjects(configPath, cluster, namespace, name, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_objects", "cluster", cluster),

@@ -2,7 +2,63 @@ package provider
 
 import "fmt"
 
-func testAccDataSourceVirtualClusterCreateWithAnnotations(configPath, clusterName, namespace, virtualClusterName, testAnnotation string) string {
+func testAccResourceVirtualClusterCreateWithGenerateName(configPath, clusterName, namespace, generateName string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_virtual_cluster" "test_generate_name" {
+	generate_name = "%s"
+	cluster = "%s"
+    namespace = "%s"
+}
+`,
+		configPath,
+		generateName,
+		clusterName,
+		namespace,
+	)
+}
+
+func testAccResourceVirtualClusterCreateWithNameAndGenerateName(configPath, clusterName, namespace, generateName, name string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%s"
+}
+
+resource "loft_virtual_cluster" "test_generate_name" {
+	name = "%s"
+	generate_name = "%s"
+	cluster = "%s"
+    namespace = "%s"
+}
+`,
+		configPath,
+		name,
+		generateName,
+		clusterName,
+		namespace,
+	)
+}
+
+func testAccResourceVirtualClusterCreateWithAnnotations(configPath, clusterName, namespace, virtualClusterName, testAnnotation string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -33,7 +89,7 @@ resource "loft_virtual_cluster" "test_annotations" {
 	)
 }
 
-func testAccDataSourceVirtualClusterCreateWithLabels(configPath, clusterName, namespace, virtualClusterName, testLabel string) string {
+func testAccResourceVirtualClusterCreateWithLabels(configPath, clusterName, namespace, virtualClusterName, testLabel string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -64,7 +120,7 @@ resource "loft_virtual_cluster" "test_labels" {
 	)
 }
 
-func testAccDataSourceVirtualClusterCreateWithVirtualClusterObjects(configPath, clusterName, namespace, virtualClusterName, objects string) string {
+func testAccResourceVirtualClusterCreateWithVirtualClusterObjects(configPath, clusterName, namespace, virtualClusterName, objects string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -93,7 +149,7 @@ resource "loft_virtual_cluster" "test_objects" {
 		objects,
 	)
 }
-func testAccDataSourceVirtualClusterCreateWithVirtualClusterValues(configPath, clusterName, namespace, virtualClusterName, values string) string {
+func testAccResourceVirtualClusterCreateWithVirtualClusterValues(configPath, clusterName, namespace, virtualClusterName, values string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {

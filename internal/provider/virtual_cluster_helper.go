@@ -29,51 +29,60 @@ func parseVirtualClusterId(id string) (clusterName, namespace, virtualClusterNam
 func virtualClusterAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"cluster": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The cluster where the virtualCluster is located",
+			Description: "The cluster where the virtual cluster is located",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"name": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The name of the virtualCluster",
-			Type:        schema.TypeString,
-			Required:    true,
+			Description:   "The name of the virtual cluster",
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"generate_name"},
+		},
+		"generate_name": {
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+			Type:          schema.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Computed:      true,
+			ConflictsWith: []string{"name"},
 		},
 		"chart_name": {
-			Description: "chart_name to configure chart for this virtualCluster",
+			Description: "chart_name to configure chart for this virtual cluster",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"chart_version": {
-			Description: "chart_version to configure chart for this virtualCluster",
+			Description: "chart_version to configure chart for this virtual cluster",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"values": {
-			Description: "values to configure the virtualCluster",
+			Description: "values to configure the virtual cluster",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"namespace": {
 			// This description is used by the documentation generator and the language server.
-			Description: "The namespace of the virtualCluster",
+			Description: "The namespace of the virtual cluster",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"annotations": {
-			Description: "Annotations to configure on this virtualCluster",
+			Description: "Annotations to configure on this virtual cluster",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"labels": {
-			Description: "Labels to configure on this virtualCluster",
+			Description: "Labels to configure on this virtual cluster",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"objects": {
 			// This description is used by the documentation generator and the language server.
-			Description: "Objects are Kubernetes style yamls that should get deployed into the virtualCluster",
+			Description: "Objects are Kubernetes style yamls that should get deployed into the virtual cluster",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
@@ -87,6 +96,9 @@ func readVirtualCluster(clusterName, namespace string, virtualCluster *agentv1.V
 	d.SetId(generateVirtualClusterId(clusterName, namespace, virtualClusterName))
 
 	if err := d.Set("name", virtualClusterName); err != nil {
+		return err
+	}
+	if err := d.Set("generate_name", virtualCluster.GetGenerateName()); err != nil {
 		return err
 	}
 	if err := d.Set("cluster", clusterName); err != nil {

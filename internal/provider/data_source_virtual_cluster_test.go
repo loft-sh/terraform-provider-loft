@@ -41,14 +41,15 @@ func TestAccDataSourceVirtualCluster_Annotations(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, virtualClusterName, "annotations-1"),
+				Config: testAccResourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, virtualClusterName, "annotations-1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_virtual_cluster.test_annotations", "name", regexp.MustCompile(`^my-virtual-cluster\-.*`)),
 				),
 			},
 			{
-				Config: testAccDataSourceVirtualClusterRead(configPath, cluster, namespace, virtualClusterName),
+				Config: testAccResourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, virtualClusterName, "annotations-1") +
+					testAccDataSourceVirtualClusterRead(cluster, namespace, virtualClusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_virtual_cluster.test", "cluster", cluster),
 					resource.TestMatchResourceAttr("data.loft_virtual_cluster.test", "name", regexp.MustCompile(`^my-virtual-cluster\-.*`)),
@@ -58,27 +59,14 @@ func TestAccDataSourceVirtualCluster_Annotations(t *testing.T) {
 	})
 }
 
-func testAccDataSourceVirtualClusterRead(configPath string, clusterName, namespace, virtualClusterName string) string {
+func testAccDataSourceVirtualClusterRead(clusterName, namespace, virtualClusterName string) string {
 	return fmt.Sprintf(`
-terraform {
-	required_providers {
-		loft = {
-			source = "registry.terraform.io/loft-sh/loft"
-		}
-	}
-}
-
-provider "loft" {
-	config_path = "%s"
-}
-
 data "loft_virtual_cluster" "test" {
 	cluster = "%s"
 	name = "%s"
 	namespace = "%s"
 }
 `,
-		configPath,
 		clusterName,
 		virtualClusterName,
 		namespace,
