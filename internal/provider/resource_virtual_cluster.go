@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
@@ -34,7 +35,6 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	clusterName := d.Get("cluster").(string)
-	virtualClusterName := d.Get("name").(string)
 	namespace := d.Get("namespace").(string)
 
 	chartName := d.Get("chart_name").(string)
@@ -59,7 +59,15 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 	virtualCluster.Spec.VirtualClusterSpec.HelmRelease = &virtualClusterHelmRelease
 
-	virtualCluster.SetName(virtualClusterName)
+	name := d.Get("name").(string)
+	if name != "" {
+		virtualCluster.SetName(name)
+	}
+
+	generateName := d.Get("generate_name").(string)
+	if generateName != "" {
+		virtualCluster.SetGenerateName(generateName)
+	}
 
 	rawAnnotations := d.Get("annotations").(map[string]interface{})
 	annotations, err := attributesToMap(rawAnnotations)

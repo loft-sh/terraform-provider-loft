@@ -31,7 +31,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -40,7 +40,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithUser(configPath, user, cluster, spaceName) +
+				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, spaceName) +
 					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),
@@ -83,7 +83,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace\-.*`)),
@@ -92,7 +92,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDataSourceSpaceCreateWithTeam(configPath, team, cluster, spaceName) +
+				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, spaceName) +
 					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),

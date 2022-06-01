@@ -45,9 +45,9 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		Spec: agentv1.SpaceSpec{},
 	}
 
-	spaceName := d.Get("name").(string)
-	if spaceName != "" {
-		space.SetName(spaceName)
+	name := d.Get("name").(string)
+	if name != "" {
+		space.SetName(name)
 	}
 
 	generateName := d.Get("generate_name").(string)
