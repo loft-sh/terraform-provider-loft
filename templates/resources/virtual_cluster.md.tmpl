@@ -15,8 +15,7 @@ In order to use sleep mode features with virtual clusters, you can configure a s
 {{tffile "examples/resources/loft_virtual_cluster/sleep_after.tf"}}
 
 {{ .SchemaMarkdown | trimspace }}
-{{ if .HasImport -}}
+
 ## Import
 Import is supported using the following syntax:
-{{ printf "{{codefile \"shell\" %q}}" .ImportFile }}
-{{- end }}
+{{codefile "shell" "examples/resources/loft_virtual_cluster/import.sh"}}

@@ -79,3 +79,10 @@ resource "loft_virtual_cluster" "vcluster_with_sleep_mode" {
 ### Read-Only
 
 - `id` (String) Unique identifier for this virtual cluster. The format is `<cluster>/<namespace>/<name>`.
+
+## Import
+Import is supported using the following syntax:
+```shell
+# import the `basic-virtual-cluster`, located in `basic-space` on the `loft-cluster` cluster into the `loft_virtual_cluster.basic` resource
+terraform import loft_virtual_cluster.basic loft-cluster/basic-space/basic-virtual-cluster
+```

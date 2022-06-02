@@ -95,3 +95,10 @@ resource "loft_space" "sleep_after" {
 ### Read-Only
 
 - `id` (String) Unique identifier for this space. The format is `<cluster>/<name>`.
+
+## Import
+Import is supported using the following syntax:
+```shell
+# import the `basic-space`, located on the `loft-cluster` cluster into the `loft_space.basic` resource
+terraform import loft_space.basic loft-cluster/basic-space
+```

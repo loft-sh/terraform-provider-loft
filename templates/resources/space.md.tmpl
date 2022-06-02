@@ -23,8 +23,7 @@ Configure [Scheduled Sleep / Wake-up](https://loft.sh/docs/spaces/sleep-mode?#sc
 {{tffile "examples/resources/loft_space/sleep_schedule.tf"}}
 
 {{ .SchemaMarkdown | trimspace }}
-{{ if .HasImport -}}
+
 ## Import
 Import is supported using the following syntax:
-{{ printf "{{codefile \"shell\" %q}}" .ImportFile }}
-{{- end }}
+{{codefile "shell" "examples/resources/loft_space/import.sh"}}
