@@ -14,7 +14,7 @@ import (
 func dataSourceVirtualClusters() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
-		Description: "A Loft VirtualCluster.",
+		Description: "The `loft_virtual_clusters` data source provides information about all virtual clusters that match the given `cluster` and `namespace`.",
 
 		ReadContext: dataSourceVirtualClustersRead,
 

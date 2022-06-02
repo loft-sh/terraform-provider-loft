@@ -3,12 +3,12 @@
 page_title: "loft_virtual_cluster Data Source - terraform-provider-loft"
 subcategory: ""
 description: |-
-  A Loft VirtualCluster.
+  The loft_virtual_cluster data source provides information about an existing virtual cluster that matches the given cluster, namespace, and name.
 ---
 
 # loft_virtual_cluster (Data Source)
 
-A Loft VirtualCluster.
+The `loft_virtual_cluster` data source provides information about an existing virtual cluster that matches the given `cluster`, `namespace`, and `name`.
 
 ## Example Usage
 

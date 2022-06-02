@@ -3,12 +3,12 @@
 page_title: "loft_space Data Source - terraform-provider-loft"
 subcategory: ""
 description: |-
-  A Loft Space.
+  The loft_space data source provides information about an existing Loft space that matches the given cluster and name.
 ---
 
 # loft_space (Data Source)
 
-A Loft Space.
+The `loft_space` data source provides information about an existing Loft space that matches the given `cluster` and `name`.
 
 ## Example Usage
 

@@ -12,7 +12,7 @@ import (
 func dataSourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
-		Description: "A Loft Space.",
+		Description: "The `loft_space` data source provides information about an existing Loft space that matches the given `cluster` and `name`.",
 
 		ReadContext: dataSourceSpaceRead,
 
