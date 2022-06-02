@@ -15,7 +15,7 @@ import (
 func resourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
-		Description: "`loft_space` manages a Loft space.",
+		Description: "The `loft_space` resource is used to manage a Loft space.",
 
 		CreateContext: resourceSpaceCreate,
 		ReadContext:   resourceSpaceRead,

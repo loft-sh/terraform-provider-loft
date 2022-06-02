@@ -2,10 +2,10 @@
 page_title: "loft_virtual_cluster Resource - terraform-provider-loft"
 subcategory: ""
 description: |-
-  A Loft VirtualCluster.
+  The loft_virtual_cluster resource is used to manage a Loft virtual cluster.
 ---
 # loft_virtual_cluster (Resource)
-A Loft VirtualCluster.
+The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.
 
 ## Example Usage
 ```terraform

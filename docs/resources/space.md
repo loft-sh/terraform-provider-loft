@@ -2,10 +2,10 @@
 page_title: "loft_space Resource - terraform-provider-loft"
 subcategory: ""
 description: |-
-  loft_space manages a Loft space.
+  The loft_space resource is used to manage a Loft space.
 ---
 # loft_space (Resource)
-`loft_space` manages a Loft space.
+The `loft_space` resource is used to manage a Loft space.
 
 ## Example Usage
 ```terraform

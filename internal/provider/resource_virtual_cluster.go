@@ -15,7 +15,7 @@ import (
 func resourceVirtualCluster() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
-		Description: "A Loft VirtualCluster.",
+		Description: "The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.",
 
 		CreateContext: resourceVirtualClusterCreate,
 		ReadContext:   resourceVirtualClusterRead,
