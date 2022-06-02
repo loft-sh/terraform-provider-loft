@@ -34,12 +34,12 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 			Description: "Unique identifier for this virtual cluster. The format is `<cluster>/<namespace>/<name>`.",
 		},
 		"cluster": {
-			Description: "The cluster where the virtual cluster is located",
+			Description: "The cluster where the virtual cluster is located.",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"name": {
-			Description:   "The name of the virtual cluster",
+			Description:   "The name of the virtual cluster.",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -47,7 +47,7 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 			ConflictsWith: []string{"generate_name"},
 		},
 		"generate_name": {
-			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -55,33 +55,32 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 			ConflictsWith: []string{"name"},
 		},
 		"chart_name": {
-			Description: "chart_name to configure chart for this virtual cluster",
+			Description: "The helm chart name used to configure the virtual cluster. ",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"chart_version": {
-			Description: "chart_version to configure chart for this virtual cluster",
+			Description: "The helm chart version used to configure the virtual cluster.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"values": {
-			Description: "values to configure the virtual cluster",
+			Description: "The helm chart values to configure the virtual cluster.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"namespace": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The namespace of the virtual cluster",
+			Description: "The namespace where the virtual cluster is deployed.",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"annotations": {
-			Description: "Annotations to configure on this virtual cluster",
+			Description: "The annotations to configure on this virtual cluster.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"labels": {
-			Description: "Labels to configure on this virtual cluster",
+			Description: "The labels to configure on this virtual cluster.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},

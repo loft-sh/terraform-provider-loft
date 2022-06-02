@@ -75,21 +75,21 @@ resource "loft_space" "sleep_after" {
 
 ### Required
 
-- `cluster` (String) The cluster where the space is located
+- `cluster` (String) The cluster where the space is located.
 
 ### Optional
 
-- `annotations` (Map of String) Annotations to configure on this space
-- `delete_after` (Number) If set to non zero, will tell loft to delete the space after specified seconds of inactivity
-- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency
-- `labels` (Map of String) Labels to configure on this space
-- `name` (String) The name of the space
-- `objects` (String) Objects are Kubernetes style yamls that should get deployed into the space
-- `sleep_after` (Number) If set to non zero, will tell the space to sleep after specified seconds of inactivity
+- `annotations` (Map of String) The annotations to configure on this space.
+- `delete_after` (Number) If set to non zero, will tell loft to delete the space after the specified seconds of inactivity.
+- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.
+- `labels` (Map of String) The labels to configure on this space.
+- `name` (String) The name of the space.
+- `objects` (String) Objects are Kubernetes style yamls that should get deployed into the space.
+- `sleep_after` (Number) If set to non zero, will tell the space to sleep after the specified seconds of inactivity.
 - `sleep_schedule` (String) Put the space to sleep at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.
 - `space_constraints` (String) Space Constraints are resources, permissions or namespace metadata that is applied and synced automatically into the space. This is useful to ensure certain Kubernetes objects are present in each namespace to provide namespace isolation or to ensure certain labels or annotations are set on the namespace of the user.
-- `team` (String) The team that owns this space
-- `user` (String) The user that owns this space
+- `team` (String) The team that owns this space.
+- `user` (String) The user that owns this space.
 - `wakeup_schedule` (String) Wake up the space at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.
 
 ### Read-Only

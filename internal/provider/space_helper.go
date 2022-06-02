@@ -44,13 +44,13 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"cluster": {
 			// This description is used by the documentation generator and the language server.
-			Description: "The cluster where the space is located",
+			Description: "The cluster where the space is located.",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"name": {
 			// This description is used by the documentation generator and the language server.
-			Description:   "The name of the space",
+			Description:   "The name of the space.",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -59,7 +59,7 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"generate_name": {
 			// This description is used by the documentation generator and the language server.
-			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -67,24 +67,24 @@ func spaceAttributes() map[string]*schema.Schema {
 			ConflictsWith: []string{"name"},
 		},
 		"annotations": {
-			Description: "Annotations to configure on this space",
+			Description: "The annotations to configure on this space.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"labels": {
-			Description: "Labels to configure on this space",
+			Description: "The labels to configure on this space.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"sleep_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell the space to sleep after specified seconds of inactivity",
+			Description: "If set to non zero, will tell the space to sleep after the specified seconds of inactivity.",
 			Type:        schema.TypeInt,
 			Optional:    true,
 		},
 		"delete_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell loft to delete the space after specified seconds of inactivity",
+			Description: "If set to non zero, will tell loft to delete the space after the specified seconds of inactivity.",
 			Type:        schema.TypeInt,
 			Optional:    true,
 		},
@@ -104,22 +104,20 @@ func spaceAttributes() map[string]*schema.Schema {
 			Optional:    true,
 		},
 		"user": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The user that owns this space",
+			Description: "The user that owns this space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
 		},
 		"team": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The team that owns this space",
+			Description: "The team that owns this space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
 		},
 		"objects": {
 			// This description is used by the documentation generator and the language server.
-			Description: "Objects are Kubernetes style yamls that should get deployed into the space",
+			Description: "Objects are Kubernetes style yamls that should get deployed into the space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,

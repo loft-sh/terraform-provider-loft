@@ -62,19 +62,19 @@ resource "loft_virtual_cluster" "vcluster_with_sleep_mode" {
 
 ### Required
 
-- `cluster` (String) The cluster where the virtual cluster is located
-- `namespace` (String) The namespace of the virtual cluster
+- `cluster` (String) The cluster where the virtual cluster is located.
+- `namespace` (String) The namespace where the virtual cluster is deployed.
 
 ### Optional
 
-- `annotations` (Map of String) Annotations to configure on this virtual cluster
-- `chart_name` (String) chart_name to configure chart for this virtual cluster
-- `chart_version` (String) chart_version to configure chart for this virtual cluster
-- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency
-- `labels` (Map of String) Labels to configure on this virtual cluster
-- `name` (String) The name of the virtual cluster
+- `annotations` (Map of String) The annotations to configure on this virtual cluster.
+- `chart_name` (String) The helm chart name used to configure the virtual cluster.
+- `chart_version` (String) The helm chart version used to configure the virtual cluster.
+- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.
+- `labels` (Map of String) The labels to configure on this virtual cluster.
+- `name` (String) The name of the virtual cluster.
 - `objects` (String) Objects are Kubernetes style yamls that should get deployed into the virtual cluster
-- `values` (String) values to configure the virtual cluster
+- `values` (String) The helm chart values to configure the virtual cluster.
 
 ### Read-Only
 
