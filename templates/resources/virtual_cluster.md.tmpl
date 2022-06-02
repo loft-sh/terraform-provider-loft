@@ -1,0 +1,22 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+# {{.Name}} ({{.Type}})
+{{ .Description | trimspace }}
+
+## Example Usage
+{{tffile "examples/resources/loft_virtual_cluster/resource.tf"}}
+
+## Example Sleep Mode Usage 
+In order to use sleep mode features with virtual clusters, you can configure a space to sleep and use it as the namespace for your virtual cluster.
+{{tffile "examples/resources/loft_virtual_cluster/sleep_after.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+{{ if .HasImport -}}
+## Import
+Import is supported using the following syntax:
+{{ printf "{{codefile \"shell\" %q}}" .ImportFile }}
+{{- end }}

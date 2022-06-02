@@ -1,0 +1,30 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+# {{.Name}} ({{.Type}})
+{{ .Description | trimspace }}
+
+## Example Usage
+{{tffile "examples/resources/loft_space/resource.tf"}}
+
+## Example Sleep Mode Usage
+
+Configure [Sleep Mode](https://loft.sh/docs/spaces/sleep-mode) for the space.
+
+{{tffile "examples/resources/loft_space/sleep_after.tf"}}
+
+## Example Sleep Schedule Usage
+
+Configure [Scheduled Sleep / Wake-up](https://loft.sh/docs/spaces/sleep-mode?#scheduled-sleep--wake-up) for the space.
+
+{{tffile "examples/resources/loft_space/sleep_schedule.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+{{ if .HasImport -}}
+## Import
+Import is supported using the following syntax:
+{{ printf "{{codefile \"shell\" %q}}" .ImportFile }}
+{{- end }}

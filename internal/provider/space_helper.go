@@ -37,6 +37,11 @@ func parseSpaceID(id string) (clusterName, spaceName string) {
 
 func spaceAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this space. The format is `<cluster>/<name>`.",
+		},
 		"cluster": {
 			// This description is used by the documentation generator and the language server.
 			Description: "The cluster where the space is located",
@@ -84,12 +89,12 @@ func spaceAttributes() map[string]*schema.Schema {
 			Optional:    true,
 		},
 		"sleep_schedule": {
-			Description: "Put the space to sleep at certain times. See crontab.guru for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
+			Description: "Put the space to sleep at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"wakeup_schedule": {
-			Description: "Wake up the space at certain times. See crontab.guru for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
+			Description: "Wake up the space at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},

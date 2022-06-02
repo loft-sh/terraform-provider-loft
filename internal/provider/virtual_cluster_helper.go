@@ -28,6 +28,11 @@ func parseVirtualClusterId(id string) (clusterName, namespace, virtualClusterNam
 
 func virtualClusterAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this virtual cluster. The format is `<cluster>/<namespace>/<name>`.",
+		},
 		"cluster": {
 			Description: "The cluster where the virtual cluster is located",
 			Type:        schema.TypeString,
