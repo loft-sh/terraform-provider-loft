@@ -56,6 +56,8 @@ resource "loft_virtual_cluster" "basic" {
 Authentication for the Loft Provider can be provided through a Loft configuration file, or by manually providing the Loft host and access key.
 
 ### Loft Configuration File
+When you login to Loft using the Loft CLI, a `config.json` file is create locally to store your login access key. By default, this Terraform provider will use this access key to authenticate when managing Loft resources. It may be neccessary to refresh your login using the [`loft login`](https://loft.sh/docs/cli/loft_login) command.
+
 By default, the provider will authenticate using the currently logged in user:
 ```terraform
 provider "loft" {
