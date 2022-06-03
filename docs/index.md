@@ -6,7 +6,7 @@ description: |-
 
 # Loft Provider
 
-Manage your Loft Spaces and Virtual Clusters using terraform.
+Manage Loft Spaces and Virtual Clusters using terraform.
 
 ## Example Usage
 
