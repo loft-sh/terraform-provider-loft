@@ -44,7 +44,7 @@ output "spaces" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `spaces` (List of Object) All spaces, or the spaces matching the given label selector (see [below for nested schema](#nestedatt--spaces))
+- `spaces` (List of Object) All spaces (see [below for nested schema](#nestedatt--spaces))
 
 <a id="nestedatt--spaces"></a>
 ### Nested Schema for `spaces`

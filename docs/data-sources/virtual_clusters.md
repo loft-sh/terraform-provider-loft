@@ -46,7 +46,7 @@ output "all_virtual_clusters" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `virtual_clusters` (List of Object) All virtual_clusters, or the virtual_clusters matching the given label selector (see [below for nested schema](#nestedatt--virtual_clusters))
+- `virtual_clusters` (List of Object) All virtual_clusters (see [below for nested schema](#nestedatt--virtual_clusters))
 
 <a id="nestedatt--virtual_clusters"></a>
 ### Nested Schema for `virtual_clusters`

@@ -20,7 +20,7 @@ func dataSourceVirtualClusters() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"virtual_clusters": {
-				Description: "All virtual_clusters, or the virtual_clusters matching the given label selector",
+				Description: "All virtual_clusters",
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem:        dataSourceVirtualCluster(),

@@ -16,7 +16,7 @@ func dataSourceSpace() *schema.Resource {
 
 		ReadContext: dataSourceSpaceRead,
 
-		Schema: spaceAttributes(),
+		Schema: spaceDataSourceAttributes(),
 	}
 }
 
@@ -47,4 +47,12 @@ func dataSourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	}
 
 	return diags
+}
+
+func spaceDataSourceAttributes() map[string]*schema.Schema {
+	schema := spaceAttributes()
+	schema["name"].Computed = false
+	schema["name"].Optional = false
+	schema["name"].Required = true
+	return schema
 }

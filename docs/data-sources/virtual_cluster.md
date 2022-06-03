@@ -37,6 +37,7 @@ data "loft_virtual_cluster" "existing_virtual_cluster" {
 ### Required
 
 - `cluster` (String) The cluster where the virtual cluster is located.
+- `name` (String) The name of the virtual cluster.
 - `namespace` (String) The namespace where the virtual cluster is deployed.
 
 ### Optional
@@ -46,7 +47,6 @@ data "loft_virtual_cluster" "existing_virtual_cluster" {
 - `chart_version` (String) The helm chart version used to configure the virtual cluster.
 - `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).
 - `labels` (Map of String) The labels to configure on this virtual cluster.
-- `name` (String) The name of the virtual cluster.
 - `objects` (String) Objects are Kubernetes style yamls that should get deployed into the virtual cluster.
 - `values` (String) The helm chart values to configure the virtual cluster.
 

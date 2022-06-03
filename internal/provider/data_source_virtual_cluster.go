@@ -50,7 +50,10 @@ func dataSourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, m
 
 func virtualClustersAttributes() map[string]*schema.Schema {
 	schema := virtualClusterAttributes()
+	schema["name"].Computed = false
 	schema["name"].ConflictsWith = nil
+	schema["name"].Optional = false
+	schema["name"].Required = true
 	schema["generate_name"].ConflictsWith = nil
 	return schema
 }
