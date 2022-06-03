@@ -2,7 +2,7 @@
 page_title: "loft_space Resource - terraform-provider-loft"
 subcategory: ""
 description: |-
-  The loft_space resource is used to manage a Loft space.
+Provides details for loft_space Resource
 ---
 # loft_space (Resource)
 The `loft_space` resource is used to manage a Loft space.
@@ -80,8 +80,8 @@ resource "loft_space" "sleep_after" {
 ### Optional
 
 - `annotations` (Map of String) The annotations to configure on this space.
-- `delete_after` (Number) If set to non zero, will tell loft to delete the space after the specified seconds of inactivity.
-- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.
+- `delete_after` (Number) If set to non zero, will tell Loft to delete the space after the specified seconds of inactivity.
+- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).
 - `labels` (Map of String) The labels to configure on this space.
 - `name` (String) The name of the space.
 - `objects` (String) Objects are Kubernetes style yamls that should get deployed into the space.

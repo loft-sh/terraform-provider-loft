@@ -59,7 +59,7 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"generate_name": {
 			// This description is used by the documentation generator and the language server.
-			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.",
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -84,7 +84,7 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"delete_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell loft to delete the space after the specified seconds of inactivity.",
+			Description: "If set to non zero, will tell Loft to delete the space after the specified seconds of inactivity.",
 			Type:        schema.TypeInt,
 			Optional:    true,
 		},

@@ -2,7 +2,7 @@
 page_title: "loft_virtual_cluster Resource - terraform-provider-loft"
 subcategory: ""
 description: |-
-  The loft_virtual_cluster resource is used to manage a Loft virtual cluster.
+Provides details for loft_virtual_cluster Resource
 ---
 # loft_virtual_cluster (Resource)
 The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.
@@ -70,10 +70,10 @@ resource "loft_virtual_cluster" "vcluster_with_sleep_mode" {
 - `annotations` (Map of String) The annotations to configure on this virtual cluster.
 - `chart_name` (String) The helm chart name used to configure the virtual cluster.
 - `chart_version` (String) The helm chart version used to configure the virtual cluster.
-- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.
+- `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).
 - `labels` (Map of String) The labels to configure on this virtual cluster.
 - `name` (String) The name of the virtual cluster.
-- `objects` (String) Objects are Kubernetes style yamls that should get deployed into the virtual cluster
+- `objects` (String) Objects are Kubernetes style yamls that should get deployed into the virtual cluster.
 - `values` (String) The helm chart values to configure the virtual cluster.
 
 ### Read-Only

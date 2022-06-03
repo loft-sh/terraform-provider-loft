@@ -60,7 +60,7 @@ func New(version string) func() *schema.Provider {
 					Default:     false,
 				},
 				"access_key": {
-					Description:  "The Loft user's access key.",
+					Description:  "The Loft [access key](https://loft.sh/docs/api/access-keys).",
 					Type:         schema.TypeString,
 					Optional:     true,
 					RequiredWith: []string{"host"},

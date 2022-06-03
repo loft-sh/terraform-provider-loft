@@ -47,7 +47,7 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 			ConflictsWith: []string{"generate_name"},
 		},
 		"generate_name": {
-			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency.",
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -86,7 +86,7 @@ func virtualClusterAttributes() map[string]*schema.Schema {
 		},
 		"objects": {
 			// This description is used by the documentation generator and the language server.
-			Description: "Objects are Kubernetes style yamls that should get deployed into the virtual cluster",
+			Description: "Objects are Kubernetes style yamls that should get deployed into the virtual cluster.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,

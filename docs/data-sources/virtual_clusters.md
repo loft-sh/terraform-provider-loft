@@ -3,7 +3,7 @@
 page_title: "loft_virtual_clusters Data Source - terraform-provider-loft"
 subcategory: ""
 description: |-
-  The loft_virtual_clusters data source provides information about all virtual clusters that match the given cluster and namespace.
+  Provides details for loft_virtual_clusters Data Source
 ---
 
 # loft_virtual_clusters (Data Source)

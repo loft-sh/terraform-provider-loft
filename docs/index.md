@@ -1,12 +1,13 @@
 ---
 page_title: "Loft Provider"
+subcategory: ""
 description: |-
-  The Loft Provider provides resources to manage your Loft Spaces and Virtual Clusters using Terraform.
+  Loft Provider (terraform-provider-loft)
 ---
 
 # Loft Provider
 
-Manage Loft Spaces and Virtual Clusters using terraform.
+The Loft Provider provides resources to manage your Loft Spaces and Virtual Clusters using Terraform.
 
 ## Example Usage
 
@@ -99,7 +100,7 @@ provider "loft" {
 
 ### Optional
 
-- `access_key` (String) The Loft user's access key.
+- `access_key` (String) The Loft [access key](https://loft.sh/docs/api/access-keys).
 - `config_path` (String) The Loft config file path. Defaults to `$HOME/.loft/config.json`.
 - `host` (String) The Loft instance host.
 - `insecure` (Boolean) Allow login into an insecure Loft instance. Defaults to `false`.
