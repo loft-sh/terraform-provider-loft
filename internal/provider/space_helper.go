@@ -2,13 +2,16 @@ package provider
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 )
@@ -78,15 +81,19 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"sleep_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell the space to sleep after the specified seconds of inactivity.",
-			Type:        schema.TypeInt,
-			Optional:    true,
+			Description:      "If configured, this will tell Loft to put the space to sleep after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `\"1h\"`",
+			Type:             schema.TypeString,
+			Optional:         true,
+			StateFunc:        durationToSeconds,
+			ValidateDiagFunc: validateDuration,
 		},
 		"delete_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell Loft to delete the space after the specified seconds of inactivity.",
-			Type:        schema.TypeInt,
-			Optional:    true,
+			Description:      "If configured, this will tell Loft to delete the space after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `\"1h\"`",
+			Type:             schema.TypeString,
+			Optional:         true,
+			StateFunc:        durationToSeconds,
+			ValidateDiagFunc: validateDuration,
 		},
 		"sleep_schedule": {
 			Description: "Put the space to sleep at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
@@ -150,20 +157,14 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 
 	rawAnnotations := space.GetAnnotations()
 	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
-		sleepAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeSleepAfterAnnotation])
-		if err != nil {
-			return err
-		}
+		sleepAfter := rawAnnotations[agentv1.SleepModeSleepAfterAnnotation]
 		if err := d.Set("sleep_after", sleepAfter); err != nil {
 			return err
 		}
 	}
 
 	if rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
-		deleteAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation])
-		if err != nil {
-			return err
-		}
+		deleteAfter := rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation]
 		if err := d.Set("delete_after", deleteAfter); err != nil {
 			return err
 		}
@@ -252,4 +253,29 @@ func createSpace(configPath, clusterName, spaceName string) error {
 	}
 
 	return nil
+}
+
+func validateDuration(v interface{}, p cty.Path) diag.Diagnostics {
+	valStr := v.(string)
+
+	_, err := time.ParseDuration(valStr)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func durationToSeconds(val interface{}) string {
+	valStr, ok := val.(string)
+	if !ok {
+		return ""
+	}
+
+	duration, err := time.ParseDuration(valStr)
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%d", int(duration.Seconds()))
 }

@@ -41,11 +41,11 @@ data "loft_space" "default" {
 ### Optional
 
 - `annotations` (Map of String) The annotations to configure on this space.
-- `delete_after` (Number) If set to non zero, will tell Loft to delete the space after the specified seconds of inactivity.
+- `delete_after` (String) If configured, this will tell Loft to delete the space after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `"1h"`
 - `generate_name` (String) Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).
 - `labels` (Map of String) The labels to configure on this space.
 - `objects` (String) Objects are Kubernetes style yamls that should get deployed into the space.
-- `sleep_after` (Number) If set to non zero, will tell the space to sleep after the specified seconds of inactivity.
+- `sleep_after` (String) If configured, this will tell Loft to put the space to sleep after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `"1h"`
 - `sleep_schedule` (String) Put the space to sleep at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.
 - `space_constraints` (String) Space Constraints are resources, permissions or namespace metadata that is applied and synced automatically into the space. This is useful to ensure certain Kubernetes objects are present in each namespace to provide namespace isolation or to ensure certain labels or annotations are set on the namespace of the user.
 - `team` (String) The team that owns this space.

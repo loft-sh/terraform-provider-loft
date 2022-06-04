@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -331,12 +330,48 @@ func TestAccResourceSpace_withLabels(t *testing.T) {
 	})
 }
 
+func TestAccResourceSpace_withInvalidSleepAfter(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+
+	kubeClient, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, accessKey, configPath, err := loginUser(kubeClient, "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer logout(t, kubeClient, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccResourceSpaceCreateWithSleepAfter(configPath, cluster, name, "oops"),
+				ExpectError: regexp.MustCompile(`time: invalid duration "oops"`),
+			},
+		},
+	})
+}
+
 func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
-	sleepAfter := 60
-	sleepAfter2 := 120
+	sleepAfter := "1m"
+	sleepAfterSeconds, err := toSecondsString(sleepAfter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sleepAfter2 := "120s"
+	sleepAfter2Seconds, err := toSecondsString(sleepAfter2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	kubeClient, err := newKubeClient()
 	if err != nil {
@@ -361,8 +396,8 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", strconv.Itoa(sleepAfter)),
-					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, strconv.Itoa(sleepAfter))),
+					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", sleepAfterSeconds),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfterSeconds)),
 				),
 			},
 			{
@@ -377,8 +412,8 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", strconv.Itoa(sleepAfter2)),
-					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, strconv.Itoa(sleepAfter2))),
+					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", sleepAfter2Seconds),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfter2Seconds)),
 				),
 			},
 			{
@@ -393,7 +428,7 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", "0"),
+					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", ""),
 					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeSleepAfterAnnotation)),
 				),
 			},
@@ -407,12 +442,49 @@ func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 	})
 }
 
+func TestAccResourceSpace_withInvalidDeleteAfter(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	cluster := "loft-cluster"
+
+	kubeClient, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, accessKey, configPath, err := loginUser(kubeClient, "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer logout(t, kubeClient, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccResourceSpaceCreateWithDeleteAfter(configPath, cluster, name, "oops"),
+				ExpectError: regexp.MustCompile(`time: invalid duration "oops"`),
+			},
+		},
+	})
+}
+
 func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
-	deleteAfter := 60
-	deleteAfter2 := 120
+	deleteAfter := "1m0s"
+	deleteAfterSeconds, err := toSecondsString(deleteAfter)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deleteAfter2 := "2m0s"
+	deleteAfter2Seconds, err := toSecondsString(deleteAfter2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	kubeClient, err := newKubeClient()
 	if err != nil {
@@ -437,8 +509,8 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "delete_after", strconv.Itoa(deleteAfter)),
-					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, strconv.Itoa(deleteAfter))),
+					resource.TestCheckResourceAttr("loft_space.test", "delete_after", deleteAfterSeconds),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfterSeconds)),
 				),
 			},
 			{
@@ -453,8 +525,8 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "delete_after", strconv.Itoa(deleteAfter2)),
-					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, strconv.Itoa(deleteAfter2))),
+					resource.TestCheckResourceAttr("loft_space.test", "delete_after", deleteAfter2Seconds),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfter2Seconds)),
 				),
 			},
 			{
@@ -469,7 +541,7 @@ func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					resource.TestCheckResourceAttr("loft_space.test", "delete_after", "0"),
+					resource.TestCheckResourceAttr("loft_space.test", "delete_after", ""),
 					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeDeleteAfterAnnotation)),
 				),
 			},

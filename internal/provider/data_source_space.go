@@ -54,5 +54,7 @@ func spaceDataSourceAttributes() map[string]*schema.Schema {
 	schema["name"].Computed = false
 	schema["name"].Optional = false
 	schema["name"].Required = true
+	schema["name"].ConflictsWith = nil
+	schema["generate_name"].ConflictsWith = nil
 	return schema
 }
