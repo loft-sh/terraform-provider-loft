@@ -42,25 +42,25 @@ func New(version string) func() *schema.Provider {
 			},
 			Schema: map[string]*schema.Schema{
 				"config_path": {
-					Description: "The loft config file path",
+					Description: "The Loft config file path. Defaults to `$HOME/.loft/config.json`.",
 					Type:        schema.TypeString,
 					Optional:    true,
 					Default:     defaultConfigPath(),
 				},
 				"host": {
-					Description:  "The Loft host",
+					Description:  "The Loft instance host.",
 					Type:         schema.TypeString,
 					Optional:     true,
 					RequiredWith: []string{"access_key"},
 				},
 				"insecure": {
-					Description: "Allow login into an insecure Loft instance",
+					Description: "Allow login into an insecure Loft instance. Defaults to `false`.",
 					Type:        schema.TypeBool,
 					Optional:    true,
 					Default:     false,
 				},
 				"access_key": {
-					Description:  "The Loft user's access key",
+					Description:  "The Loft [access key](https://loft.sh/docs/api/access-keys).",
 					Type:         schema.TypeString,
 					Optional:     true,
 					RequiredWith: []string{"host"},

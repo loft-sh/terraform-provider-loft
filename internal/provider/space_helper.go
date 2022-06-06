@@ -2,13 +2,16 @@ package provider
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 )
@@ -37,15 +40,20 @@ func parseSpaceID(id string) (clusterName, spaceName string) {
 
 func spaceAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this space. The format is `<cluster>/<name>`.",
+		},
 		"cluster": {
 			// This description is used by the documentation generator and the language server.
-			Description: "The cluster where the space is located",
+			Description: "The cluster where the space is located.",
 			Type:        schema.TypeString,
 			Required:    true,
 		},
 		"name": {
 			// This description is used by the documentation generator and the language server.
-			Description:   "The name of the space",
+			Description:   "The name of the space.",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -54,7 +62,7 @@ func spaceAttributes() map[string]*schema.Schema {
 		},
 		"generate_name": {
 			// This description is used by the documentation generator and the language server.
-			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
+			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more about [kubernetes API conventions for idempotency here](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency).",
 			Type:          schema.TypeString,
 			Optional:      true,
 			ForceNew:      true,
@@ -62,34 +70,38 @@ func spaceAttributes() map[string]*schema.Schema {
 			ConflictsWith: []string{"name"},
 		},
 		"annotations": {
-			Description: "Annotations to configure on this space",
+			Description: "The annotations to configure on this space.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"labels": {
-			Description: "Labels to configure on this space",
+			Description: "The labels to configure on this space.",
 			Type:        schema.TypeMap,
 			Optional:    true,
 		},
 		"sleep_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell the space to sleep after specified seconds of inactivity",
-			Type:        schema.TypeInt,
-			Optional:    true,
+			Description:      "If configured, this will tell Loft to put the space to sleep after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `\"1h\"`",
+			Type:             schema.TypeString,
+			Optional:         true,
+			StateFunc:        durationToSeconds,
+			ValidateDiagFunc: validateDuration,
 		},
 		"delete_after": {
 			// This description is used by the documentation generator and the language server.
-			Description: "If set to non zero, will tell loft to delete the space after specified seconds of inactivity",
-			Type:        schema.TypeInt,
-			Optional:    true,
+			Description:      "If configured, this will tell Loft to delete the space after the specified duration of inactivity. The format is a string accepted by the [time.ParseDuration](https://pkg.go.dev/time#ParseDuration) function, such as `\"1h\"`",
+			Type:             schema.TypeString,
+			Optional:         true,
+			StateFunc:        durationToSeconds,
+			ValidateDiagFunc: validateDuration,
 		},
 		"sleep_schedule": {
-			Description: "Put the space to sleep at certain times. See crontab.guru for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
+			Description: "Put the space to sleep at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if you want to set the space sleeping over the weekend for example.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
 		"wakeup_schedule": {
-			Description: "Wake up the space at certain times. See crontab.guru for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
+			Description: "Wake up the space at certain times. See [crontab.guru](https://crontab.guru/) for valid configurations. This might be useful if it started sleeping due to inactivity and you want to wake up the space on a regular basis.",
 			Type:        schema.TypeString,
 			Optional:    true,
 		},
@@ -99,22 +111,20 @@ func spaceAttributes() map[string]*schema.Schema {
 			Optional:    true,
 		},
 		"user": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The user that owns this space",
+			Description: "The user that owns this space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
 		},
 		"team": {
-			// This description is used by the documentation generator and the language server.
-			Description: "The team that owns this space",
+			Description: "The team that owns this space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
 		},
 		"objects": {
 			// This description is used by the documentation generator and the language server.
-			Description: "Objects are Kubernetes style yamls that should get deployed into the space",
+			Description: "Objects are Kubernetes style yamls that should get deployed into the space.",
 			Type:        schema.TypeString,
 			Required:    false,
 			Optional:    true,
@@ -147,20 +157,14 @@ func readSpace(clusterName string, space *agentv1.Space, d *schema.ResourceData)
 
 	rawAnnotations := space.GetAnnotations()
 	if rawAnnotations[agentv1.SleepModeSleepAfterAnnotation] != "" {
-		sleepAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeSleepAfterAnnotation])
-		if err != nil {
-			return err
-		}
+		sleepAfter := rawAnnotations[agentv1.SleepModeSleepAfterAnnotation]
 		if err := d.Set("sleep_after", sleepAfter); err != nil {
 			return err
 		}
 	}
 
 	if rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation] != "" {
-		deleteAfter, err := strconv.Atoi(rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation])
-		if err != nil {
-			return err
-		}
+		deleteAfter := rawAnnotations[agentv1.SleepModeDeleteAfterAnnotation]
 		if err := d.Set("delete_after", deleteAfter); err != nil {
 			return err
 		}
@@ -249,4 +253,29 @@ func createSpace(configPath, clusterName, spaceName string) error {
 	}
 
 	return nil
+}
+
+func validateDuration(v interface{}, p cty.Path) diag.Diagnostics {
+	valStr := v.(string)
+
+	_, err := time.ParseDuration(valStr)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func durationToSeconds(val interface{}) string {
+	valStr, ok := val.(string)
+	if !ok {
+		return ""
+	}
+
+	duration, err := time.ParseDuration(valStr)
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%d", int(duration.Seconds()))
 }

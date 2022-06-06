@@ -1,3 +1,3 @@
 provider "loft" {
-  # example configuration here
+  # Uses the default Loft config location ($HOME/.loft/config.json)
 }

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,7 +16,7 @@ import (
 func resourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
-		Description: "A Loft Space.",
+		Description: "The `loft_space` resource is used to manage a Loft space.",
 
 		CreateContext: resourceSpaceCreate,
 		ReadContext:   resourceSpaceRead,
@@ -61,14 +62,24 @@ func resourceSpaceCreate(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 
-	sleepAfter := d.Get("sleep_after").(int)
-	if sleepAfter > 0 {
-		annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(sleepAfter)
+	sleepAfter := d.Get("sleep_after").(string)
+	if sleepAfter != "" {
+		duration, err := time.ParseDuration(sleepAfter)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(int(duration.Seconds()))
 	}
 
-	deleteAfter := d.Get("delete_after").(int)
-	if deleteAfter > 0 {
-		annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(deleteAfter)
+	deleteAfter := d.Get("delete_after").(string)
+	if deleteAfter != "" {
+		duration, err := time.ParseDuration(deleteAfter)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(int(duration.Seconds()))
 	}
 
 	sleepSchedule := d.Get("sleep_schedule").(string)
@@ -239,13 +250,18 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 
 	if d.HasChange("sleep_after") {
 		_, newSleepAfter := d.GetChange("sleep_after")
-		sleepAfter, ok := newSleepAfter.(int)
+		sleepAfter, ok := newSleepAfter.(string)
 		if !ok {
-			return diag.Errorf("sleep_after value is not an integer")
+			return diag.Errorf("sleep_after value is not a string")
 		}
 
-		if sleepAfter > 0 {
-			modifiedSpace.Annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(sleepAfter)
+		if sleepAfter != "" {
+			duration, err := time.ParseDuration(sleepAfter)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			modifiedSpace.Annotations[agentv1.SleepModeSleepAfterAnnotation] = strconv.Itoa(int(duration.Seconds()))
 		} else {
 			delete(modifiedSpace.Annotations, agentv1.SleepModeSleepAfterAnnotation)
 		}
@@ -253,13 +269,17 @@ func resourceSpaceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 
 	if d.HasChange("delete_after") {
 		_, newDeleteAfter := d.GetChange("delete_after")
-		deleteAfter, ok := newDeleteAfter.(int)
+		deleteAfter, ok := newDeleteAfter.(string)
 		if !ok {
 			return diag.Errorf("delete_after value is not an integer")
 		}
 
-		if deleteAfter > 0 {
-			modifiedSpace.Annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(deleteAfter)
+		if deleteAfter != "" {
+			duration, err := time.ParseDuration(deleteAfter)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			modifiedSpace.Annotations[agentv1.SleepModeDeleteAfterAnnotation] = strconv.Itoa(int(duration.Seconds()))
 		} else {
 			delete(modifiedSpace.Annotations, agentv1.SleepModeDeleteAfterAnnotation)
 		}

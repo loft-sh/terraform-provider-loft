@@ -1,0 +1,38 @@
+---
+page_title: "Loft Provider"
+subcategory: ""
+description: |-
+  Loft Provider (terraform-provider-loft)
+---
+
+# Loft Provider
+
+The Loft Provider provides resources to manage your Loft Spaces and Virtual Clusters using Terraform.
+
+## Example Usage
+
+Create a Space using terraform
+{{tffile "examples/resources/loft_space/resource.tf"}}
+
+Create a Virtual Cluster using terraform
+{{tffile "examples/resources/loft_virtual_cluster/resource.tf"}}
+
+## Authentication and Configuration
+Authentication for the Loft Provider can be provided through a Loft configuration file, or by manually providing the Loft host and access key.
+
+### Loft Configuration File
+When you login to Loft using the Loft CLI, a `config.json` file is create locally to store your login access key. By default, this Terraform provider will use this access key to authenticate when managing Loft resources. It may be neccessary to refresh your login using the [`loft login`](https://loft.sh/docs/cli/loft_login) command.
+
+By default, the provider will authenticate using the currently logged in user:
+{{tffile "examples/provider/provider.tf"}}
+
+To override the Loft config path location:
+{{tffile "examples/provider/provider_config_path.tf"}}
+
+### Manual Configuration
+The provider authentication can be manually configured using `access_key`, `host`, and `insecure` options. This is useful for when you want to configure authentication in a CI/CD environment and wish to provide credentials using secrets or environment variables.
+
+This is an example using [terraform variables](https://www.terraform.io/language/values/variables) to set the `host`, `access_key`, and `insecure` options:
+{{tffile "examples/provider/provider_variables.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

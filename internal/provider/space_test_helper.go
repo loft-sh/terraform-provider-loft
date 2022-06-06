@@ -1,6 +1,9 @@
 package provider
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func testAccResourceSpaceCreateWithoutUserOrTeam(configPath string, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
@@ -139,7 +142,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccResourceSpaceCreateWithSleepAfter(configPath, clusterName, spaceName string, sleepAfter int) string {
+func testAccResourceSpaceCreateWithSleepAfter(configPath, clusterName, spaceName, sleepAfter string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -156,7 +159,7 @@ provider "loft" {
 resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
-	sleep_after = %d
+	sleep_after = "%s"
 }
 `,
 		configPath,
@@ -166,7 +169,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccResourceSpaceCreateWithDeleteAfter(configPath, clusterName, spaceName string, deleteAfter int) string {
+func testAccResourceSpaceCreateWithDeleteAfter(configPath, clusterName, spaceName, deleteAfter string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -183,7 +186,7 @@ provider "loft" {
 resource "loft_space" "test" {
 	name = "%s"
 	cluster = "%s"
-	delete_after = %d
+	delete_after = "%s"
 }
 `,
 		configPath,
@@ -352,4 +355,12 @@ resource "loft_space" "test_name_and_generate_name" {
 		name,
 		prefix,
 	)
+}
+
+func toSecondsString(durationStr string) (string, error) {
+	duration, err := time.ParseDuration(durationStr)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%d", int(duration.Seconds())), nil
 }
