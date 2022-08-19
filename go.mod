@@ -9,10 +9,10 @@ require (
 	github.com/loft-sh/agentapi/v2 v2.2.1-0.20220510130445-d5a1d637aa6a
 	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20220510130528-8dcd7b74b37a
 	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20220511152413-680a9673d059
-	k8s.io/api v0.24.3
-	k8s.io/apimachinery v0.24.3
+	k8s.io/api v0.24.4
+	k8s.io/apimachinery v0.24.4
 	k8s.io/apiserver v0.24.3
-	k8s.io/client-go v0.24.3
+	k8s.io/client-go v0.24.4
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
