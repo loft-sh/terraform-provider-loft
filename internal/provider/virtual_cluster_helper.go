@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 )
 
 func generateVirtualClusterId(clusterName, namespace, virtualClusterName string) string {
@@ -114,13 +114,13 @@ func readVirtualCluster(clusterName, namespace string, virtualCluster *agentv1.V
 	if err := d.Set("objects", virtualCluster.Spec.Objects); err != nil {
 		return err
 	}
-	if err := d.Set("chart_name", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Name); err != nil {
+	if err := d.Set("chart_name", virtualCluster.Spec.HelmRelease.Chart.Name); err != nil {
 		return err
 	}
-	if err := d.Set("chart_version", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Chart.Version); err != nil {
+	if err := d.Set("chart_version", virtualCluster.Spec.HelmRelease.Chart.Version); err != nil {
 		return err
 	}
-	if err := d.Set("values", virtualCluster.Spec.VirtualClusterSpec.HelmRelease.Values); err != nil {
+	if err := d.Set("values", virtualCluster.Spec.HelmRelease.Values); err != nil {
 		return err
 	}
 

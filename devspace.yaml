@@ -16,7 +16,7 @@ dev:
   - imageSelector: loftsh/loft
     forward:
     - port: 8443
-      remotePort: 443
+      remotePort: 10443
 
 profiles:
 - name: e2e

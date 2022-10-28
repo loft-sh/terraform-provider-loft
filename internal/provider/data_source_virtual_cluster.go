@@ -36,7 +36,7 @@ func dataSourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	virtualCluster, err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
+	virtualCluster, err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -55,7 +55,7 @@ func dataSourceVirtualClustersRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	virtualClustersList, err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).List(ctx, metav1.ListOptions{})
+	virtualClustersList, err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
