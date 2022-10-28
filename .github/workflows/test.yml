@@ -128,6 +128,7 @@ jobs:
     - name: TF acceptance tests
       timeout-minutes: 10
       run: |
+        devspace use namespace loft
         devspace run e2e  
 
   # Auto Approve passing Dependabot Patch & Minor PRs
