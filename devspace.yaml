@@ -1,51 +1,41 @@
-version: v1beta11
+version: v2beta1
 
 vars:
-  - name: LOFT_IMAGE
-    value: loft-sh/loft
+  LOFT_IMAGE: loftsh/loft
 
 deployments:
-- name: loft
-  helm:
-    chart:
-      name: loft
-      repo: https://charts.loft.sh
+  loft:
+    helm:
+      chart:
+        name: loft
+        repo: https://charts.loft.sh
 
 dev:
-  ports:
-  - imageSelector: loftsh/loft
-    forward:
-    - port: 8443
-      remotePort: 443
+  loft:
+    imageSelector: ${LOFT_IMAGE}
+    ports:
+      - port: 8443:10443
 
-profiles:
-- name: e2e
-  patches:
-    - op: add
-      path: hooks
-      value:
-        - wait:
-            running: true
-          container:
-            imageSelector: ${LOFT_IMAGE}
-          events: ["after:deploy:loft"]
-        - command: make testacc
-          events: ["devCommand:after:portForwarding"]
-    - op: add
-      path: dev
-      value:
-        terminal:
-          command:
-          - sh
-          - -c
-          - exit 0
+pipelines:
+  e2e:
+    run: |-
+      # Ensure pull secrets
+      ensure_pull_secrets --all
+      
+      # Deploy loft
+      create_deployments --all
+      
+      # Start port-forwarding
+      start_dev loft
+      
+      # Run the tests
+      make testacc
+      
+      # Stop port-forwarding
+      stop_dev loft
 
 commands:
-- name: deploy-loft
-  command: devspace deploy -n loft
-- name: purge-loft
-  command: devspace purge -n loft
-- name: dev
-  command: devspace dev -n loft
-- name: e2e
-  command: devspace dev -n loft -p e2e
+  deploy-loft: devspace deploy
+  purge-loft: devspace purge
+  dev: devspace dev
+  e2e: devspace run-pipeline e2e

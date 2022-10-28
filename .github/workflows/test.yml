@@ -94,6 +94,8 @@ jobs:
         terraform:
           - '1.0.*'
           - '1.1.*'
+          - '1.2.*'
+          - '1.3.*'
     steps:
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -126,6 +128,7 @@ jobs:
     - name: TF acceptance tests
       timeout-minutes: 10
       run: |
+        devspace use namespace loft
         devspace run e2e  
 
   # Auto Approve passing Dependabot Patch & Minor PRs

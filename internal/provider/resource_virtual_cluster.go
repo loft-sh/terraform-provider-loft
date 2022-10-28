@@ -8,7 +8,7 @@ import (
 	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -57,7 +57,7 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		},
 		Values: values,
 	}
-	virtualCluster.Spec.VirtualClusterSpec.HelmRelease = &virtualClusterHelmRelease
+	virtualCluster.Spec.HelmRelease = &virtualClusterHelmRelease
 
 	name := d.Get("name").(string)
 	if name != "" {
@@ -90,7 +90,7 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		virtualCluster.Spec.Objects = objects
 	}
 
-	virtualCluster, err = clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Create(ctx, virtualCluster, metav1.CreateOptions{})
+	virtualCluster, err = clusterClient.Agent().StorageV1().VirtualClusters(namespace).Create(ctx, virtualCluster, metav1.CreateOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +114,7 @@ func resourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	virtualCluster, err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
+	virtualCluster, err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -139,7 +139,7 @@ func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	oldVirtualCluster, err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
+	oldVirtualCluster, err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Get(ctx, virtualClusterName, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -206,7 +206,7 @@ func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	virtualCluster, err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Patch(ctx, virtualClusterName, patch.Type(), rawPatch, metav1.PatchOptions{})
+	virtualCluster, err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Patch(ctx, virtualClusterName, patch.Type(), rawPatch, metav1.PatchOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -233,7 +233,7 @@ func resourceVirtualClusterDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	if err := clusterClient.Agent().ClusterV1().VirtualClusters(namespace).Delete(context.TODO(), virtualClusterName, metav1.DeleteOptions{}); err != nil {
+	if err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Delete(context.TODO(), virtualClusterName, metav1.DeleteOptions{}); err != nil {
 		return diag.FromErr(err)
 	}
 

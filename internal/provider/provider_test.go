@@ -292,7 +292,7 @@ func testAccVirtualClusterCheckDestroy(client kube.Interface) func(s *terraform.
 			virtualClusterName := tokens[2]
 
 			err := wait.PollImmediate(1*time.Second, 60*time.Second, func() (bool, error) {
-				_, err := client.Agent().ClusterV1().VirtualClusters(namespace).Get(context.TODO(), virtualClusterName, metav1.GetOptions{})
+				_, err := client.Agent().StorageV1().VirtualClusters(namespace).Get(context.TODO(), virtualClusterName, metav1.GetOptions{})
 				if errors.IsNotFound(err) {
 					return true, nil
 				}
