@@ -17,6 +17,8 @@ func dataSourceSpace() *schema.Resource {
 		ReadContext: dataSourceSpaceRead,
 
 		Schema: spaceDataSourceAttributes(),
+
+		DeprecationMessage: "`loft_space` has been deprecated and will be removed in a future release. Please use `loft_space_instance` instead.",
 	}
 }
 
@@ -50,11 +52,11 @@ func dataSourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta inter
 }
 
 func spaceDataSourceAttributes() map[string]*schema.Schema {
-	schema := spaceAttributes()
-	schema["name"].Computed = false
-	schema["name"].Optional = false
-	schema["name"].Required = true
-	schema["name"].ConflictsWith = nil
-	schema["generate_name"].ConflictsWith = nil
-	return schema
+	attributes := spaceAttributes()
+	attributes["name"].Computed = false
+	attributes["name"].Optional = false
+	attributes["name"].Required = true
+	attributes["name"].ConflictsWith = nil
+	attributes["generate_name"].ConflictsWith = nil
+	return attributes
 }

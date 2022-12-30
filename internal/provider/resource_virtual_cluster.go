@@ -57,7 +57,7 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		},
 		Values: values,
 	}
-	virtualCluster.Spec.HelmRelease = &virtualClusterHelmRelease
+	virtualCluster.Spec.HelmRelease = virtualClusterHelmRelease
 
 	name := d.Get("name").(string)
 	if name != "" {
@@ -233,7 +233,7 @@ func resourceVirtualClusterDelete(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	if err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Delete(context.TODO(), virtualClusterName, metav1.DeleteOptions{}); err != nil {
+	if err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Delete(ctx, virtualClusterName, metav1.DeleteOptions{}); err != nil {
 		return diag.FromErr(err)
 	}
 

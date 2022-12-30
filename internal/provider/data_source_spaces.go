@@ -54,7 +54,7 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	spaces := []map[string]interface{}{}
+	var spaces []map[string]interface{}
 	for _, space := range spacesList.Items {
 		flattenedSpace, err := flattenSpace(clusterName, space)
 		if err != nil {
