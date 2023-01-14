@@ -70,16 +70,17 @@ func spaceInstanceAttributes() map[string]*schema.Schema {
 				},
 			},
 		},
-		"template": {
+		"templates": {
 			// This description is used by the documentation generator and the language server.
-			Description: "The inline template to use for space creation. This is mutually exclusive with templateRef.",
+			Description: "The inline templates to use for space creation. This is mutually exclusive with templateRef.",
 			Type:        schema.TypeList,
 			MinItems:    1,
 			MaxItems:    1,
 			Optional:    true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
-					/*"metadata": &schema.Schema{
+					"metadata": {
+						Type:     schema.TypeList,
 						MinItems: 1,
 						MaxItems: 1,
 						Optional: true,
@@ -97,7 +98,7 @@ func spaceInstanceAttributes() map[string]*schema.Schema {
 								},
 							},
 						},
-					},*/
+					},
 					"objects": {
 						// This description is used by the documentation generator and the language server.
 						Description: "Objects are Kubernetes style yamls that should get deployed into the space.",

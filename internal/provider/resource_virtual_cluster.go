@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func resourceVirtualCluster() *schema.Resource {
+func ResourceVirtualCluster() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.",

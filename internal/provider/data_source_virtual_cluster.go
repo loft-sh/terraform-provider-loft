@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceVirtualCluster() *schema.Resource {
+func DataSourceVirtualCluster() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_cluster` data source provides information about an existing virtual cluster that matches the given `cluster`, `namespace`, and `name`.",

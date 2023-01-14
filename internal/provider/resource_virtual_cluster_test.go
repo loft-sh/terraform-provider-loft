@@ -52,7 +52,7 @@ func TestAccResourceVirtualCluster_noNameOrGenerateName(t *testing.T) {
 	})
 }
 
-func TestAccResourceVirtualCluster_noCluster(t *testing.T) {
+func TestAccResourceVirtualCluster_noProject(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("name-")
 	namespace := names.SimpleNameGenerator.GenerateName("namespace-")
 

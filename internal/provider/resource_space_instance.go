@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
 	"strconv"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-	v1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 	"github.com/loft-sh/loftctl/v2/pkg/client/naming"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -44,8 +45,8 @@ func resourceSpaceInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	spaceInstance := &v1.SpaceInstance{
-		Spec: v1.SpaceInstanceSpec{},
+	spaceInstance := &managementv1.SpaceInstance{
+		Spec: managementv1.SpaceInstanceSpec{},
 	}
 
 	name := d.Get("name").(string)
@@ -110,13 +111,8 @@ func resourceSpaceInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 		return diag.Errorf("One of user or team expected.")
 	}
 
-	if user != "" {
-		spaceInstance.Spec.Owner.User = user
-	}
-
-	if team != "" {
-		spaceInstance.Spec.Owner.Team = team
-	}
+	//templates := d.Get("templates.0")
+	spaceInstance.Spec.SpaceInstanceSpec.Template = &storagev1.SpaceTemplateDefinition{}
 
 	spaceInstance, err = managementClient.Loft().ManagementV1().SpaceInstances(naming.ProjectNamespace(projectName)).Create(ctx, spaceInstance, metav1.CreateOptions{})
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceSpaces() *schema.Resource {
+func DataSourceSpaces() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_spaces` data source provides information about all Loft spaces in the given `cluster`.",
@@ -23,7 +23,7 @@ func dataSourceSpaces() *schema.Resource {
 				Description: "All spaces",
 				Type:        schema.TypeList,
 				Computed:    true,
-				Elem:        dataSourceSpace(),
+				Elem:        DataSourceSpace(),
 			},
 			"cluster": {
 				Description: "The cluster to list spaces from.",

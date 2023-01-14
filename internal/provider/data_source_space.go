@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceSpace() *schema.Resource {
+func DataSourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_space` data source provides information about an existing Loft space that matches the given `cluster` and `name`.",

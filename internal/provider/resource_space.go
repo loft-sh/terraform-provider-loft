@@ -13,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func resourceSpace() *schema.Resource {
+func ResourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_space` resource is used to manage a Loft space.",

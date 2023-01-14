@@ -31,16 +31,14 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"loft_spaces":           dataSourceSpaces(),
-				"loft_space_instance":   dataSourceSpaceInstance(),
-				"loft_space":            dataSourceSpace(),
-				"loft_virtual_cluster":  dataSourceVirtualCluster(),
-				"loft_virtual_clusters": dataSourceVirtualClusters(),
+				"loft_spaces":           DataSourceSpaces(),
+				"loft_space":            DataSourceSpace(),
+				"loft_virtual_cluster":  DataSourceVirtualCluster(),
+				"loft_virtual_clusters": DataSourceVirtualClusters(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"loft_space":           resourceSpace(),
-				"loft_space_instance":  resourceSpaceInstance(),
-				"loft_virtual_cluster": resourceVirtualCluster(),
+				"loft_space":           ResourceSpace(),
+				"loft_virtual_cluster": ResourceVirtualCluster(),
 			},
 			Schema: map[string]*schema.Schema{
 				"config_path": {
@@ -78,7 +76,6 @@ func New(version string) func() *schema.Provider {
 
 type apiClient struct {
 	LoftClient client.Client
-	UserAgent  string
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -109,10 +106,8 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			}
 		}
 
-		userAgent := p.UserAgent("terraform-provider-loft", version)
 		apiClient := &apiClient{
 			LoftClient: loftClient,
-			UserAgent:  userAgent,
 		}
 
 		return apiClient, nil

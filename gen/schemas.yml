@@ -1,0 +1,6 @@
+layout:
+  models:
+    - name: schemas
+      source: schemas.tmpl
+      target: "{{ joinFilePath .Target }}/loft/schemas"
+      file_name: "{{ splitList \".\" .Name | last | camelize }}_schema.go"

@@ -957,7 +957,7 @@ provider "loft" {
 
 resource "loft_space_instance" "test" {
 	project = "%s"
-	template {}
+	templates {}
 }
 `,
 		configPath,

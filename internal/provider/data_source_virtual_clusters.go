@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceVirtualClusters() *schema.Resource {
+func DataSourceVirtualClusters() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_clusters` data source provides information about all virtual clusters that match the given `cluster` and `namespace`.",
@@ -23,7 +23,7 @@ func dataSourceVirtualClusters() *schema.Resource {
 				Description: "All virtual_clusters",
 				Type:        schema.TypeList,
 				Computed:    true,
-				Elem:        dataSourceVirtualCluster(),
+				Elem:        DataSourceVirtualCluster(),
 			},
 			"cluster": {
 				Description: "The cluster to list virtual_clusters from.",
