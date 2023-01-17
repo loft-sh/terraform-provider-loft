@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,12 +29,12 @@ func dataSourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	spaceName := d.Get("name").(string)
 	clusterName := d.Get("cluster").(string)
 
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}

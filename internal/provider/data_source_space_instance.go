@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"github.com/loft-sh/loftctl/v2/pkg/client/naming"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -26,12 +27,12 @@ func dataSourceSpaceInstanceRead(ctx context.Context, d *schema.ResourceData, me
 	spaceName := d.Get("name").(string)
 	projectName := d.Get("project").(string)
 
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	managementClient, err := apiClient.LoftClient.Management()
+	managementClient, err := loftClient.Management()
 	if err != nil {
 		return diag.FromErr(err)
 	}

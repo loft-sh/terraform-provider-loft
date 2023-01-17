@@ -1,6 +1,55 @@
-package provider
+package tests
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+func createSpace(configPath, clusterName, spaceName string) error {
+	apiClient, err := client.NewClientFromPath(configPath)
+	if err != nil {
+		return err
+	}
+
+	clusterClient, err := apiClient.Cluster(clusterName)
+	if err != nil {
+		return err
+	}
+
+	space := &agentv1.Space{
+		ObjectMeta: metav1.ObjectMeta{Name: spaceName},
+		Spec:       agentv1.SpaceSpec{},
+	}
+
+	_, err = clusterClient.Agent().ClusterV1().Spaces().Create(context.TODO(), space, metav1.CreateOptions{})
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return nil
+}
+
+func deleteSpace(configPath, clusterName, spaceName string) error {
+	apiClient, err := client.NewClientFromPath(configPath)
+	if err != nil {
+		return err
+	}
+
+	clusterClient, err := apiClient.Cluster(clusterName)
+	if err != nil {
+		return err
+	}
+
+	if err := clusterClient.Agent().ClusterV1().Spaces().Delete(context.TODO(), spaceName, metav1.DeleteOptions{}); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func testAccResourceVirtualClusterCreateWithGenerateName(configPath, clusterName, namespace, generateName string) string {
 	return fmt.Sprintf(`

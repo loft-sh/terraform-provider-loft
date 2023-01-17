@@ -1,4 +1,4 @@
-package provider
+package tests
 
 import (
 	"fmt"
@@ -44,7 +44,7 @@ func TestAccDataSourceVirtualCluster_Annotations(t *testing.T) {
 				Config: testAccResourceVirtualClusterCreateWithAnnotations(configPath, cluster, namespace, virtualClusterName, "annotations-1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_virtual_cluster.test_annotations", "cluster", cluster),
-					resource.TestMatchResourceAttr("loft_virtual_cluster.test_annotations", "name", regexp.MustCompile(`^my-virtual-cluster\-.*`)),
+					resource.TestMatchResourceAttr("loft_virtual_cluster.test_annotations", "name", regexp.MustCompile(`^my-virtual-cluster-.*`)),
 				),
 			},
 			{
@@ -52,7 +52,7 @@ func TestAccDataSourceVirtualCluster_Annotations(t *testing.T) {
 					testAccDataSourceVirtualClusterRead(cluster, namespace, virtualClusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_virtual_cluster.test", "cluster", cluster),
-					resource.TestMatchResourceAttr("data.loft_virtual_cluster.test", "name", regexp.MustCompile(`^my-virtual-cluster\-.*`)),
+					resource.TestMatchResourceAttr("data.loft_virtual_cluster.test", "name", regexp.MustCompile(`^my-virtual-cluster-.*`)),
 				),
 			},
 		},

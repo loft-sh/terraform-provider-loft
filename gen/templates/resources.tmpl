@@ -55,7 +55,6 @@ func {{ camelize $modelName }}Attributes() map[string]*schema.Schema {
 				Elem: &schema.Resource{
 					Schema: schemas.{{.GoType | trimPrefix "ComGithubLoftShAPIV3PkgApis" | pascalize }}Schema(),
 				},
-				ConfigMode: schema.SchemaConfigModeAttr,
 			},
 		{{- end }}
 	{{- end }}

@@ -37,7 +37,6 @@ func spaceInstanceAttributes() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: schemas.ManagementV1SpaceInstanceSpecSchema(),
 			},
-			ConfigMode: schema.SchemaConfigModeAttr,
 		},
 	}
 }

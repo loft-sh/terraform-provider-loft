@@ -10,10 +10,6 @@ func init() {
 	schema.DescriptionKind = schema.StringMarkdown
 }
 
-type apiClient struct {
-	LoftClient client.Client
-}
-
 {{/* the provider unction provides Terraform with an interface to configure your provider and access its resources and datasources */}}
 func New() func() *schema.Provider {
     return func() *schema.Provider {
@@ -57,11 +53,11 @@ func New() func() *schema.Provider {
 				"loft_space":            legacy.DataSourceSpace(),
 				"loft_virtual_cluster":  legacy.DataSourceVirtualCluster(),
 				"loft_virtual_clusters": legacy.DataSourceVirtualClusters(),
-    			{{- range .Models }}
-    			{{- $modelName := splitList "." .Name | last }}
-    			"loft_{{ $modelName | humanize | snakize }}": resources.{{ $modelName | pascalize }}DataSource(),
-    			"loft_{{ $modelName | humanize | snakize | pluralizeFirstWord }}": resources.{{ $modelName | pluralizeFirstWord | pascalize }}DataSource(),
-    			{{- end }}
+{{/*    			{{- range .Models }}*/}}
+{{/*    			{{- $modelName := splitList "." .Name | last }}*/}}
+{{/*    			"loft_{{ $modelName | humanize | snakize }}": resources.{{ $modelName | pascalize }}DataSource(),*/}}
+{{/*    			"loft_{{ $modelName | humanize | snakize | pluralizeFirstWord }}": resources.{{ $modelName | pluralizeFirstWord | pascalize }}DataSource(),*/}}
+{{/*    			{{- end }}*/}}
     		},
     		ConfigureContextFunc: func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 				var (
@@ -90,11 +86,7 @@ func New() func() *schema.Provider {
 					}
 				}
 
-				apiClient := &apiClient{
-					LoftClient: loftClient,
-				}
-
-				return apiClient, nil
+				return loftClient, nil
 			},
     	}
     }

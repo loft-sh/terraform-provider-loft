@@ -37,7 +37,6 @@ func projectAttributes() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: schemas.ManagementV1ProjectSpecSchema(),
 			},
-			ConfigMode: schema.SchemaConfigModeAttr,
 		},
 	}
 }

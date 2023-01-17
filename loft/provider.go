@@ -18,10 +18,6 @@ func init() {
 	schema.DescriptionKind = schema.StringMarkdown
 }
 
-type apiClient struct {
-	LoftClient client.Client
-}
-
 func New() func() *schema.Provider {
 	return func() *schema.Provider {
 		return &schema.Provider{
@@ -59,16 +55,10 @@ func New() func() *schema.Provider {
 				"loft_virtual_cluster_instance": resources.VirtualClusterInstanceResource(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"loft_spaces":                    legacy.DataSourceSpaces(),
-				"loft_space":                     legacy.DataSourceSpace(),
-				"loft_virtual_cluster":           legacy.DataSourceVirtualCluster(),
-				"loft_virtual_clusters":          legacy.DataSourceVirtualClusters(),
-				"loft_project":                   resources.ProjectDataSource(),
-				"loft_projects":                  resources.ProjectsDataSource(),
-				"loft_space_instance":            resources.SpaceInstanceDataSource(),
-				"loft_space_instances":           resources.SpaceInstancesDataSource(),
-				"loft_virtual_cluster_instance":  resources.VirtualClusterInstanceDataSource(),
-				"loft_virtual_cluster_instances": resources.VirtualClusterInstancesDataSource(),
+				"loft_spaces":           legacy.DataSourceSpaces(),
+				"loft_space":            legacy.DataSourceSpace(),
+				"loft_virtual_cluster":  legacy.DataSourceVirtualCluster(),
+				"loft_virtual_clusters": legacy.DataSourceVirtualClusters(),
 			},
 			ConfigureContextFunc: func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 				var (
@@ -97,11 +87,7 @@ func New() func() *schema.Provider {
 					}
 				}
 
-				apiClient := &apiClient{
-					LoftClient: loftClient,
-				}
-
-				return apiClient, nil
+				return loftClient, nil
 			},
 		}
 	}

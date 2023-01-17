@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	client "github.com/loft-sh/loftctl/v2/pkg/client"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
 	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
@@ -33,14 +34,14 @@ func resourceSpaceInstance() *schema.Resource {
 }
 
 func resourceSpaceInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	projectName := d.Get("project").(string)
 
-	managementClient, err := apiClient.LoftClient.Management()
+	managementClient, err := loftClient.Management()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,13 +129,13 @@ func resourceSpaceInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 }
 
 func resourceSpaceInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	projectName, spaceName := parseSpaceInstanceID(d.Id())
-	managementClient, err := apiClient.LoftClient.Management()
+	managementClient, err := loftClient.Management()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -154,13 +155,13 @@ func resourceSpaceInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 
 func resourceSpaceInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	projectName, spaceName := parseSpaceInstanceID(d.Id())
-	managementClient, err := apiClient.LoftClient.Management()
+	managementClient, err := loftClient.Management()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -302,7 +303,7 @@ func resourceSpaceInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 	}
 
-	patch := client.MergeFrom(oldSpace)
+	patch := ctrlclient.MergeFrom(oldSpace)
 	rawPatch, err := patch.Data(modifiedSpace)
 	if err != nil {
 		return diag.FromErr(err)
@@ -323,14 +324,14 @@ func resourceSpaceInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 }
 
 func resourceSpaceInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	projectName := d.Get("project").(string)
 	spaceName := d.Get("name").(string)
-	managementClient, err := apiClient.LoftClient.Management()
+	managementClient, err := loftClient.Management()
 	if err != nil {
 		return diag.FromErr(err)
 	}

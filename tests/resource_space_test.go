@@ -1,24 +1,19 @@
-package provider
+package tests
 
 import (
-	"context"
 	"fmt"
-	"github.com/loft-sh/loftctl/v2/pkg/client/naming"
+	"github.com/loft-sh/terraform-provider-loft/internal/provider"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
-	clientpkg "github.com/loft-sh/loftctl/v2/pkg/client"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
-func TestAccResourceSpaceInstance_noNameOrGenerateName(t *testing.T) {
-	project := "default"
+func TestAccResourceSpace_noNameOrGenerateName(t *testing.T) {
+	cluster := "loft-cluster"
 
 	kubeClient, err := newKubeClient()
 	if err != nil {
@@ -37,14 +32,14 @@ func TestAccResourceSpaceInstance_noNameOrGenerateName(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceSpaceInstanceNoName(configPath, project),
+				Config:      testAccResourceSpaceNoName(configPath, cluster),
 				ExpectError: regexp.MustCompile(`Required value: name or generateName is required`),
 			},
 		},
 	})
 }
 
-func TestAccResourceSpaceInstance_noProject(t *testing.T) {
+func TestAccResourceSpace_noCluster(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 
 	kubeClient, err := newKubeClient()
@@ -64,14 +59,14 @@ func TestAccResourceSpaceInstance_noProject(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceSpaceInstanceNoProject(configPath, name),
+				Config:      testAccResourceSpaceNoCluster(configPath, name),
 				ExpectError: regexp.MustCompile(`The argument "cluster" is required, but no definition was found.`),
 			},
 		},
 	})
 }
 
-func TestAccResourceSpaceInstance_withGivenUser(t *testing.T) {
+func TestAccResourceSpace_withGivenUser(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	user := "admin"
 	user2 := "admin2"
@@ -100,7 +95,7 @@ func TestAccResourceSpaceInstance_withGivenUser(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
-					checkSpaceInstance(configPath, cluster, name, hasOwnerUser(user)),
+					checkSpace(configPath, cluster, name, spaceHasUser(user)),
 				),
 			},
 			{
@@ -115,14 +110,14 @@ func TestAccResourceSpaceInstance_withGivenUser(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user2),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
-					checkSpaceInstance(configPath, cluster, name, hasOwnerUser(user2)),
+					checkSpace(configPath, cluster, name, spaceHasUser(user2)),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceSpaceInstance_withGivenTeam(t *testing.T) {
+func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -140,12 +135,11 @@ func TestAccResourceSpaceInstance_withGivenTeam(t *testing.T) {
 	}
 	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
+	teamAccessKey, _, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer logout(t, kubeClient, teamAccessKey)
-	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
@@ -159,7 +153,7 @@ func TestAccResourceSpaceInstance_withGivenTeam(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
-					checkSpaceInstance(configPath, cluster, name, hasOwnerTeam(team)),
+					checkSpace(configPath, cluster, name, spaceHasTeam(team)),
 				),
 			},
 			{
@@ -174,14 +168,14 @@ func TestAccResourceSpaceInstance_withGivenTeam(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team2),
-					checkSpaceInstance(configPath, cluster, name, hasOwnerTeam(team2)),
+					checkSpace(configPath, cluster, name, spaceHasTeam(team2)),
 				),
 			},
 		},
 	})
 }
 
-func TestAccResourceSpaceInstance_withAnnotations(t *testing.T) {
+func TestAccResourceSpace_withAnnotations(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	annotation := names.SimpleNameGenerator.GenerateName("annotation-")
 	annotation2 := names.SimpleNameGenerator.GenerateName("annotation-")
@@ -212,7 +206,7 @@ func TestAccResourceSpaceInstance_withAnnotations(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "annotations.some.domain/test", annotation),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation("some.domain/test", annotation)),
+					checkSpace(configPath, cluster, name, hasAnnotation("some.domain/test", annotation)),
 				),
 			},
 			{
@@ -228,7 +222,7 @@ func TestAccResourceSpaceInstance_withAnnotations(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "annotations.some.domain/test", annotation2),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation("some.domain/test", annotation2)),
+					checkSpace(configPath, cluster, name, hasAnnotation("some.domain/test", annotation2)),
 				),
 			},
 			{
@@ -243,7 +237,7 @@ func TestAccResourceSpaceInstance_withAnnotations(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceAnnotation("some.domain/test")),
+					checkSpace(configPath, cluster, name, noAnnotation("some.domain/test")),
 				),
 			},
 			{
@@ -255,7 +249,7 @@ func TestAccResourceSpaceInstance_withAnnotations(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withLabels(t *testing.T) {
+func TestAccResourceSpace_withLabels(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	label := names.SimpleNameGenerator.GenerateName("annotation-")
 	label2 := names.SimpleNameGenerator.GenerateName("annotation-")
@@ -286,8 +280,8 @@ func TestAccResourceSpaceInstance_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "labels.some.domain/test", label),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel("some.domain/test", label)),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel(corev1.LabelMetadataName, name)),
+					checkSpace(configPath, cluster, name, hasLabel("some.domain/test", label)),
+					checkSpace(configPath, cluster, name, hasLabel(corev1.LabelMetadataName, name)),
 				),
 			},
 			{
@@ -303,8 +297,8 @@ func TestAccResourceSpaceInstance_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "labels.some.domain/test", label2),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel("some.domain/test", label2)),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel(corev1.LabelMetadataName, name)),
+					checkSpace(configPath, cluster, name, hasLabel("some.domain/test", label2)),
+					checkSpace(configPath, cluster, name, hasLabel(corev1.LabelMetadataName, name)),
 				),
 			},
 			{
@@ -319,8 +313,8 @@ func TestAccResourceSpaceInstance_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceLabel("some.domain/test")),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel(corev1.LabelMetadataName, name)),
+					checkSpace(configPath, cluster, name, noLabel("some.domain/test")),
+					checkSpace(configPath, cluster, name, hasLabel(corev1.LabelMetadataName, name)),
 				),
 			},
 			{
@@ -332,7 +326,7 @@ func TestAccResourceSpaceInstance_withLabels(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withInvalidSleepAfter(t *testing.T) {
+func TestAccResourceSpace_withInvalidSleepAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 
@@ -360,7 +354,7 @@ func TestAccResourceSpaceInstance_withInvalidSleepAfter(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withSleepAfter(t *testing.T) {
+func TestAccResourceSpace_withSleepAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -399,7 +393,7 @@ func TestAccResourceSpaceInstance_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", sleepAfterSeconds),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfterSeconds)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfterSeconds)),
 				),
 			},
 			{
@@ -415,7 +409,7 @@ func TestAccResourceSpaceInstance_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", sleepAfter2Seconds),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfter2Seconds)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepAfterAnnotation, sleepAfter2Seconds)),
 				),
 			},
 			{
@@ -431,7 +425,7 @@ func TestAccResourceSpaceInstance_withSleepAfter(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_after", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceAnnotation(v1.SleepModeSleepAfterAnnotation)),
+					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeSleepAfterAnnotation)),
 				),
 			},
 			{
@@ -444,7 +438,7 @@ func TestAccResourceSpaceInstance_withSleepAfter(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withInvalidDeleteAfter(t *testing.T) {
+func TestAccResourceSpace_withInvalidDeleteAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 
@@ -472,7 +466,7 @@ func TestAccResourceSpaceInstance_withInvalidDeleteAfter(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withDeleteAfter(t *testing.T) {
+func TestAccResourceSpace_withDeleteAfter(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -505,14 +499,14 @@ func TestAccResourceSpaceInstance_withDeleteAfter(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter),
+				Config: testAccResourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "delete_after", deleteAfterSeconds),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfterSeconds)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfterSeconds)),
 				),
 			},
 			{
@@ -521,14 +515,14 @@ func TestAccResourceSpaceInstance_withDeleteAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter2),
+				Config: testAccResourceSpaceCreateWithDeleteAfter(configPath, cluster, name, deleteAfter2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "delete_after", deleteAfter2Seconds),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfter2Seconds)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeDeleteAfterAnnotation, deleteAfter2Seconds)),
 				),
 			},
 			{
@@ -537,14 +531,14 @@ func TestAccResourceSpaceInstance_withDeleteAfter(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "delete_after", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceAnnotation(v1.SleepModeDeleteAfterAnnotation)),
+					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeDeleteAfterAnnotation)),
 				),
 			},
 			{
@@ -557,7 +551,7 @@ func TestAccResourceSpaceInstance_withDeleteAfter(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withSleepSchedule(t *testing.T) {
+func TestAccResourceSpace_withSleepSchedule(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -581,14 +575,14 @@ func TestAccResourceSpaceInstance_withSleepSchedule(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule),
+				Config: testAccResourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_schedule", sleepSchedule),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule)),
 				),
 			},
 			{
@@ -597,14 +591,14 @@ func TestAccResourceSpaceInstance_withSleepSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule2),
+				Config: testAccResourceSpaceCreateWithScheduledSleep(configPath, cluster, name, sleepSchedule2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_schedule", sleepSchedule2),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule2)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeSleepScheduleAnnotation, sleepSchedule2)),
 				),
 			},
 			{
@@ -613,14 +607,14 @@ func TestAccResourceSpaceInstance_withSleepSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "sleep_schedule", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceAnnotation(v1.SleepModeSleepScheduleAnnotation)),
+					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeSleepScheduleAnnotation)),
 				),
 			},
 			{
@@ -633,7 +627,7 @@ func TestAccResourceSpaceInstance_withSleepSchedule(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withWakeupSchedule(t *testing.T) {
+func TestAccResourceSpace_withWakeupSchedule(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -656,14 +650,14 @@ func TestAccResourceSpaceInstance_withWakeupSchedule(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule),
+				Config: testAccResourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "wakeup_schedule", wakeSchedule),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule)),
 				),
 			},
 			{
@@ -672,14 +666,14 @@ func TestAccResourceSpaceInstance_withWakeupSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule2),
+				Config: testAccResourceSpaceCreateWithScheduledWakeup(configPath, cluster, name, wakeSchedule2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "wakeup_schedule", wakeSchedule2),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule2)),
+					checkSpace(configPath, cluster, name, hasAnnotation(v1.SleepModeWakeupScheduleAnnotation, wakeSchedule2)),
 				),
 			},
 			{
@@ -688,14 +682,14 @@ func TestAccResourceSpaceInstance_withWakeupSchedule(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "wakeup_schedule", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceAnnotation(v1.SleepModeWakeupScheduleAnnotation)),
+					checkSpace(configPath, cluster, name, noAnnotation(v1.SleepModeWakeupScheduleAnnotation)),
 				),
 			},
 			{
@@ -708,7 +702,7 @@ func TestAccResourceSpaceInstance_withWakeupSchedule(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withSpaceConstraints(t *testing.T) {
+func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -732,14 +726,14 @@ func TestAccResourceSpaceInstance_withSpaceConstraints(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints),
+				Config: testAccResourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel(SpaceLabelSpaceConstraints, spaceConstraints)),
+					checkSpace(configPath, cluster, name, hasLabel(provider.SpaceLabelSpaceConstraints, spaceConstraints)),
 				),
 			},
 			{
@@ -749,14 +743,14 @@ func TestAccResourceSpaceInstance_withSpaceConstraints(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"space_constraints"},
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints2),
+				Config: testAccResourceSpaceCreateWithSpaceConstraints(configPath, cluster, name, spaceConstraints2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints2),
-					checkSpaceInstance(configPath, cluster, name, hasInstanceLabel(SpaceLabelSpaceConstraints, spaceConstraints2)),
+					checkSpace(configPath, cluster, name, hasLabel(provider.SpaceLabelSpaceConstraints, spaceConstraints2)),
 				),
 			},
 			{
@@ -766,14 +760,14 @@ func TestAccResourceSpaceInstance_withSpaceConstraints(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"space_constraints"},
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithoutUserOrTeam(configPath, cluster, name),
+				Config: testAccResourceSpaceCreateWithoutUserOrTeam(configPath, cluster, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", ""),
-					checkSpaceInstance(configPath, cluster, name, noInstanceLabel(SpaceLabelSpaceConstraints)),
+					checkSpace(configPath, cluster, name, noLabel(provider.SpaceLabelSpaceConstraints)),
 				),
 			},
 			{
@@ -786,7 +780,7 @@ func TestAccResourceSpaceInstance_withSpaceConstraints(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withSpaceObjects(t *testing.T) {
+func TestAccResourceSpace_withSpaceObjects(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	cluster := "loft-cluster"
 	user := "admin"
@@ -823,7 +817,7 @@ data:
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithSpaceObjects(configPath, cluster, name, objects1),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -838,7 +832,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithSpaceObjects(configPath, cluster, name, objects2),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, objects2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -853,7 +847,7 @@ data:
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceSpaceInstanceCreateWithSpaceObjects(configPath, cluster, name, ""),
+				Config: testAccResourceSpaceCreateWithSpaceObjects(configPath, cluster, name, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_objects", "name", name),
 					resource.TestCheckResourceAttr("loft_space.test_objects", "cluster", cluster),
@@ -871,7 +865,7 @@ data:
 	})
 }
 
-func TestAccResourceSpaceInstance_withGenerateName(t *testing.T) {
+func TestAccResourceSpace_withGenerateName(t *testing.T) {
 	prefix := "test-space-"
 	cluster := "loft-cluster"
 	user := "admin"
@@ -893,7 +887,7 @@ func TestAccResourceSpaceInstance_withGenerateName(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceSpaceInstanceCreateWithGenerateName(configPath, cluster, prefix),
+				Config: testAccResourceSpaceCreateWithGenerateName(configPath, cluster, prefix),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("loft_space.test_generate_name", "name", regexp.MustCompile(prefix)),
 					resource.TestCheckResourceAttr("loft_space.test_generate_name", "generate_name", prefix),
@@ -912,7 +906,7 @@ func TestAccResourceSpaceInstance_withGenerateName(t *testing.T) {
 	})
 }
 
-func TestAccResourceSpaceInstance_withNameAndGenerateName(t *testing.T) {
+func TestAccResourceSpace_withNameAndGenerateName(t *testing.T) {
 	cluster := "loft-cluster"
 	name := names.SimpleNameGenerator.GenerateName("mycluster-")
 	prefix := "mycluster-"
@@ -934,14 +928,14 @@ func TestAccResourceSpaceInstance_withNameAndGenerateName(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccResourceSpaceInstanceCreateWithNameAndGenerateName(configPath, cluster, name, prefix),
+				Config:      testAccResourceSpaceCreateWithNameAndGenerateName(configPath, cluster, name, prefix),
 				ExpectError: regexp.MustCompile(`"generate_name": conflicts with name`),
 			},
 		},
 	})
 }
 
-func testAccResourceSpaceInstanceNoName(configPath, projectName string) string {
+func testAccResourceSpaceNoName(configPath, clusterName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -955,17 +949,16 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space_instance" "test" {
-	project = "%s"
-	templates {}
+resource "loft_space" "test" {
+	cluster = "%s"
 }
 `,
 		configPath,
-		projectName,
+		clusterName,
 	)
 }
 
-func testAccResourceSpaceInstanceNoProject(configPath, spaceName string) string {
+func testAccResourceSpaceNoCluster(configPath, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -979,127 +972,11 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space_instance" "test" {
+resource "loft_space" "test" {
 	name = "%s"
 }
 `,
 		configPath,
 		spaceName,
 	)
-}
-
-func checkSpaceInstance(configPath, projectName, spaceName string, pred func(space *managementv1.SpaceInstance) error) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		apiClient, err := clientpkg.NewClientFromPath(configPath)
-		if err != nil {
-			return err
-		}
-
-		projectNamespace := naming.ProjectNamespace(projectName)
-		managementClient, err := apiClient.Management()
-		if err != nil {
-			return err
-		}
-
-		spaceInstance, err := managementClient.Loft().ManagementV1().SpaceInstances(projectNamespace).Get(context.TODO(), spaceName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
-		return pred(spaceInstance)
-	}
-}
-
-func hasInstanceAnnotation(annotation, value string) func(space *managementv1.SpaceInstance) error {
-	return func(space *managementv1.SpaceInstance) error {
-		if space.GetAnnotations()[annotation] != value {
-			return fmt.Errorf(
-				"%s: Annotation '%s' didn't match %q, got %#v",
-				space.GetName(),
-				annotation,
-				value,
-				space.GetLabels()[annotation])
-		}
-		return nil
-	}
-}
-
-func noInstanceAnnotation(annotation string) func(space *managementv1.SpaceInstance) error {
-	return func(space *managementv1.SpaceInstance) error {
-		if space.GetAnnotations()[annotation] != "" {
-			return fmt.Errorf(
-				"%s: Annotation '%s' should not be present",
-				space.GetName(),
-				annotation,
-			)
-		}
-		return nil
-	}
-}
-
-func hasInstanceLabel(label, value string) func(space *managementv1.SpaceInstance) error {
-	return func(space *managementv1.SpaceInstance) error {
-		if space.GetLabels()[label] != value {
-			return fmt.Errorf(
-				"%s: Label '%s' didn't match %q, got %#v",
-				space.GetName(),
-				label,
-				value,
-				space.GetLabels()[label])
-		}
-		return nil
-	}
-}
-
-func noInstanceLabel(label string) func(space *managementv1.SpaceInstance) error {
-	return func(space *managementv1.SpaceInstance) error {
-		if space.GetAnnotations()[label] != "" {
-			return fmt.Errorf(
-				"%s: Label '%s' should not be present",
-				space.GetName(),
-				label,
-			)
-		}
-		return nil
-	}
-}
-
-func hasOwnerUser(user string) func(space *managementv1.SpaceInstance) error {
-	return func(spaceInstance *managementv1.SpaceInstance) error {
-		if spaceInstance.Spec.Owner == nil {
-			return fmt.Errorf(
-				"%s: User was not configured",
-				spaceInstance.GetName(),
-			)
-		}
-
-		if spaceInstance.Spec.Owner.User != user {
-			return fmt.Errorf(
-				"%s: User didn't match %q, got %#v",
-				spaceInstance.GetName(),
-				user,
-				spaceInstance.Spec.Owner.User)
-		}
-		return nil
-	}
-}
-
-func hasOwnerTeam(team string) func(space *managementv1.SpaceInstance) error {
-	return func(spaceInstance *managementv1.SpaceInstance) error {
-		if spaceInstance.Spec.Owner == nil {
-			return fmt.Errorf(
-				"%s: Team was not configured",
-				spaceInstance.GetName(),
-			)
-		}
-
-		if spaceInstance.Spec.Owner.Team != team {
-			return fmt.Errorf(
-				"%s: Team didn't match %q, got %#v",
-				spaceInstance.GetName(),
-				team,
-				spaceInstance.Spec.Owner.Team)
-		}
-		return nil
-	}
 }

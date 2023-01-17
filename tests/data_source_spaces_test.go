@@ -1,4 +1,4 @@
-package provider
+package tests
 
 import (
 	"fmt"
@@ -41,12 +41,11 @@ data:
 	}
 	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, clusterName, team)
+	teamAccessKey, _, _, err := loginTeam(kubeClient, loftClient, clusterName, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer logout(t, kubeClient, teamAccessKey)
-	defer deleteClusterAccess(t, loftClient, clusterName, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
