@@ -5,8 +5,8 @@ default: testacc
 
 .PHONY: clean
 clean:
-	rm -Rf loft/resources
-	rm -Rf loft/schemas
+	rm -Rf pkg/resources
+	rm -Rf pkg/schemas
 
 .PHONY: generate
 generate: clean

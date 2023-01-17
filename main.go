@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/loft-sh/terraform-provider-loft/loft"
+	"github.com/loft-sh/terraform-provider-loft/pkg"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -36,7 +36,7 @@ func main() {
 
 		ProviderAddr: "registry.terraform.io/loft-sh/loft",
 
-		ProviderFunc: loft.New(),
+		ProviderFunc: pkg.New(),
 	}
 
 	plugin.Serve(opts)

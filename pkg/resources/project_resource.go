@@ -7,11 +7,11 @@ package resources
 
 import (
 	"context"
+	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/loft-sh/terraform-provider-loft/loft/schemas"
-	"github.com/loft-sh/terraform-provider-loft/loft/utils"
 )
 
 func ProjectResource() *schema.Resource {

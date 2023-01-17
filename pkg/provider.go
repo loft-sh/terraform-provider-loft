@@ -1,7 +1,8 @@
-package loft
+package pkg
 
 import (
 	"context"
+	"github.com/loft-sh/terraform-provider-loft/pkg/resources"
 	"os"
 	"path/filepath"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	legacy "github.com/loft-sh/terraform-provider-loft/internal/provider"
-	"github.com/loft-sh/terraform-provider-loft/loft/resources"
 )
 
 func init() {
