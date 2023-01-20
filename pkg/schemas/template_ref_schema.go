@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1TemplateRefSchema() map[string]*schema.Schema {
@@ -27,4 +29,39 @@ func StorageV1TemplateRefSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1TemplateRef(in []interface{}) *storagev1.TemplateRef {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.TemplateRef{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	if v, ok := data["sync_once"].(bool); ok {
+		ret.SyncOnce = v
+	}
+
+	if v, ok := data["version"].(string); ok && len(v) > 0 {
+		ret.Version = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1TemplateRef(obj *storagev1.TemplateRef) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
+	values := map[string]interface{}{}
+	values["name"] = obj.Name
+	values["sync_once"] = obj.SyncOnce
+	values["version"] = obj.Version
+	return values, nil
 }

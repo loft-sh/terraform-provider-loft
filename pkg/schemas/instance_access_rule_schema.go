@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1InstanceAccessRuleSchema() map[string]*schema.Schema {
@@ -33,4 +35,47 @@ func StorageV1InstanceAccessRuleSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1InstanceAccessRule(in []interface{}) *agentstoragev1.InstanceAccessRule {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.InstanceAccessRule{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
+		ret.ClusterRole = v
+	}
+
+	var teamsItems []string
+	for _, v := range data["teams"].([]string) {
+		teamsItems = append(teamsItems, v)
+	}
+	ret.Teams = teamsItems
+
+	var usersItems []string
+	for _, v := range data["users"].([]string) {
+		usersItems = append(usersItems, v)
+	}
+	ret.Users = usersItems
+
+	return ret
+}
+
+func ReadStorageV1InstanceAccessRule(obj *agentstoragev1.InstanceAccessRule) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["cluster_role"] = obj.ClusterRole
+	var teamsItems []interface{}
+	for _, v := range obj.Teams {
+		teamsItems = append(teamsItems, v)
+	}
+	values["teams"] = teamsItems
+	var usersItems []interface{}
+	for _, v := range obj.Users {
+		usersItems = append(usersItems, v)
+	}
+	values["users"] = usersItems
+	return values, nil
 }

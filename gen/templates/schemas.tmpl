@@ -24,12 +24,16 @@ package schemas
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/loft-sh/terraform-provider-loft/loft/utils"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 {{- $modelName := trimPrefix "com.github.loft-sh.api.v3.pkg.apis" .Name }}
 {{- $modelName = trimPrefix "com.github.loft-sh.agentapi.v3.pkg.apis.loft" $modelName }}
+{{- $modelName = trimPrefix "io.k8s.apimachinery.pkg.apis" $modelName }}
 func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 	{{- range .Properties }}
@@ -39,8 +43,10 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 			{{- if hasPrefix .GoType "[]*ComGithubLoftShAPIV3PkgApis" }}
 				Schema: {{ trimPrefix "[]*ComGithubLoftShAPIV3PkgApis" .GoType | pascalize }}Schema(),
-			{{- else }}
+			{{- else if hasPrefix .GoType "[]*ComGithubLoftShAgentapiV3PkgApisLoft" }}
 				Schema: {{ trimPrefix "[]*ComGithubLoftShAgentapiV3PkgApisLoft" .GoType | pascalize }}Schema(),
+			{{- else }}
+				Schema: {{ trimPrefix "[]*IoK8sApimachineryPkgApis" .GoType | pascalize }}Schema(),
 			{{- end}}
 			},
 		{{- else if (eq .GoType "[]string") }}
@@ -71,11 +77,17 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 			{{- if hasPrefix .GoType "map[string]ComGithubLoftShAPIV3PkgApis" }}
 				Schema: {{ trimPrefix "map[string]ComGithubLoftShAPIV3PkgApis" .GoType | pascalize }}Schema(),
-			{{- else }}
+			{{- else if hasPrefix .GoType "map[string]ComGithubLoftShAgentapiV3PkgApisLoft" }}
 				Schema: {{ trimPrefix "map[string]ComGithubLoftShAgentapiV3PkgApisLoft" .GoType | pascalize }}Schema(),
+			{{- else }}
+				Schema: {{ trimPrefix "map[string]IoK8sApimachineryPkgApis" .GoType | pascalize }}Schema(),
 			{{- end}}
 			},
 			{{- end }}
+		{{- else if .IsPrimitive }}
+			{{- if eq .SwaggerType "string"}}
+				Type: schema.TypeString,
+			{{- end}}
 		{{- else }}
 			Type: schema.TypeList,
 			MinItems:    1,
@@ -83,13 +95,15 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 			{{- if hasPrefix .GoType "ComGithubLoftShAPIV3PkgApis" }}
 				Schema: {{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .GoType | pascalize }}Schema(),
-			{{- else }}
+			{{- else if hasPrefix .GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
 				Schema: {{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .GoType | pascalize }}Schema(),
+			{{- else }}
+				Schema: {{ trimPrefix "IoK8sApimachineryPkgApis" .GoType | pascalize }}Schema(),
 			{{- end}}
 			},
 		{{- end }}
 		{{- if (not (eq .Description "")) }}
-			Description: "{{ .Description | replace "\"" "\\\"" }}",
+			Description: "{{ .Description | replace "\"" "\\\"" | replace "\n" "\\n" }}",
 		{{- end }}
 		{{- if .Default }}
 			Default: {{ .Default }},
@@ -104,4 +118,141 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 		},
 	{{- end }}
 	}
+}
+
+{{ $pkgName := "" }}
+{{- if (stringContains .Name "com.github.loft-sh.agentapi.v3.pkg.apis.loft.storage.v1") }}
+	{{ $pkgName = .Name | replace "com.github.loft-sh.agentapi.v3.pkg.apis.loft.storage.v1" "agentstoragev1" }}
+{{- else if (stringContains .Name "com.github.loft-sh.api.v3.pkg.apis.storage.v1") }}
+	{{ $pkgName = .Name | replace "com.github.loft-sh.api.v3.pkg.apis.storage.v1" "storagev1" }}
+{{- else }}
+	{{ $pkgName = .Name | replace "com.github.loft-sh.api.v3.pkg.apis.management.v1" "managementv1" }}
+{{- end }}
+
+func Create{{ pascalize $modelName }}(in []interface{}) *{{ $pkgName }} {
+{{- if stringContains $pkgName "management" }}
+	ret := {{ $pkgName | replace "management" "storage" }}{}
+
+	if utils.HasValue(in) {
+{{- else }}
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &{{ $pkgName }}{}
+{{- end}}
+
+	data := in[0].(map[string]interface{})
+
+{{- range .Properties }}
+	{{- if .IsPrimitive }}
+		{{- if eq .GoType "string" }}
+	if v, ok := data["{{ snakize .Name }}"].({{.GoType}}); ok && len(v) > 0 {
+		ret.{{ .Name | title }} = v
+	}
+		{{- else }}
+	if v, ok := data["{{ snakize .Name }}"].({{.GoType}}); ok {
+		ret.{{ .Name | title }} = v
+	}
+		{{- end}}
+	{{- else if .IsArray }}
+		{{- if .Items.IsPrimitive }}
+	var {{varname .Name }}Items []{{ .Items.GoType }}
+	for _, v := range data["{{ snakize .Name }}"].([]{{.Items.GoType}}) {
+		{{varname .Name }}Items = append({{varname .Name }}Items, v)
+	}
+	ret.{{ .Name | title }} = {{varname .Name }}Items
+		{{- else }}
+			{{ $itemType := "" }}
+			{{- if hasPrefix .Items.GoType "ComGithubLoftShAPIV3PkgApisStorageV1" }}
+				{{ $itemType = print "storagev1." ( trimPrefix "ComGithubLoftShAPIV3PkgApisStorageV1" .Items.GoType ) }}
+			{{- else if hasPrefix .Items.GoType "ComGithubLoftShAgentapiV3PkgApisLoftStorageV1" }}
+				{{ $itemType = print "agentstoragev1." ( trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoftStorageV1" .Items.GoType ) }}
+			{{- else }}
+				{{ $itemType = .Items.GoType }}
+			{{- end }}
+	var {{varname .Name }}Items []{{ $itemType }}
+	for _, v := range data["{{ snakize .Name }}"].([]interface{}) {
+			{{- if hasPrefix .Items.GoType "ComGithubLoftShAPIV3PkgApis" }}
+		item := *Create{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .Items.GoType }}(v.([]interface{}))
+			{{- else if hasPrefix .Items.GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
+		item := *Create{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .Items.GoType }}(v.([]interface{}))
+			{{- else }}
+		item := *Create{{ trimPrefix "IoK8sApimachineryPkgApis" .Items.GoType }}(v.([]interface{})))
+			{{- end}}
+		{{varname .Name }}Items = append({{varname .Name }}Items, item)
+	}
+	ret.{{ .Name | title }} = {{varname .Name }}Items
+		{{- end }}
+	{{- else if .IsMap }}
+	ret.{{ .Name | title }} = utils.AttributesToMap(data["{{ snakize .Name }}"].(map[string]interface{}))
+	{{- else }}
+		{{- if hasPrefix .GoType "ComGithubLoftShAPIV3PkgApis" }}
+	ret.{{ .Name | title }} = Create{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .GoType }}(data["{{ snakize .Name }}"].([]interface{}))
+		{{- else if hasPrefix .GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
+	ret.{{ .Name | title }} = Create{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .GoType }}(data["{{ snakize .Name }}"].([]interface{}))
+		{{- else }}
+	ret.{{ .Name | title }} = Create{{ trimPrefix "IoK8sApimachineryPkgApis" .GoType }}(data["{{ snakize .Name }}"].([]interface{}))
+		{{- end}}
+	{{- end }}
+{{ end }}
+
+{{- if stringContains $pkgName "management" }}
+	}
+
+	return &{{ $pkgName }}{
+		{{ $pkgName | replace "managementv1." "" }}: ret,
+	}
+{{- else }}
+	return ret
+{{- end}}
+}
+
+func Read{{ pascalize $modelName }}(obj *{{ $pkgName }}) (interface{}, error) {
+	values := map[string]interface{}{}
+	{{- range .Properties }}
+		{{- if or .IsPrimitive .IsMap }}
+			{{- if eq .Name "permission" }}
+	values["allow"] = obj.Allow
+			{{- else }}
+	values["{{ snakize .Name }}"] = obj.{{ .Name | title }}
+			{{- end}}
+		{{- else if .IsArray }}
+	var {{varname .Name }}Items []interface{}
+	for _, v := range obj.{{ pascalize .Name}} {
+			{{- if .Items.IsPrimitive }}
+		{{varname .Name }}Items = append({{varname .Name }}Items, v)
+			{{- else }}
+				{{- if hasPrefix .Items.GoType "ComGithubLoftShAPIV3PkgApis" }}
+		item, err := Read{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .Items.GoType }}(&v)
+				{{- else if hasPrefix .Items.GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
+		item, err := Read{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .Items.GoType }}(&v)
+				{{- else }}
+		item, err := Read{{ trimPrefix "IoK8sApimachineryPkgApis" .Items.GoType }}(&v)
+				{{- end}}
+		if err != nil {
+			return nil, err
+		}
+		{{varname .Name }}Items = append({{varname .Name }}Items, item)
+			{{- end }}
+	}
+	values["{{ snakize .Name }}"] = {{varname .Name }}Items
+		{{- else }}
+			// {{ .GoType }}
+			// {{ printf "%+v" . }}
+			{{- if hasPrefix .GoType "ComGithubLoftShAPIV3PkgApis" }}
+
+	{{varname .Name }}, err := Read{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .GoType }}(obj.{{ pascalize .Name}})
+			{{- else if hasPrefix .GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
+	{{varname .Name }}, err := Read{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .GoType }}(obj.{{ pascalize .Name}})
+			{{- else }}
+	{{varname .Name }}, err := Read{{ trimPrefix "IoK8sApimachineryPkgApis" .GoType }}(obj.{{ pascalize .Name}})
+			{{- end}}
+	if err != nil {
+		return nil, err
+	}
+	values["{{ snakize .Name }}"] = {{varname .Name }}
+		{{- end }}
+	{{- end }}
+	return values, nil
 }

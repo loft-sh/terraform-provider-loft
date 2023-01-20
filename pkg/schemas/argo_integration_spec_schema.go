@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoIntegrationSpecSchema() map[string]*schema.Schema {
@@ -52,4 +54,60 @@ func StorageV1ArgoIntegrationSpecSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoIntegrationSpec(in []interface{}) *storagev1.ArgoIntegrationSpec {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoIntegrationSpec{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
+		ret.Cluster = v
+	}
+
+	if v, ok := data["enabled"].(bool); ok {
+		ret.Enabled = v
+	}
+
+	if v, ok := data["namespace"].(string); ok && len(v) > 0 {
+		ret.Namespace = v
+	}
+
+	ret.Project = CreateStorageV1ArgoProjectSpec(data["project"].([]interface{}))
+
+	ret.SSO = CreateStorageV1ArgoSSOSpec(data["sso"].([]interface{}))
+
+	if v, ok := data["virtual_cluster_instance"].(string); ok && len(v) > 0 {
+		ret.VirtualClusterInstance = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1ArgoIntegrationSpec(obj *storagev1.ArgoIntegrationSpec) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["cluster"] = obj.Cluster
+	values["enabled"] = obj.Enabled
+	values["namespace"] = obj.Namespace
+	// ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpec
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpec Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:project Name:project Suffix: Path:"project" ValueExpression:m.Project IndexVar:i KeyVar: Title: Description:Project defines project related values for the ArgoCD Integration. Enabling Project integration will cause Loft to generate and manage an ArgoCD appProject that corresponds to the Loft Project. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
+	project, err := ReadStorageV1ArgoProjectSpec(obj.Project)
+	if err != nil {
+		return nil, err
+	}
+	values["project"] = project
+	// ComGithubLoftShAPIV3PkgApisStorageV1ArgoSSOSpec
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1ArgoSSOSpec Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:sso Name:sso Suffix: Path:"sso" ValueExpression:m.Sso IndexVar:i KeyVar: Title: Description:SSO defines single-sign-on related values for the ArgoCD Integration. Enabling SSO will allow users to authenticate to ArgoCD via Loft. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
+	sso, err := ReadStorageV1ArgoSSOSpec(obj.SSO)
+	if err != nil {
+		return nil, err
+	}
+	values["sso"] = sso
+	values["virtual_cluster_instance"] = obj.VirtualClusterInstance
+	return values, nil
 }

@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1NamespacePatternSchema() map[string]*schema.Schema {
@@ -22,4 +24,30 @@ func StorageV1NamespacePatternSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1NamespacePattern(in []interface{}) *storagev1.NamespacePattern {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.NamespacePattern{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["space"].(string); ok && len(v) > 0 {
+		ret.Space = v
+	}
+
+	if v, ok := data["virtual_cluster"].(string); ok && len(v) > 0 {
+		ret.VirtualCluster = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1NamespacePattern(obj *storagev1.NamespacePattern) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["space"] = obj.Space
+	values["virtual_cluster"] = obj.VirtualCluster
+	return values, nil
 }

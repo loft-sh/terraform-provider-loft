@@ -7,6 +7,9 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1SpaceTemplateDefinitionSchema() map[string]*schema.Schema {
@@ -53,4 +56,80 @@ func StorageV1SpaceTemplateDefinitionSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1SpaceTemplateDefinition(in []interface{}) *storagev1.SpaceTemplateDefinition {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.SpaceTemplateDefinition{}
+
+	data := in[0].(map[string]interface{})
+	ret.Access = CreateStorageV1InstanceAccess(data["access"].([]interface{}))
+
+	var appsItems []agentstoragev1.AppReference
+	for _, v := range data["apps"].([]interface{}) {
+		item := *CreateStorageV1AppReference(v.([]interface{}))
+		appsItems = append(appsItems, item)
+	}
+	ret.Apps = appsItems
+
+	var chartsItems []agentstoragev1.TemplateHelmChart
+	for _, v := range data["charts"].([]interface{}) {
+		item := *CreateStorageV1TemplateHelmChart(v.([]interface{}))
+		chartsItems = append(chartsItems, item)
+	}
+	ret.Charts = chartsItems
+
+	if v, ok := data["metadata"]; ok && len(v.([]interface{})) > 0 {
+		if value := CreateStorageV1TemplateMetadata(data["metadata"].([]interface{})); value != nil {
+			ret.TemplateMetadata = *value
+		}
+	}
+
+	if v, ok := data["objects"].(string); ok && len(v) > 0 {
+		ret.Objects = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1SpaceTemplateDefinition(obj *storagev1.SpaceTemplateDefinition) (interface{}, error) {
+	values := map[string]interface{}{}
+	// ComGithubLoftShAgentapiV3PkgApisLoftStorageV1InstanceAccess
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAgentapiV3PkgApisLoftStorageV1InstanceAccess Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:access Name:access Suffix: Path:"access" ValueExpression:m.Access IndexVar:i KeyVar: Title: Description:The space access Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+	access, err := ReadStorageV1InstanceAccess(obj.Access)
+	if err != nil {
+		return nil, err
+	}
+	values["access"] = access
+	var appsItems []interface{}
+	for _, v := range obj.Apps {
+		item, err := ReadStorageV1AppReference(&v)
+		if err != nil {
+			return nil, err
+		}
+		appsItems = append(appsItems, item)
+	}
+	values["apps"] = appsItems
+	var chartsItems []interface{}
+	for _, v := range obj.Charts {
+		item, err := ReadStorageV1TemplateHelmChart(&v)
+		if err != nil {
+			return nil, err
+		}
+		chartsItems = append(chartsItems, item)
+	}
+	values["charts"] = chartsItems
+	// ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:metadata Name:metadata Suffix: Path:"metadata" ValueExpression:m.Metadata IndexVar:i KeyVar: Title: Description:The space metadata Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
+	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
+	if err != nil {
+		return nil, err
+	}
+	values["metadata"] = []interface{}{metadata}
+	values["objects"] = obj.Objects
+	return values, nil
 }

@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1AppReferenceSchema() map[string]*schema.Schema {
@@ -37,4 +39,45 @@ func StorageV1AppReferenceSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1AppReference(in []interface{}) *agentstoragev1.AppReference {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.AppReference{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	if v, ok := data["namespace"].(string); ok && len(v) > 0 {
+		ret.Namespace = v
+	}
+
+	if v, ok := data["parameters"].(string); ok && len(v) > 0 {
+		ret.Parameters = v
+	}
+
+	if v, ok := data["release_name"].(string); ok && len(v) > 0 {
+		ret.ReleaseName = v
+	}
+
+	if v, ok := data["version"].(string); ok && len(v) > 0 {
+		ret.Version = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1AppReference(obj *agentstoragev1.AppReference) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["name"] = obj.Name
+	values["namespace"] = obj.Namespace
+	values["parameters"] = obj.Parameters
+	values["release_name"] = obj.ReleaseName
+	values["version"] = obj.Version
+	return values, nil
 }

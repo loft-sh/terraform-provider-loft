@@ -24,6 +24,7 @@ generate: clean
 		--template-dir ./gen/templates \
 		--config-file ./gen/schemas.yml \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.ProjectSpec" \
+		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.ProjectSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.SpaceInstanceSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.VirtualClusterInstanceSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.storage.v1.Access" \
@@ -57,7 +58,7 @@ generate: clean
 		> gen/schemas.log
 
 .PHONY: build-local
-build-local: generate
+build-local:
 	go build -o "${HOME}/.terraform.d/plugins/registry.terraform.io/loft-sh/loft/0.0.1/$(GOOS)_$(GOARCH)/terraform-provider-loft_v0.0.1"
 
 # Run acceptance tests

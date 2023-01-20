@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoProjectSpecMetadataSchema() map[string]*schema.Schema {
@@ -33,4 +35,31 @@ func StorageV1ArgoProjectSpecMetadataSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoProjectSpecMetadata(in []interface{}) *storagev1.ArgoProjectSpecMetadata {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoProjectSpecMetadata{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["description"].(string); ok && len(v) > 0 {
+		ret.Description = v
+	}
+
+	ret.ExtraAnnotations = utils.AttributesToMap(data["extra_annotations"].(map[string]interface{}))
+
+	ret.ExtraLabels = utils.AttributesToMap(data["extra_labels"].(map[string]interface{}))
+
+	return ret
+}
+
+func ReadStorageV1ArgoProjectSpecMetadata(obj *storagev1.ArgoProjectSpecMetadata) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["description"] = obj.Description
+	values["extra_annotations"] = obj.ExtraAnnotations
+	values["extra_labels"] = obj.ExtraLabels
+	return values, nil
 }

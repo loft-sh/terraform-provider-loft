@@ -7,16 +7,19 @@ package resources
 
 import (
 	"context"
-	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
-	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func VirtualClusterInstanceResource() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "VirtualClusterInstance holds the VirtualClusterInstance information",
 		Schema:        virtualClusterInstanceAttributes(),
 		CreateContext: virtualClusterInstanceCreate,
 		ReadContext:   virtualClusterInstanceRead,
@@ -30,7 +33,12 @@ func VirtualClusterInstanceResource() *schema.Resource {
 
 func virtualClusterInstanceAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": utils.MetadataSchema("VirtualClusterInstance", true),
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this resource. The format is `<namespace>/<name>`.",
+		},
+		"metadata": utils.MetadataSchema("VirtualClusterInstance", true, false),
 		"spec": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -41,11 +49,57 @@ func virtualClusterInstanceAttributes() map[string]*schema.Schema {
 	}
 }
 
-func virtualClusterInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func virtualClusterInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	namespace := d.Get("metadata.0.namespace").(string)
+	if namespace == "" {
+		return diag.Errorf("`namespace` is required for all namespaced resources")
+	}
+
+	name := d.Get("metadata.0.name").(string)
+	if name == "" {
+		return diag.Errorf("`name` is required for all resources")
+	}
+
+	instance, err := managementClient.Loft().ManagementV1().VirtualClusterInstances(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	fmt.Printf("%+v\n", instance)
+
+	metadata, err := utils.ReadMetadata(instance.ObjectMeta)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("metadata", metadata); err != nil {
+		return diag.FromErr(err)
+	}
+
+	spec, err := schemas.ReadManagementV1VirtualClusterInstanceSpec(&instance.Spec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("spec", spec); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func virtualClusterInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func virtualClusterInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	d.SetId("FOO")
 	return nil
 }
 

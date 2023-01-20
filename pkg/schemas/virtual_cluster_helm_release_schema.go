@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1VirtualClusterHelmReleaseSchema() map[string]*schema.Schema {
@@ -27,4 +29,34 @@ func StorageV1VirtualClusterHelmReleaseSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1VirtualClusterHelmRelease(in []interface{}) *agentstoragev1.VirtualClusterHelmRelease {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.VirtualClusterHelmRelease{}
+
+	data := in[0].(map[string]interface{})
+	ret.Chart = *CreateStorageV1VirtualClusterHelmChart(data["chart"].([]interface{}))
+
+	if v, ok := data["values"].(string); ok && len(v) > 0 {
+		ret.Values = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1VirtualClusterHelmRelease(obj *agentstoragev1.VirtualClusterHelmRelease) (interface{}, error) {
+	values := map[string]interface{}{}
+	// ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterHelmChart
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterHelmChart Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:chart Name:chart Suffix: Path:"chart" ValueExpression:m.Chart IndexVar:i KeyVar: Title: Description:infos about what chart to deploy Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+	chart, err := ReadStorageV1VirtualClusterHelmChart(&obj.Chart)
+	if err != nil {
+		return nil, err
+	}
+	values["chart"] = chart
+	values["values"] = obj.Values
+	return values, nil
 }

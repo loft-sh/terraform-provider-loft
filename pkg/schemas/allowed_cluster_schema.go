@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1AllowedClusterSchema() map[string]*schema.Schema {
@@ -17,4 +19,25 @@ func StorageV1AllowedClusterSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1AllowedCluster(in []interface{}) *storagev1.AllowedCluster {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.AllowedCluster{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1AllowedCluster(obj *storagev1.AllowedCluster) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["name"] = obj.Name
+	return values, nil
 }

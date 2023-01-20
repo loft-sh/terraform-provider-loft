@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1AccessSchema() map[string]*schema.Schema {
@@ -49,4 +51,69 @@ func StorageV1AccessSchema() map[string]*schema.Schema {
 			Required:    true,
 		},
 	}
+}
+
+func CreateStorageV1Access(in []interface{}) *storagev1.Access {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.Access{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	var subresourcesItems []string
+	for _, v := range data["subresources"].([]string) {
+		subresourcesItems = append(subresourcesItems, v)
+	}
+	ret.Subresources = subresourcesItems
+
+	var teamsItems []string
+	for _, v := range data["teams"].([]string) {
+		teamsItems = append(teamsItems, v)
+	}
+	ret.Teams = teamsItems
+
+	var usersItems []string
+	for _, v := range data["users"].([]string) {
+		usersItems = append(usersItems, v)
+	}
+	ret.Users = usersItems
+
+	var verbsItems []string
+	for _, v := range data["verbs"].([]string) {
+		verbsItems = append(verbsItems, v)
+	}
+	ret.Verbs = verbsItems
+
+	return ret
+}
+
+func ReadStorageV1Access(obj *storagev1.Access) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["name"] = obj.Name
+	var subresourcesItems []interface{}
+	for _, v := range obj.Subresources {
+		subresourcesItems = append(subresourcesItems, v)
+	}
+	values["subresources"] = subresourcesItems
+	var teamsItems []interface{}
+	for _, v := range obj.Teams {
+		teamsItems = append(teamsItems, v)
+	}
+	values["teams"] = teamsItems
+	var usersItems []interface{}
+	for _, v := range obj.Users {
+		usersItems = append(usersItems, v)
+	}
+	values["users"] = usersItems
+	var verbsItems []interface{}
+	for _, v := range obj.Verbs {
+		verbsItems = append(verbsItems, v)
+	}
+	values["verbs"] = verbsItems
+	return values, nil
 }

@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1QuotasSchema() map[string]*schema.Schema {
@@ -28,4 +30,26 @@ func StorageV1QuotasSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1Quotas(in []interface{}) *storagev1.Quotas {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.Quotas{}
+
+	data := in[0].(map[string]interface{})
+	ret.Project = utils.AttributesToMap(data["project"].(map[string]interface{}))
+
+	ret.User = utils.AttributesToMap(data["user"].(map[string]interface{}))
+
+	return ret
+}
+
+func ReadStorageV1Quotas(obj *storagev1.Quotas) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["project"] = obj.Project
+	values["user"] = obj.User
+	return values, nil
 }

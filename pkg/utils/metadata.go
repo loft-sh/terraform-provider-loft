@@ -3,9 +3,28 @@ package utils
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
-func MetadataSchema(objectName string, generateName bool) *schema.Schema {
+func ReadId(metadata metav1.ObjectMeta) string {
+	if metadata.Namespace != "" {
+		return metadata.Namespace + "/" + metadata.Name
+	}
+
+	return metadata.Name
+}
+
+func ParseID(id string) (string, string) {
+	tokens := strings.Split(id, "/")
+	if len(tokens) == 2 {
+		return tokens[0], tokens[1]
+	}
+
+	return "", ""
+}
+
+func MetadataSchema(objectName string, generateName bool, clusterScope bool) *schema.Schema {
 	fields := metadataFields(objectName)
 
 	if generateName {
@@ -14,9 +33,19 @@ func MetadataSchema(objectName string, generateName bool) *schema.Schema {
 			Description:   "Prefix, used by the server, to generate a unique name ONLY IF the `name` field has not been provided. This value will also be combined with a unique suffix. Read more: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#idempotency",
 			Optional:      true,
 			ForceNew:      true,
+			Computed:      true,
 			ConflictsWith: []string{"metadata.0.name"},
+			AtLeastOneOf:  []string{"metadata.0.name", "metadata.0.generate_name"},
 		}
 		fields["name"].ConflictsWith = []string{"metadata.0.generate_name"}
+	}
+
+	if !clusterScope {
+		fields["namespace"] = &schema.Schema{
+			Type:        schema.TypeString,
+			Description: "Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the \"default\" namespace, but \"default\" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.\n\nMust be a DNS_LABEL. Cannot be updated. More info: http://kubernetes.io/docs/user-guide/namespaces",
+			Required:    true,
+		}
 	}
 
 	return &schema.Schema{
@@ -28,6 +57,56 @@ func MetadataSchema(objectName string, generateName bool) *schema.Schema {
 			Schema: fields,
 		},
 	}
+}
+
+func ReadMetadata(metadata metav1.ObjectMeta) (interface{}, error) {
+	meta := map[string]interface{}{}
+
+	annotations := MapToAttributes(metadata.Annotations)
+	if len(annotations) != 0 {
+		meta["annotations"] = annotations
+	}
+
+	labels := MapToAttributes(metadata.Labels)
+	if len(labels) != 0 {
+		meta["labels"] = labels
+	}
+
+	meta["generate_name"] = metadata.GenerateName
+	meta["generation"] = metadata.Generation
+	meta["name"] = metadata.Name
+	meta["namespace"] = metadata.Namespace
+	meta["resource_version"] = metadata.ResourceVersion
+	meta["uid"] = metadata.UID
+	return meta, nil
+}
+
+func CreateMetadata(metadata []interface{}) metav1.ObjectMeta {
+	meta := metav1.ObjectMeta{}
+	if len(metadata) < 1 {
+		return meta
+	}
+	m := metadata[0].(map[string]interface{})
+
+	if v, ok := m["annotations"].(map[string]interface{}); ok && len(v) > 0 {
+		meta.Annotations = AttributesToMap(m["annotations"].(map[string]interface{}))
+	}
+
+	if v, ok := m["labels"].(map[string]interface{}); ok && len(v) > 0 {
+		meta.Labels = AttributesToMap(m["labels"].(map[string]interface{}))
+	}
+
+	if v, ok := m["generate_name"]; ok {
+		meta.GenerateName = v.(string)
+	}
+	if v, ok := m["name"]; ok {
+		meta.Name = v.(string)
+	}
+	if v, ok := m["namespace"]; ok {
+		meta.Namespace = v.(string)
+	}
+
+	return meta
 }
 
 func metadataFields(objectName string) map[string]*schema.Schema {

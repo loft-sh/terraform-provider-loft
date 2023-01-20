@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoProjectPolicyRuleSchema() map[string]*schema.Schema {
@@ -27,4 +29,35 @@ func StorageV1ArgoProjectPolicyRuleSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoProjectPolicyRule(in []interface{}) *storagev1.ArgoProjectPolicyRule {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoProjectPolicyRule{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["action"].(string); ok && len(v) > 0 {
+		ret.Action = v
+	}
+
+	if v, ok := data["application"].(string); ok && len(v) > 0 {
+		ret.Application = v
+	}
+
+	if v, ok := data["permission"].(bool); ok {
+		ret.Allow = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1ArgoProjectPolicyRule(obj *storagev1.ArgoProjectPolicyRule) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["action"] = obj.Action
+	values["application"] = obj.Application
+	values["allow"] = obj.Allow
+	return values, nil
 }

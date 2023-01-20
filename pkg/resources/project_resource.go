@@ -7,16 +7,19 @@ package resources
 
 import (
 	"context"
-	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
-	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func ProjectResource() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "Project holds the Project information",
 		Schema:        projectAttributes(),
 		CreateContext: projectCreate,
 		ReadContext:   projectRead,
@@ -30,7 +33,12 @@ func ProjectResource() *schema.Resource {
 
 func projectAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": utils.MetadataSchema("Project", true),
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this resource. The format is `<name>`.",
+		},
+		"metadata": utils.MetadataSchema("Project", true, true),
 		"spec": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -41,11 +49,52 @@ func projectAttributes() map[string]*schema.Schema {
 	}
 }
 
-func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	name := d.Get("metadata.0.name").(string)
+	if name == "" {
+		return diag.Errorf("`name` is required for all resources")
+	}
+
+	instance, err := managementClient.Loft().ManagementV1().Projects().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	fmt.Printf("%+v\n", instance)
+
+	metadata, err := utils.ReadMetadata(instance.ObjectMeta)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("metadata", metadata); err != nil {
+		return diag.FromErr(err)
+	}
+
+	spec, err := schemas.ReadManagementV1ProjectSpec(&instance.Spec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("spec", spec); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	d.SetId("FOO")
 	return nil
 }
 

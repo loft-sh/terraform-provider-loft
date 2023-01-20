@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ClusterRefSchema() map[string]*schema.Schema {
@@ -22,4 +24,30 @@ func StorageV1ClusterRefSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ClusterRef(in []interface{}) *storagev1.ClusterRef {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ClusterRef{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
+		ret.Cluster = v
+	}
+
+	if v, ok := data["namespace"].(string); ok && len(v) > 0 {
+		ret.Namespace = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1ClusterRef(obj *storagev1.ClusterRef) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["cluster"] = obj.Cluster
+	values["namespace"] = obj.Namespace
+	return values, nil
 }

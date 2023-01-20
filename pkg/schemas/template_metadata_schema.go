@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1TemplateMetadataSchema() map[string]*schema.Schema {
@@ -28,4 +30,26 @@ func StorageV1TemplateMetadataSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1TemplateMetadata(in []interface{}) *storagev1.TemplateMetadata {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.TemplateMetadata{}
+
+	data := in[0].(map[string]interface{})
+	ret.Annotations = utils.AttributesToMap(data["annotations"].(map[string]interface{}))
+
+	ret.Labels = utils.AttributesToMap(data["labels"].(map[string]interface{}))
+
+	return ret
+}
+
+func ReadStorageV1TemplateMetadata(obj *storagev1.TemplateMetadata) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["annotations"] = obj.Annotations
+	values["labels"] = obj.Labels
+	return values, nil
 }

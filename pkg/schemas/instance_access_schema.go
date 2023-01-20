@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1InstanceAccessSchema() map[string]*schema.Schema {
@@ -25,4 +27,45 @@ func StorageV1InstanceAccessSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1InstanceAccess(in []interface{}) *agentstoragev1.InstanceAccess {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.InstanceAccess{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["default_cluster_role"].(string); ok && len(v) > 0 {
+		ret.DefaultClusterRole = v
+	}
+
+	var rulesItems []agentstoragev1.InstanceAccessRule
+	for _, v := range data["rules"].([]interface{}) {
+		item := *CreateStorageV1InstanceAccessRule(v.([]interface{}))
+		rulesItems = append(rulesItems, item)
+	}
+	ret.Rules = rulesItems
+
+	return ret
+}
+
+func ReadStorageV1InstanceAccess(obj *agentstoragev1.InstanceAccess) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
+	values := map[string]interface{}{}
+	values["default_cluster_role"] = obj.DefaultClusterRole
+	var rulesItems []interface{}
+	for _, v := range obj.Rules {
+		item, err := ReadStorageV1InstanceAccessRule(&v)
+		if err != nil {
+			return nil, err
+		}
+		rulesItems = append(rulesItems, item)
+	}
+	values["rules"] = rulesItems
+	return values, nil
 }

@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoProjectRoleSchema() map[string]*schema.Schema {
@@ -38,4 +40,57 @@ func StorageV1ArgoProjectRoleSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoProjectRole{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["description"].(string); ok && len(v) > 0 {
+		ret.Description = v
+	}
+
+	var groupsItems []string
+	for _, v := range data["groups"].([]string) {
+		groupsItems = append(groupsItems, v)
+	}
+	ret.Groups = groupsItems
+
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	var rulesItems []storagev1.ArgoProjectPolicyRule
+	for _, v := range data["rules"].([]interface{}) {
+		item := *CreateStorageV1ArgoProjectPolicyRule(v.([]interface{}))
+		rulesItems = append(rulesItems, item)
+	}
+	ret.Rules = rulesItems
+
+	return ret
+}
+
+func ReadStorageV1ArgoProjectRole(obj *storagev1.ArgoProjectRole) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["description"] = obj.Description
+	var groupsItems []interface{}
+	for _, v := range obj.Groups {
+		groupsItems = append(groupsItems, v)
+	}
+	values["groups"] = groupsItems
+	values["name"] = obj.Name
+	var rulesItems []interface{}
+	for _, v := range obj.Rules {
+		item, err := ReadStorageV1ArgoProjectPolicyRule(&v)
+		if err != nil {
+			return nil, err
+		}
+		rulesItems = append(rulesItems, item)
+	}
+	values["rules"] = rulesItems
+	return values, nil
 }

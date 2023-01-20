@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1VirtualClusterHelmChartSchema() map[string]*schema.Schema {
@@ -27,4 +29,35 @@ func StorageV1VirtualClusterHelmChartSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1VirtualClusterHelmChart(in []interface{}) *agentstoragev1.VirtualClusterHelmChart {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.VirtualClusterHelmChart{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	if v, ok := data["repo"].(string); ok && len(v) > 0 {
+		ret.Repo = v
+	}
+
+	if v, ok := data["version"].(string); ok && len(v) > 0 {
+		ret.Version = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1VirtualClusterHelmChart(obj *agentstoragev1.VirtualClusterHelmChart) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["name"] = obj.Name
+	values["repo"] = obj.Repo
+	values["version"] = obj.Version
+	return values, nil
 }

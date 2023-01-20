@@ -1,8 +1,44 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/loft-sh/loftctl/v2/pkg/kube"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"strings"
+	"time"
 )
+
+func testAccSpaceInstanceCheckDestroy(kubeClient kube.Interface) func(s *terraform.State) error {
+	return func(s *terraform.State) error {
+		var spaces []string
+		for _, resourceState := range s.RootModule().Resources {
+			spaces = append(spaces, resourceState.Primary.ID)
+		}
+
+		for _, spacePath := range spaces {
+			tokens := strings.Split(spacePath, "/")
+			fmt.Println("SPACE PATH: " + spacePath)
+			spaceNamespace := tokens[0]
+			spaceName := tokens[1]
+
+			err := wait.PollImmediate(1*time.Second, 60*time.Second, func() (bool, error) {
+				_, err := kubeClient.Loft().ManagementV1().SpaceInstances(spaceNamespace).Get(context.TODO(), spaceName, metav1.GetOptions{})
+				if errors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
 
 func testAccResourceSpaceInstanceCreateWithoutUserOrTeam(configPath string, clusterName, spaceName string) string {
 	return fmt.Sprintf(`
@@ -29,7 +65,7 @@ resource "loft_space" "test" {
 	)
 }
 
-func testAccResourceSpaceInstanceCreateWithUser(configPath string, user, clusterName, spaceName string) string {
+func testAccResourceSpaceInstanceCreateWithUser(configPath string, user, projectName, spaceName string) string {
 	return fmt.Sprintf(`
 terraform {
 	required_providers {
@@ -43,15 +79,24 @@ provider "loft" {
 	config_path = "%s"
 }
 
-resource "loft_space" "test_user" {
-	name = "%s"
-	cluster = "%s"
-	user = "%s"
+resource "loft_space_instance" "test_user" {
+	metadata {
+		name = "%s"
+		namespace = "loft-p-%s"
+	}
+	spec {
+		owner {
+			user = "%s"
+		}
+		template {
+			metadata {}
+		}
+	}
 }
 `,
 		configPath,
 		spaceName,
-		clusterName,
+		projectName,
 		user,
 	)
 }

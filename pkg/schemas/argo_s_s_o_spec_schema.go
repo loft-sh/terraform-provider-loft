@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoSSOSpecSchema() map[string]*schema.Schema {
@@ -30,4 +32,41 @@ func StorageV1ArgoSSOSpecSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoSSOSpec(in []interface{}) *storagev1.ArgoSSOSpec {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoSSOSpec{}
+
+	data := in[0].(map[string]interface{})
+	var assignedRolesItems []string
+	for _, v := range data["assigned_roles"].([]string) {
+		assignedRolesItems = append(assignedRolesItems, v)
+	}
+	ret.AssignedRoles = assignedRolesItems
+
+	if v, ok := data["enabled"].(bool); ok {
+		ret.Enabled = v
+	}
+
+	if v, ok := data["host"].(string); ok && len(v) > 0 {
+		ret.Host = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1ArgoSSOSpec(obj *storagev1.ArgoSSOSpec) (interface{}, error) {
+	values := map[string]interface{}{}
+	var assignedRolesItems []interface{}
+	for _, v := range obj.AssignedRoles {
+		assignedRolesItems = append(assignedRolesItems, v)
+	}
+	values["assigned_roles"] = assignedRolesItems
+	values["enabled"] = obj.Enabled
+	values["host"] = obj.Host
+	return values, nil
 }

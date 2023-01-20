@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	agentstoragev1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1VirtualClusterAccessPointIngressSpecSchema() map[string]*schema.Schema {
@@ -17,4 +19,25 @@ func StorageV1VirtualClusterAccessPointIngressSpecSchema() map[string]*schema.Sc
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1VirtualClusterAccessPointIngressSpec(in []interface{}) *agentstoragev1.VirtualClusterAccessPointIngressSpec {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &agentstoragev1.VirtualClusterAccessPointIngressSpec{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["enabled"].(bool); ok {
+		ret.Enabled = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1VirtualClusterAccessPointIngressSpec(obj *agentstoragev1.VirtualClusterAccessPointIngressSpec) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["enabled"] = obj.Enabled
+	return values, nil
 }

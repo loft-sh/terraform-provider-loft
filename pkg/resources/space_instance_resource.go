@@ -7,16 +7,19 @@ package resources
 
 import (
 	"context"
-	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
-	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func SpaceInstanceResource() *schema.Resource {
 	return &schema.Resource{
-		Description:   "",
+		Description:   "SpaceInstance holds the SpaceInstance information",
 		Schema:        spaceInstanceAttributes(),
 		CreateContext: spaceInstanceCreate,
 		ReadContext:   spaceInstanceRead,
@@ -30,7 +33,12 @@ func SpaceInstanceResource() *schema.Resource {
 
 func spaceInstanceAttributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": utils.MetadataSchema("SpaceInstance", true),
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier for this resource. The format is `<namespace>/<name>`.",
+		},
+		"metadata": utils.MetadataSchema("SpaceInstance", true, false),
 		"spec": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -41,12 +49,69 @@ func spaceInstanceAttributes() map[string]*schema.Schema {
 	}
 }
 
-func spaceInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func spaceInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	namespace, name := utils.ParseID(d.Id())
+	instance, err := managementClient.Loft().ManagementV1().SpaceInstances(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata, err := utils.ReadMetadata(instance.ObjectMeta)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("metadata", []interface{}{metadata}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	spec, err := schemas.ReadManagementV1SpaceInstanceSpec(&instance.Spec)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("spec", []interface{}{spec}); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func spaceInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return nil
+func spaceInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+	spec := schemas.CreateManagementV1SpaceInstanceSpec(d.Get("spec").([]interface{}))
+
+	instance, err := managementClient.Loft().ManagementV1().SpaceInstances(metadata.Namespace).Create(ctx, &managementv1.SpaceInstance{
+		ObjectMeta: metadata,
+		Spec:       *spec,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(utils.ReadId(instance.ObjectMeta))
+
+	return spaceInstanceRead(ctx, d, meta)
 }
 
 func spaceInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -54,5 +119,22 @@ func spaceInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta inter
 }
 
 func spaceInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
+	err = managementClient.Loft().ManagementV1().SpaceInstances(metadata.Namespace).Delete(ctx, metadata.Name, metav1.DeleteOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }

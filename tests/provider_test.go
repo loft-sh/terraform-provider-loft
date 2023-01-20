@@ -3,7 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
-	"github.com/loft-sh/terraform-provider-loft/pkg"
+	loft "github.com/loft-sh/terraform-provider-loft/pkg"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -34,14 +34,14 @@ import (
 var (
 	providerFactories = map[string]func() (*schema.Provider, error){
 		"loft": func() (*schema.Provider, error) {
-			return pkg.New()(), nil
+			return loft.New()(), nil
 		},
 	}
 	rxPosNum = regexp.MustCompile("^[1-9][0-9]*$")
 )
 
 func TestProvider(t *testing.T) {
-	if err := pkg.New()().InternalValidate(); err != nil {
+	if err := loft.New()().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }

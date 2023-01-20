@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1MemberSchema() map[string]*schema.Schema {
@@ -32,4 +34,40 @@ func StorageV1MemberSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1Member(in []interface{}) *storagev1.Member {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.Member{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
+		ret.ClusterRole = v
+	}
+
+	if v, ok := data["group"].(string); ok && len(v) > 0 {
+		ret.Group = v
+	}
+
+	if v, ok := data["kind"].(string); ok && len(v) > 0 {
+		ret.Kind = v
+	}
+
+	if v, ok := data["name"].(string); ok && len(v) > 0 {
+		ret.Name = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1Member(obj *storagev1.Member) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["cluster_role"] = obj.ClusterRole
+	values["group"] = obj.Group
+	values["kind"] = obj.Kind
+	values["name"] = obj.Name
+	return values, nil
 }

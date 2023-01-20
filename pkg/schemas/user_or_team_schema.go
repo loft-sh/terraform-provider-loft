@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1UserOrTeamSchema() map[string]*schema.Schema {
@@ -22,4 +24,30 @@ func StorageV1UserOrTeamSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1UserOrTeam(in []interface{}) *storagev1.UserOrTeam {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.UserOrTeam{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["team"].(string); ok && len(v) > 0 {
+		ret.Team = v
+	}
+
+	if v, ok := data["user"].(string); ok && len(v) > 0 {
+		ret.User = v
+	}
+
+	return ret
+}
+
+func ReadStorageV1UserOrTeam(obj *storagev1.UserOrTeam) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["team"] = obj.Team
+	values["user"] = obj.User
+	return values, nil
 }

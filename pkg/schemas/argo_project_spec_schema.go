@@ -7,6 +7,8 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
 func StorageV1ArgoProjectSpecSchema() map[string]*schema.Schema {
@@ -43,4 +45,62 @@ func StorageV1ArgoProjectSpecSchema() map[string]*schema.Schema {
 			Optional:    true,
 		},
 	}
+}
+
+func CreateStorageV1ArgoProjectSpec(in []interface{}) *storagev1.ArgoProjectSpec {
+	if !utils.HasValue(in) {
+		return nil
+	}
+
+	ret := &storagev1.ArgoProjectSpec{}
+
+	data := in[0].(map[string]interface{})
+	if v, ok := data["enabled"].(bool); ok {
+		ret.Enabled = v
+	}
+
+	ret.Metadata = *CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].([]interface{}))
+
+	var rolesItems []storagev1.ArgoProjectRole
+	for _, v := range data["roles"].([]interface{}) {
+		item := *CreateStorageV1ArgoProjectRole(v.([]interface{}))
+		rolesItems = append(rolesItems, item)
+	}
+	ret.Roles = rolesItems
+
+	var sourceReposItems []string
+	for _, v := range data["source_repos"].([]string) {
+		sourceReposItems = append(sourceReposItems, v)
+	}
+	ret.SourceRepos = sourceReposItems
+
+	return ret
+}
+
+func ReadStorageV1ArgoProjectSpec(obj *storagev1.ArgoProjectSpec) (interface{}, error) {
+	values := map[string]interface{}{}
+	values["enabled"] = obj.Enabled
+	// ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpecMetadata
+	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpecMetadata Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:metadata Name:metadata Suffix: Path:"metadata" ValueExpression:m.Metadata IndexVar:i KeyVar: Title: Description:Metadata defines additional metadata to attach to the loft created project in ArgoCD. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
+	metadata, err := ReadStorageV1ArgoProjectSpecMetadata(&obj.Metadata)
+	if err != nil {
+		return nil, err
+	}
+	values["metadata"] = metadata
+	var rolesItems []interface{}
+	for _, v := range obj.Roles {
+		item, err := ReadStorageV1ArgoProjectRole(&v)
+		if err != nil {
+			return nil, err
+		}
+		rolesItems = append(rolesItems, item)
+	}
+	values["roles"] = rolesItems
+	var sourceReposItems []interface{}
+	for _, v := range obj.SourceRepos {
+		sourceReposItems = append(sourceReposItems, v)
+	}
+	values["source_repos"] = sourceReposItems
+	return values, nil
 }
