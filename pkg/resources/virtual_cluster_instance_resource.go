@@ -108,5 +108,22 @@ func virtualClusterInstanceUpdate(ctx context.Context, d *schema.ResourceData, m
 }
 
 func virtualClusterInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
+	err = managementClient.Loft().ManagementV1().VirtualClusterInstances(metadata.Namespace).Delete(ctx, metadata.Name, metav1.DeleteOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }

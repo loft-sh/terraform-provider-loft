@@ -7,8 +7,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
@@ -70,8 +68,6 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 		return diag.FromErr(err)
 	}
 
-	fmt.Printf("%+v\n", instance)
-
 	metadata, err := utils.ReadMetadata(instance.ObjectMeta)
 	if err != nil {
 		return diag.FromErr(err)
@@ -103,5 +99,22 @@ func projectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 func projectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
+	err = managementClient.Loft().ManagementV1().Projects().Delete(ctx, metadata.Name, metav1.DeleteOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
