@@ -20,6 +20,7 @@ func StorageV1QuotasSchema() map[string]*schema.Schema {
 			},
 			Description: "Project holds the quotas for the whole project",
 			Optional:    true,
+			Computed:    true,
 		},
 		"user": {
 			Type: schema.TypeMap,
@@ -28,6 +29,7 @@ func StorageV1QuotasSchema() map[string]*schema.Schema {
 			},
 			Description: "User holds the quotas per user / team",
 			Optional:    true,
+			Computed:    true,
 		},
 	}
 }

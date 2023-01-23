@@ -21,6 +21,10 @@ func ParseID(id string) (string, string) {
 		return tokens[0], tokens[1]
 	}
 
+	if len(tokens) == 1 {
+		return "", tokens[0]
+	}
+
 	return "", ""
 }
 
@@ -72,10 +76,13 @@ func ReadMetadata(metadata metav1.ObjectMeta) (interface{}, error) {
 		meta["labels"] = labels
 	}
 
+	if metadata.Namespace != "" {
+		meta["namespace"] = metadata.Namespace
+	}
+
 	meta["generate_name"] = metadata.GenerateName
 	meta["generation"] = metadata.Generation
 	meta["name"] = metadata.Name
-	meta["namespace"] = metadata.Namespace
 	meta["resource_version"] = metadata.ResourceVersion
 	meta["uid"] = metadata.UID
 	return meta, nil

@@ -46,6 +46,10 @@ func CreateStorageV1NamespacePattern(in []interface{}) *storagev1.NamespacePatte
 }
 
 func ReadStorageV1NamespacePattern(obj *storagev1.NamespacePattern) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["space"] = obj.Space
 	values["virtual_cluster"] = obj.VirtualCluster

@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
@@ -58,11 +59,7 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 		return diag.FromErr(err)
 	}
 
-	name := d.Get("metadata.0.name").(string)
-	if name == "" {
-		return diag.Errorf("`name` is required for all resources")
-	}
-
+	_, name := utils.ParseID(d.Id())
 	instance, err := managementClient.Loft().ManagementV1().Projects().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
@@ -73,7 +70,7 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("metadata", metadata); err != nil {
+	if err := d.Set("metadata", []interface{}{metadata}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -82,7 +79,7 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("spec", spec); err != nil {
+	if err := d.Set("spec", []interface{}{spec}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -90,8 +87,30 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 }
 
 func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("FOO")
-	return nil
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+	spec := schemas.CreateManagementV1ProjectSpec(d.Get("spec").([]interface{}))
+
+	instance, err := managementClient.Loft().ManagementV1().Projects().Create(ctx, &managementv1.Project{
+		ObjectMeta: metadata,
+		Spec:       *spec,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(utils.ReadId(instance.ObjectMeta))
+
+	return projectRead(ctx, d, meta)
 }
 
 func projectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

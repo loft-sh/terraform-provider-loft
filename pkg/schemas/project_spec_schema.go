@@ -21,6 +21,7 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access holds the access rights for users and teams",
 			Optional:    true,
+			Computed:    true,
 		},
 		"allowed_clusters": {
 			Type: schema.TypeList,
@@ -75,6 +76,7 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "NamespacePattern specifies template patterns to use for creating each space or virtual cluster's namespace",
 			Optional:    true,
+			Computed:    true,
 		},
 		"owner": {
 			Type:     schema.TypeList,
@@ -95,6 +97,7 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Quotas define the quotas inside the project",
 			Optional:    true,
+			Computed:    true,
 		},
 	}
 }
@@ -148,7 +151,9 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].([]interface{}))
 
-		ret.Quotas = *CreateStorageV1Quotas(data["quotas"].([]interface{}))
+		if quotas := CreateStorageV1Quotas(data["quotas"].([]interface{})); quotas != nil {
+			ret.Quotas = *quotas
+		}
 
 	}
 
@@ -205,29 +210,23 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 		membersItems = append(membersItems, item)
 	}
 	values["members"] = membersItems
-	// ComGithubLoftShAPIV3PkgApisStorageV1NamespacePattern
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1NamespacePattern Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:namespacePattern Name:namespacePattern Suffix: Path:"namespacePattern" ValueExpression:m.NamespacePattern IndexVar:i KeyVar: Title: Description:NamespacePattern specifies template patterns to use for creating each space or virtual cluster's namespace Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	namespacePattern, err := ReadStorageV1NamespacePattern(obj.NamespacePattern)
 	if err != nil {
 		return nil, err
 	}
-	values["namespace_pattern"] = namespacePattern
-	// ComGithubLoftShAPIV3PkgApisStorageV1UserOrTeam
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1UserOrTeam Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:owner Name:owner Suffix: Path:"owner" ValueExpression:m.Owner IndexVar:i KeyVar: Title: Description:Owner holds the owner of this object Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+	values["namespace_pattern"] = []interface{}{namespacePattern}
 
 	owner, err := ReadStorageV1UserOrTeam(obj.Owner)
 	if err != nil {
 		return nil, err
 	}
-	values["owner"] = owner
-	// ComGithubLoftShAPIV3PkgApisStorageV1Quotas
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1Quotas Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:quotas Name:quotas Suffix: Path:"quotas" ValueExpression:m.Quotas IndexVar:i KeyVar: Title: Description:Quotas define the quotas inside the project Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+	values["owner"] = []interface{}{owner}
 
 	quotas, err := ReadStorageV1Quotas(&obj.Quotas)
 	if err != nil {
 		return nil, err
 	}
-	values["quotas"] = quotas
+	values["quotas"] = []interface{}{quotas}
 	return values, nil
 }

@@ -111,7 +111,6 @@ func {{ camelize $modelName }}Read(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	fmt.Printf("%+v\n", instance)
 	{{- range .Properties }}
 		{{ if (eq .Name "metadata") }}
 	{{ varname .Name }}, err := utils.ReadMetadata(instance.ObjectMeta)

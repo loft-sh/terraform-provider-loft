@@ -88,6 +88,10 @@ func CreateStorageV1ArgoIntegrationSpec(in []interface{}) *storagev1.ArgoIntegra
 }
 
 func ReadStorageV1ArgoIntegrationSpec(obj *storagev1.ArgoIntegrationSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["cluster"] = obj.Cluster
 	values["enabled"] = obj.Enabled
