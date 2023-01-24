@@ -43,8 +43,9 @@ func CreateStorageV1InstanceAccess(in []interface{}) *agentstoragev1.InstanceAcc
 
 	var rulesItems []agentstoragev1.InstanceAccessRule
 	for _, v := range data["rules"].([]interface{}) {
-		item := *CreateStorageV1InstanceAccessRule(v.([]interface{}))
-		rulesItems = append(rulesItems, item)
+		if item := CreateStorageV1InstanceAccessRule(v.([]interface{})); item != nil {
+			rulesItems = append(rulesItems, *item)
+		}
 	}
 	ret.Rules = rulesItems
 

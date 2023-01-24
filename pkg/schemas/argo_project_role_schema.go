@@ -66,8 +66,9 @@ func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole
 
 	var rulesItems []storagev1.ArgoProjectPolicyRule
 	for _, v := range data["rules"].([]interface{}) {
-		item := *CreateStorageV1ArgoProjectPolicyRule(v.([]interface{}))
-		rulesItems = append(rulesItems, item)
+		if item := CreateStorageV1ArgoProjectPolicyRule(v.([]interface{})); item != nil {
+			rulesItems = append(rulesItems, *item)
+		}
 	}
 	ret.Rules = rulesItems
 
@@ -77,12 +78,15 @@ func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole
 func ReadStorageV1ArgoProjectRole(obj *storagev1.ArgoProjectRole) (interface{}, error) {
 	values := map[string]interface{}{}
 	values["description"] = obj.Description
+
 	var groupsItems []interface{}
 	for _, v := range obj.Groups {
 		groupsItems = append(groupsItems, v)
 	}
 	values["groups"] = groupsItems
+
 	values["name"] = obj.Name
+
 	var rulesItems []interface{}
 	for _, v := range obj.Rules {
 		item, err := ReadStorageV1ArgoProjectPolicyRule(&v)
@@ -91,6 +95,8 @@ func ReadStorageV1ArgoProjectRole(obj *storagev1.ArgoProjectRole) (interface{}, 
 		}
 		rulesItems = append(rulesItems, item)
 	}
+
 	values["rules"] = rulesItems
+
 	return values, nil
 }

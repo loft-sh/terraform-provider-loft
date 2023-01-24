@@ -94,26 +94,32 @@ func CreateStorageV1Access(in []interface{}) *storagev1.Access {
 
 func ReadStorageV1Access(obj *storagev1.Access) (interface{}, error) {
 	values := map[string]interface{}{}
+
 	values["name"] = obj.Name
+
 	var subresourcesItems []interface{}
 	for _, v := range obj.Subresources {
 		subresourcesItems = append(subresourcesItems, v)
 	}
 	values["subresources"] = subresourcesItems
+
 	var teamsItems []interface{}
 	for _, v := range obj.Teams {
 		teamsItems = append(teamsItems, v)
 	}
 	values["teams"] = teamsItems
+
 	var usersItems []interface{}
 	for _, v := range obj.Users {
 		usersItems = append(usersItems, v)
 	}
 	values["users"] = usersItems
+
 	var verbsItems []interface{}
 	for _, v := range obj.Verbs {
 		verbsItems = append(verbsItems, v)
 	}
 	values["verbs"] = verbsItems
+
 	return values, nil
 }

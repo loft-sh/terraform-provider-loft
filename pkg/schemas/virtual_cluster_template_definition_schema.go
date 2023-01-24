@@ -98,51 +98,60 @@ func CreateStorageV1VirtualClusterTemplateDefinition(in []interface{}) *storagev
 	data := in[0].(map[string]interface{})
 	ret.Access = CreateStorageV1InstanceAccess(data["access"].([]interface{}))
 
-	ret.AccessPoint = *CreateStorageV1VirtualClusterAccessPoint(data["access_point"].([]interface{}))
+	if value := CreateStorageV1VirtualClusterAccessPoint(data["access_point"].([]interface{})); value != nil {
+		ret.AccessPoint = *value
+	}
 
 	var appsItems []agentstoragev1.AppReference
 	for _, v := range data["apps"].([]interface{}) {
-		item := *CreateStorageV1AppReference(v.([]interface{}))
-		appsItems = append(appsItems, item)
+		if item := CreateStorageV1AppReference(v.([]interface{})); item != nil {
+			appsItems = append(appsItems, *item)
+		}
 	}
 	ret.Apps = appsItems
 
 	var chartsItems []agentstoragev1.TemplateHelmChart
 	for _, v := range data["charts"].([]interface{}) {
-		item := *CreateStorageV1TemplateHelmChart(v.([]interface{}))
-		chartsItems = append(chartsItems, item)
+		if item := CreateStorageV1TemplateHelmChart(v.([]interface{})); item != nil {
+			chartsItems = append(chartsItems, *item)
+		}
 	}
 	ret.Charts = chartsItems
 
-	ret.HelmRelease = *CreateStorageV1VirtualClusterHelmRelease(data["helm_release"].([]interface{}))
+	if value := CreateStorageV1VirtualClusterHelmRelease(data["helm_release"].([]interface{})); value != nil {
+		ret.HelmRelease = *value
+	}
 
-	ret.TemplateMetadata = *CreateStorageV1TemplateMetadata(data["metadata"].([]interface{}))
+	if value := CreateStorageV1TemplateMetadata(data["metadata"].([]interface{})); value != nil {
+		ret.TemplateMetadata = *value
+	}
 
 	if v, ok := data["objects"].(string); ok && len(v) > 0 {
 		ret.Objects = v
 	}
 
-	ret.SpaceTemplate = *CreateStorageV1VirtualClusterSpaceTemplateDefinition(data["space_template"].([]interface{}))
+	if value := CreateStorageV1VirtualClusterSpaceTemplateDefinition(data["space_template"].([]interface{})); value != nil {
+		ret.SpaceTemplate = *value
+	}
 
 	return ret
 }
 
 func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualClusterTemplateDefinition) (interface{}, error) {
 	values := map[string]interface{}{}
-	// ComGithubLoftShAgentapiV3PkgApisLoftStorageV1InstanceAccess
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAgentapiV3PkgApisLoftStorageV1InstanceAccess Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:access Name:access Suffix: Path:"access" ValueExpression:m.Access IndexVar:i KeyVar: Title: Description:Access defines the access of users and teams to the virtual cluster. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
 	access, err := ReadStorageV1InstanceAccess(obj.Access)
 	if err != nil {
 		return nil, err
 	}
 	values["access"] = access
-	// ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterAccessPoint
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterAccessPoint Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:accessPoint Name:accessPoint Suffix: Path:"accessPoint" ValueExpression:m.AccessPoint IndexVar:i KeyVar: Title: Description:AccessPoint defines settings to expose the virtual cluster directly via an ingress rather than through the (default) Loft proxy Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
 	accessPoint, err := ReadStorageV1VirtualClusterAccessPoint(&obj.AccessPoint)
 	if err != nil {
 		return nil, err
 	}
 	values["access_point"] = accessPoint
+
 	var appsItems []interface{}
 	for _, v := range obj.Apps {
 		item, err := ReadStorageV1AppReference(&v)
@@ -152,6 +161,7 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 		appsItems = append(appsItems, item)
 	}
 	values["apps"] = appsItems
+
 	var chartsItems []interface{}
 	for _, v := range obj.Charts {
 		item, err := ReadStorageV1TemplateHelmChart(&v)
@@ -161,29 +171,26 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 		chartsItems = append(chartsItems, item)
 	}
 	values["charts"] = chartsItems
-	// ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterHelmRelease
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAgentapiV3PkgApisLoftStorageV1VirtualClusterHelmRelease Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:helmRelease Name:helmRelease Suffix: Path:"helmRelease" ValueExpression:m.HelmRelease IndexVar:i KeyVar: Title: Description:HelmRelease is the helm release configuration for the virtual cluster. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
+
 	helmRelease, err := ReadStorageV1VirtualClusterHelmRelease(&obj.HelmRelease)
 	if err != nil {
 		return nil, err
 	}
 	values["helm_release"] = helmRelease
-	// ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:metadata Name:metadata Suffix: Path:"metadata" ValueExpression:m.Metadata IndexVar:i KeyVar: Title: Description:The virtual cluster metadata Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
 	if err != nil {
 		return nil, err
 	}
 	values["metadata"] = metadata
+
 	values["objects"] = obj.Objects
-	// ComGithubLoftShAPIV3PkgApisStorageV1VirtualClusterSpaceTemplateDefinition
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1VirtualClusterSpaceTemplateDefinition Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:spaceTemplate Name:spaceTemplate Suffix: Path:"spaceTemplate" ValueExpression:m.SpaceTemplate IndexVar:i KeyVar: Title: Description:SpaceTemplate holds the space template Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	spaceTemplate, err := ReadStorageV1VirtualClusterSpaceTemplateDefinition(&obj.SpaceTemplate)
 	if err != nil {
 		return nil, err
 	}
 	values["space_template"] = spaceTemplate
+
 	return values, nil
 }

@@ -6,7 +6,7 @@ default: testacc
 .PHONY: clean
 clean:
 	rm -Rf pkg/resources
-	rm -Rf pkg/schemas
+	rm -Rf pkg/schemas_gen
 
 .PHONY: generate
 generate: clean

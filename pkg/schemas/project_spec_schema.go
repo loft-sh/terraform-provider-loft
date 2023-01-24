@@ -111,22 +111,25 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
-			item := *CreateStorageV1Access(v.([]interface{}))
-			accessItems = append(accessItems, item)
+			if item := CreateStorageV1Access(v.([]interface{})); item != nil {
+				accessItems = append(accessItems, *item)
+			}
 		}
 		ret.Access = accessItems
 
 		var allowedClustersItems []storagev1.AllowedCluster
 		for _, v := range data["allowed_clusters"].([]interface{}) {
-			item := *CreateStorageV1AllowedCluster(v.([]interface{}))
-			allowedClustersItems = append(allowedClustersItems, item)
+			if item := CreateStorageV1AllowedCluster(v.([]interface{})); item != nil {
+				allowedClustersItems = append(allowedClustersItems, *item)
+			}
 		}
 		ret.AllowedClusters = allowedClustersItems
 
 		var allowedTemplatesItems []storagev1.AllowedTemplate
 		for _, v := range data["allowed_templates"].([]interface{}) {
-			item := *CreateStorageV1AllowedTemplate(v.([]interface{}))
-			allowedTemplatesItems = append(allowedTemplatesItems, item)
+			if item := CreateStorageV1AllowedTemplate(v.([]interface{})); item != nil {
+				allowedTemplatesItems = append(allowedTemplatesItems, *item)
+			}
 		}
 		ret.AllowedTemplates = allowedTemplatesItems
 
@@ -142,8 +145,9 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		var membersItems []storagev1.Member
 		for _, v := range data["members"].([]interface{}) {
-			item := *CreateStorageV1Member(v.([]interface{}))
-			membersItems = append(membersItems, item)
+			if item := CreateStorageV1Member(v.([]interface{})); item != nil {
+				membersItems = append(membersItems, *item)
+			}
 		}
 		ret.Members = membersItems
 
@@ -191,8 +195,6 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 		allowedTemplatesItems = append(allowedTemplatesItems, item)
 	}
 	values["allowed_templates"] = allowedTemplatesItems
-	// ComGithubLoftShAPIV3PkgApisStorageV1ArgoIntegrationSpec
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1ArgoIntegrationSpec Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:argoCD Name:argoCD Suffix: Path:"argoCD" ValueExpression:m.ArgoCD IndexVar:i KeyVar: Title: Description:ArgoIntegration holds information about ArgoCD Integration Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	argoCD, err := ReadStorageV1ArgoIntegrationSpec(obj.ArgoIntegration)
 	if err != nil {

@@ -59,19 +59,23 @@ func CreateStorageV1VirtualClusterSpaceTemplateDefinition(in []interface{}) *sto
 
 	var appsItems []agentstoragev1.AppReference
 	for _, v := range data["apps"].([]interface{}) {
-		item := *CreateStorageV1AppReference(v.([]interface{}))
-		appsItems = append(appsItems, item)
+		if item := CreateStorageV1AppReference(v.([]interface{})); item != nil {
+			appsItems = append(appsItems, *item)
+		}
 	}
 	ret.Apps = appsItems
 
 	var chartsItems []agentstoragev1.TemplateHelmChart
 	for _, v := range data["charts"].([]interface{}) {
-		item := *CreateStorageV1TemplateHelmChart(v.([]interface{}))
-		chartsItems = append(chartsItems, item)
+		if item := CreateStorageV1TemplateHelmChart(v.([]interface{})); item != nil {
+			chartsItems = append(chartsItems, *item)
+		}
 	}
 	ret.Charts = chartsItems
 
-	ret.TemplateMetadata = *CreateStorageV1TemplateMetadata(data["metadata"].([]interface{}))
+	if value := CreateStorageV1TemplateMetadata(data["metadata"].([]interface{})); value != nil {
+		ret.TemplateMetadata = *value
+	}
 
 	if v, ok := data["objects"].(string); ok && len(v) > 0 {
 		ret.Objects = v
@@ -82,6 +86,7 @@ func CreateStorageV1VirtualClusterSpaceTemplateDefinition(in []interface{}) *sto
 
 func ReadStorageV1VirtualClusterSpaceTemplateDefinition(obj *storagev1.VirtualClusterSpaceTemplateDefinition) (interface{}, error) {
 	values := map[string]interface{}{}
+
 	var appsItems []interface{}
 	for _, v := range obj.Apps {
 		item, err := ReadStorageV1AppReference(&v)
@@ -91,6 +96,7 @@ func ReadStorageV1VirtualClusterSpaceTemplateDefinition(obj *storagev1.VirtualCl
 		appsItems = append(appsItems, item)
 	}
 	values["apps"] = appsItems
+
 	var chartsItems []interface{}
 	for _, v := range obj.Charts {
 		item, err := ReadStorageV1TemplateHelmChart(&v)
@@ -100,14 +106,14 @@ func ReadStorageV1VirtualClusterSpaceTemplateDefinition(obj *storagev1.VirtualCl
 		chartsItems = append(chartsItems, item)
 	}
 	values["charts"] = chartsItems
-	// ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1TemplateMetadata Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:metadata Name:metadata Suffix: Path:"metadata" ValueExpression:m.Metadata IndexVar:i KeyVar: Title: Description:The space metadata Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
 	if err != nil {
 		return nil, err
 	}
 	values["metadata"] = metadata
+
 	values["objects"] = obj.Objects
+
 	return values, nil
 }

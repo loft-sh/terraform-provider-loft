@@ -59,7 +59,9 @@ func CreateStorageV1ArgoProjectSpec(in []interface{}) *storagev1.ArgoProjectSpec
 		ret.Enabled = v
 	}
 
-	ret.Metadata = *CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].([]interface{}))
+	if metadata := CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].([]interface{})); metadata != nil {
+		ret.Metadata = *metadata
+	}
 
 	var rolesItems []storagev1.ArgoProjectRole
 	for _, v := range data["roles"].([]interface{}) {
@@ -80,14 +82,13 @@ func CreateStorageV1ArgoProjectSpec(in []interface{}) *storagev1.ArgoProjectSpec
 func ReadStorageV1ArgoProjectSpec(obj *storagev1.ArgoProjectSpec) (interface{}, error) {
 	values := map[string]interface{}{}
 	values["enabled"] = obj.Enabled
-	// ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpecMetadata
-	// {resolvedType:{IsAnonymous:false IsArray:false IsMap:false IsInterface:false IsPrimitive:false IsCustomFormatter:false IsAliased:false IsNullable:true IsStream:false IsEmptyOmitted:true IsJSONString:false IsEnumCI:false IsBase64:false IsExternal:false IsTuple:false HasAdditionalItems:false IsComplexObject:true IsBaseType:false HasDiscriminator:false GoType:ComGithubLoftShAPIV3PkgApisStorageV1ArgoProjectSpecMetadata Pkg:models PkgAlias: AliasedType: SwaggerType:object SwaggerFormat: Extensions:map[] ElemType:<nil> IsMapNullOverride:false IsSuperAlias:false IsEmbedded:false SkipExternalValidation:false} sharedValidations:{SchemaValidations:{CommonValidations:{Maximum:<nil> ExclusiveMaximum:false Minimum:<nil> ExclusiveMinimum:false MaxLength:<nil> MinLength:<nil> Pattern: MaxItems:<nil> MinItems:<nil> UniqueItems:false MultipleOf:<nil> Enum:[]} PatternProperties:map[] MaxProperties:<nil> MinProperties:<nil>} HasValidations:true HasContextValidations:true Required:false HasSliceValidations:false ItemsEnum:[]} Example: OriginalName:metadata Name:metadata Suffix: Path:"metadata" ValueExpression:m.Metadata IndexVar:i KeyVar: Title: Description:Metadata defines additional metadata to attach to the loft created project in ArgoCD. Location:body ReceiverName:m Items:<nil> AllowsAdditionalItems:false HasAdditionalItems:false AdditionalItems:<nil> Object:<nil> XMLName: CustomTag: Properties:[] AllOf:[] HasAdditionalProperties:false IsAdditionalProperties:false AdditionalProperties:<nil> StrictAdditionalProperties:false ReadOnly:false IsVirtual:false IsBaseType:false HasBaseType:false IsSubType:false IsExported:true DiscriminatorField: DiscriminatorValue: Discriminates:map[] Parents:[] IncludeValidator:true IncludeModel:true Default:<nil> WantsMarshalBinary:true StructTags:[] ExtraImports:map[] ExternalDocs:<nil>}
 
 	metadata, err := ReadStorageV1ArgoProjectSpecMetadata(&obj.Metadata)
 	if err != nil {
 		return nil, err
 	}
 	values["metadata"] = metadata
+
 	var rolesItems []interface{}
 	for _, v := range obj.Roles {
 		item, err := ReadStorageV1ArgoProjectRole(&v)
@@ -97,10 +98,13 @@ func ReadStorageV1ArgoProjectSpec(obj *storagev1.ArgoProjectSpec) (interface{}, 
 		rolesItems = append(rolesItems, item)
 	}
 	values["roles"] = rolesItems
+
 	var sourceReposItems []interface{}
 	for _, v := range obj.SourceRepos {
 		sourceReposItems = append(sourceReposItems, v)
 	}
+
 	values["source_repos"] = sourceReposItems
+
 	return values, nil
 }
