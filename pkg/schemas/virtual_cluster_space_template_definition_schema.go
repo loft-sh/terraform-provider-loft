@@ -111,7 +111,7 @@ func ReadStorageV1VirtualClusterSpaceTemplateDefinition(obj *storagev1.VirtualCl
 	if err != nil {
 		return nil, err
 	}
-	values["metadata"] = metadata
+	values["metadata"] = []interface{}{metadata}
 
 	values["objects"] = obj.Objects
 

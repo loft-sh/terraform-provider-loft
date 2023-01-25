@@ -49,7 +49,7 @@ func ReadStorageV1VirtualClusterAccessPoint(obj *agentstoragev1.VirtualClusterAc
 	if err != nil {
 		return nil, err
 	}
-	values["ingress"] = ingress
+	values["ingress"] = []interface{}{ingress}
 
 	return values, nil
 }

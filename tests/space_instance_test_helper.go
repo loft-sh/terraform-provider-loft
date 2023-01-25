@@ -21,7 +21,6 @@ func testAccSpaceInstanceCheckDestroy(kubeClient kube.Interface) func(s *terrafo
 
 		for _, spacePath := range spaces {
 			tokens := strings.Split(spacePath, "/")
-			fmt.Println("SPACE PATH: " + spacePath)
 			spaceNamespace := tokens[0]
 			spaceName := tokens[1]
 

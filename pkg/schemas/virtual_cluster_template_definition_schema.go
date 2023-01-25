@@ -33,6 +33,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "AccessPoint defines settings to expose the virtual cluster directly via an ingress rather than through the (default) Loft proxy",
 			Optional:    true,
+			Computed:    true,
 		},
 		"apps": {
 			Type: schema.TypeList,
@@ -59,6 +60,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "HelmRelease is the helm release configuration for the virtual cluster.",
 			Optional:    true,
+			Computed:    true,
 		},
 		"metadata": {
 			Type:     schema.TypeList,
@@ -84,6 +86,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "SpaceTemplate holds the space template",
 			Optional:    true,
+			Computed:    true,
 		},
 	}
 }
@@ -150,7 +153,7 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["access_point"] = accessPoint
+	values["access_point"] = []interface{}{accessPoint}
 
 	var appsItems []interface{}
 	for _, v := range obj.Apps {
@@ -176,13 +179,13 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["helm_release"] = helmRelease
+	values["helm_release"] = []interface{}{helmRelease}
 
 	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
 	if err != nil {
 		return nil, err
 	}
-	values["metadata"] = metadata
+	values["metadata"] = []interface{}{metadata}
 
 	values["objects"] = obj.Objects
 
@@ -190,7 +193,7 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["space_template"] = spaceTemplate
+	values["space_template"] = []interface{}{spaceTemplate}
 
 	return values, nil
 }

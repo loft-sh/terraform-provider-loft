@@ -7,10 +7,9 @@ package resources
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
@@ -60,29 +59,18 @@ func virtualClusterInstanceRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	namespace := d.Get("metadata.0.namespace").(string)
-	if namespace == "" {
-		return diag.Errorf("`namespace` is required for all namespaced resources")
-	}
-
-	name := d.Get("metadata.0.name").(string)
-	if name == "" {
-		return diag.Errorf("`name` is required for all resources")
-	}
-
+	namespace, name := utils.ParseID(d.Id())
 	instance, err := managementClient.Loft().ManagementV1().VirtualClusterInstances(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	fmt.Printf("%+v\n", instance)
 
 	metadata, err := utils.ReadMetadata(instance.ObjectMeta)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("metadata", metadata); err != nil {
+	if err := d.Set("metadata", []interface{}{metadata}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -91,7 +79,7 @@ func virtualClusterInstanceRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("spec", spec); err != nil {
+	if err := d.Set("spec", []interface{}{spec}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -99,8 +87,30 @@ func virtualClusterInstanceRead(ctx context.Context, d *schema.ResourceData, met
 }
 
 func virtualClusterInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("FOO")
-	return nil
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+	spec := schemas.CreateManagementV1VirtualClusterInstanceSpec(d.Get("spec").([]interface{}))
+
+	instance, err := managementClient.Loft().ManagementV1().VirtualClusterInstances(metadata.Namespace).Create(ctx, &managementv1.VirtualClusterInstance{
+		ObjectMeta: metadata,
+		Spec:       *spec,
+	}, metav1.CreateOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(utils.ReadId(instance.ObjectMeta))
+
+	return virtualClusterInstanceRead(ctx, d, meta)
 }
 
 func virtualClusterInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

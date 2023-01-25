@@ -22,6 +22,7 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access to the virtual cluster object itself",
 			Optional:    true,
+			Computed:    true,
 		},
 		"cluster_ref": {
 			Type:     schema.TypeList,
@@ -32,6 +33,7 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "ClusterRef is the reference to the connected cluster holding this virtual cluster",
 			Optional:    true,
+			Computed:    true,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -158,7 +160,7 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["cluster_ref"] = clusterRef
+	values["cluster_ref"] = []interface{}{clusterRef}
 
 	values["description"] = obj.Description
 
@@ -178,7 +180,7 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["owner"] = owner
+	values["owner"] = []interface{}{owner}
 
 	values["parameters"] = obj.Parameters
 
@@ -186,7 +188,7 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["template"] = template
+	values["template"] = []interface{}{template}
 
 	templateRef, err := ReadStorageV1TemplateRef(obj.TemplateRef)
 	if err != nil {

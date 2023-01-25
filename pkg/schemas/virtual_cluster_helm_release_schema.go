@@ -58,7 +58,7 @@ func ReadStorageV1VirtualClusterHelmRelease(obj *agentstoragev1.VirtualClusterHe
 	if err != nil {
 		return nil, err
 	}
-	values["chart"] = chart
+	values["chart"] = []interface{}{chart}
 
 	values["values"] = obj.Values
 
