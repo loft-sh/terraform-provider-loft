@@ -35,13 +35,15 @@ func CreateStorageV1InstanceAccess(data map[string]interface{}) *agentstoragev1.
 	}
 
 	ret := &agentstoragev1.InstanceAccess{}
-
 	if v, ok := data["default_cluster_role"].(string); ok && len(v) > 0 {
 		ret.DefaultClusterRole = v
 	}
 
 	var rulesItems []agentstoragev1.InstanceAccessRule
 	for _, v := range data["rules"].([]interface{}) {
+		if v == nil {
+			continue
+		}
 		if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 			rulesItems = append(rulesItems, *item)
 		}
@@ -58,6 +60,7 @@ func ReadStorageV1InstanceAccess(obj *agentstoragev1.InstanceAccess) (interface{
 
 	values := map[string]interface{}{}
 	values["default_cluster_role"] = obj.DefaultClusterRole
+
 	var rulesItems []interface{}
 	for _, v := range obj.Rules {
 		item, err := ReadStorageV1InstanceAccessRule(&v)
@@ -67,5 +70,6 @@ func ReadStorageV1InstanceAccess(obj *agentstoragev1.InstanceAccess) (interface{
 		rulesItems = append(rulesItems, item)
 	}
 	values["rules"] = rulesItems
+
 	return values, nil
 }

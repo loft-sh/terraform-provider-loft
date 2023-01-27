@@ -32,7 +32,6 @@ func CreateStorageV1NamespacePattern(data map[string]interface{}) *storagev1.Nam
 	}
 
 	ret := &storagev1.NamespacePattern{}
-
 	if v, ok := data["space"].(string); ok && len(v) > 0 {
 		ret.Space = v
 	}
@@ -51,6 +50,8 @@ func ReadStorageV1NamespacePattern(obj *storagev1.NamespacePattern) (interface{}
 
 	values := map[string]interface{}{}
 	values["space"] = obj.Space
+
 	values["virtual_cluster"] = obj.VirtualCluster
+
 	return values, nil
 }

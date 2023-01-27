@@ -37,7 +37,6 @@ func CreateStorageV1VirtualClusterHelmChart(data map[string]interface{}) *agents
 	}
 
 	ret := &agentstoragev1.VirtualClusterHelmChart{}
-
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -60,7 +59,10 @@ func ReadStorageV1VirtualClusterHelmChart(obj *agentstoragev1.VirtualClusterHelm
 
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
+
 	values["repo"] = obj.Repo
+
 	values["version"] = obj.Version
+
 	return values, nil
 }

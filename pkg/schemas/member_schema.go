@@ -42,7 +42,6 @@ func CreateStorageV1Member(data map[string]interface{}) *storagev1.Member {
 	}
 
 	ret := &storagev1.Member{}
-
 	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
 		ret.ClusterRole = v
 	}
@@ -69,8 +68,12 @@ func ReadStorageV1Member(obj *storagev1.Member) (interface{}, error) {
 
 	values := map[string]interface{}{}
 	values["cluster_role"] = obj.ClusterRole
+
 	values["group"] = obj.Group
+
 	values["kind"] = obj.Kind
+
 	values["name"] = obj.Name
+
 	return values, nil
 }

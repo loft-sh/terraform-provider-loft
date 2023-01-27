@@ -77,7 +77,6 @@ func CreateStorageV1TemplateHelmChart(data map[string]interface{}) *agentstorage
 	}
 
 	ret := &agentstoragev1.TemplateHelmChart{}
-
 	if v, ok := data["insecure_skip_tls_verify"].(bool); ok {
 		ret.InsecureSkipTlsVerify = v
 	}
@@ -132,15 +131,26 @@ func ReadStorageV1TemplateHelmChart(obj *agentstoragev1.TemplateHelmChart) (inte
 
 	values := map[string]interface{}{}
 	values["insecure_skip_tls_verify"] = obj.InsecureSkipTlsVerify
+
 	values["name"] = obj.Name
+
 	values["password"] = obj.Password
+
 	values["release_name"] = obj.ReleaseName
+
 	values["release_namespace"] = obj.ReleaseNamespace
+
 	values["repo_url"] = obj.RepoURL
+
 	values["timeout"] = obj.Timeout
+
 	values["username"] = obj.Username
+
 	values["values"] = obj.Values
+
 	values["version"] = obj.Version
+
 	values["wait"] = obj.Wait
+
 	return values, nil
 }

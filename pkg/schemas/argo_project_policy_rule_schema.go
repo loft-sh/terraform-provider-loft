@@ -37,7 +37,6 @@ func CreateStorageV1ArgoProjectPolicyRule(data map[string]interface{}) *storagev
 	}
 
 	ret := &storagev1.ArgoProjectPolicyRule{}
-
 	if v, ok := data["action"].(string); ok && len(v) > 0 {
 		ret.Action = v
 	}
@@ -60,7 +59,10 @@ func ReadStorageV1ArgoProjectPolicyRule(obj *storagev1.ArgoProjectPolicyRule) (i
 
 	values := map[string]interface{}{}
 	values["action"] = obj.Action
+
 	values["application"] = obj.Application
+
 	values["allow"] = obj.Allow
+
 	return values, nil
 }

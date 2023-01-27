@@ -41,11 +41,11 @@ func spaceInstanceAttributes() map[string]*schema.Schema {
 		},
 		"metadata": utils.MetadataSchema("SpaceInstance", true, false),
 		"spec": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: schemas.ManagementV1SpaceInstanceSpecSchema(),
 			},
+			Required: true,
 		},
 	}
 }

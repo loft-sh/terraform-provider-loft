@@ -47,7 +47,6 @@ func CreateStorageV1AppReference(data map[string]interface{}) *agentstoragev1.Ap
 	}
 
 	ret := &agentstoragev1.AppReference{}
-
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -78,9 +77,14 @@ func ReadStorageV1AppReference(obj *agentstoragev1.AppReference) (interface{}, e
 
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
+
 	values["namespace"] = obj.Namespace
+
 	values["parameters"] = obj.Parameters
+
 	values["release_name"] = obj.ReleaseName
+
 	values["version"] = obj.Version
+
 	return values, nil
 }

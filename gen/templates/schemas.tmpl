@@ -156,8 +156,8 @@ func Create{{ pascalize $modelName }}(data map[string]interface{}) *{{ $pkgName 
 	{{- else if .IsArray }}
 		{{- if .Items.IsPrimitive }}
 	var {{varname .Name }}Items []{{ .Items.GoType }}
-	for _, v := range data["{{ snakize .Name }}"].([]{{.Items.GoType}}) {
-		{{varname .Name }}Items = append({{varname .Name }}Items, v)
+	for _, v := range data["{{ snakize .Name }}"].([]interface{}) {
+		{{varname .Name }}Items = append({{varname .Name }}Items, v.({{.Items.GoType}}))
 	}
 	ret.{{ .Name | title }} = {{varname .Name }}Items
 		{{- else }}
@@ -171,12 +171,15 @@ func Create{{ pascalize $modelName }}(data map[string]interface{}) *{{ $pkgName 
 			{{- end }}
 	var {{varname .Name }}Items []{{ $itemType }}
 	for _, v := range data["{{ snakize .Name }}"].([]interface{}) {
+		if v == nil {
+			continue
+		}
 			{{- if hasPrefix .Items.GoType "ComGithubLoftShAPIV3PkgApis" }}
-		if item := Create{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .Items.GoType }}(v.([]interface{})); item != nil {
+		if item := Create{{ trimPrefix "ComGithubLoftShAPIV3PkgApis" .Items.GoType }}(v.(map[string]interface{})); item != nil {
 			{{- else if hasPrefix .Items.GoType "ComGithubLoftShAgentapiV3PkgApisLoft" }}
-		if item := Create{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .Items.GoType }}(v.([]interface{})); item != nil {
+		if item := Create{{ trimPrefix "ComGithubLoftShAgentapiV3PkgApisLoft" .Items.GoType }}(v.(map[string]interface{})); item != nil {
 			{{- else }}
-		if item := Create{{ trimPrefix "IoK8sApimachineryPkgApis" .Items.GoType }}(v.([]interface{}))); item != nil {
+		if item := Create{{ trimPrefix "IoK8sApimachineryPkgApis" .Items.GoType }}(v.(map[string]interface{}))); item != nil {
 			{{- end}}
 			{{varname .Name }}Items = append({{varname .Name }}Items, *item)
 		}
@@ -194,8 +197,8 @@ func Create{{ pascalize $modelName }}(data map[string]interface{}) *{{ $pkgName 
 		{{- else }}
 			{{ $createFunc = trimPrefix "IoK8sApimachineryPkgApis" .GoType }}
 		{{- end}}
-	if value := {{$createFunc}}(data["{{ snakize .Name }}"].([]interface{})); value != nil {
-		ret.{{ .Name | title }} = *value
+	if v, ok := data["{{ snakize .Name }}"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.{{ .Name | title }} = *Create{{$createFunc}}(v[0].(map[string]interface{}))
 	}
 	{{- end }}
 {{ end }}
@@ -258,6 +261,6 @@ func Read{{ pascalize $modelName }}(obj *{{ $pkgName }}) (interface{}, error) {
 	}
 	values["{{ snakize .Name }}"] = {{varname .Name }}
 		{{- end }}
-	{{- end }}
+	{{ end }}
 	return values, nil
 }

@@ -37,7 +37,6 @@ func CreateStorageV1VirtualClusterClusterRef(data map[string]interface{}) *stora
 	}
 
 	ret := &storagev1.VirtualClusterClusterRef{}
-
 	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
 		ret.Cluster = v
 	}
@@ -60,7 +59,10 @@ func ReadStorageV1VirtualClusterClusterRef(obj *storagev1.VirtualClusterClusterR
 
 	values := map[string]interface{}{}
 	values["cluster"] = obj.Cluster
+
 	values["namespace"] = obj.Namespace
+
 	values["virtual_cluster"] = obj.VirtualCluster
+
 	return values, nil
 }

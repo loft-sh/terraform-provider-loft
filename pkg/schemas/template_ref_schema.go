@@ -37,7 +37,6 @@ func CreateStorageV1TemplateRef(data map[string]interface{}) *storagev1.Template
 	}
 
 	ret := &storagev1.TemplateRef{}
-
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -60,7 +59,10 @@ func ReadStorageV1TemplateRef(obj *storagev1.TemplateRef) (interface{}, error) {
 
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
+
 	values["sync_once"] = obj.SyncOnce
+
 	values["version"] = obj.Version
+
 	return values, nil
 }

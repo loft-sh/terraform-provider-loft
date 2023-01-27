@@ -63,5 +63,5 @@ build-local:
 
 # Run acceptance tests
 .PHONY: testacc
-testacc:
+testacc: build-local
 	TF_ACC=1 TF_ACC_PROVIDER_NAMESPACE='loft-sh' go test ./tests/... -v $(TESTARGS) -timeout 120m

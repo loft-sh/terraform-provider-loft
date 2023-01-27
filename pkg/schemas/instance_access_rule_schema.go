@@ -43,20 +43,19 @@ func CreateStorageV1InstanceAccessRule(data map[string]interface{}) *agentstorag
 	}
 
 	ret := &agentstoragev1.InstanceAccessRule{}
-
 	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
 		ret.ClusterRole = v
 	}
 
 	var teamsItems []string
-	for _, v := range data["teams"].([]string) {
-		teamsItems = append(teamsItems, v)
+	for _, v := range data["teams"].([]interface{}) {
+		teamsItems = append(teamsItems, v.(string))
 	}
 	ret.Teams = teamsItems
 
 	var usersItems []string
-	for _, v := range data["users"].([]string) {
-		usersItems = append(usersItems, v)
+	for _, v := range data["users"].([]interface{}) {
+		usersItems = append(usersItems, v.(string))
 	}
 	ret.Users = usersItems
 
@@ -70,15 +69,18 @@ func ReadStorageV1InstanceAccessRule(obj *agentstoragev1.InstanceAccessRule) (in
 
 	values := map[string]interface{}{}
 	values["cluster_role"] = obj.ClusterRole
+
 	var teamsItems []interface{}
 	for _, v := range obj.Teams {
 		teamsItems = append(teamsItems, v)
 	}
 	values["teams"] = teamsItems
+
 	var usersItems []interface{}
 	for _, v := range obj.Users {
 		usersItems = append(usersItems, v)
 	}
 	values["users"] = usersItems
+
 	return values, nil
 }

@@ -43,7 +43,6 @@ func CreateStorageV1ArgoProjectSpecMetadata(data map[string]interface{}) *storag
 	}
 
 	ret := &storagev1.ArgoProjectSpecMetadata{}
-
 	if v, ok := data["description"].(string); ok && len(v) > 0 {
 		ret.Description = v
 	}
@@ -62,7 +61,10 @@ func ReadStorageV1ArgoProjectSpecMetadata(obj *storagev1.ArgoProjectSpecMetadata
 
 	values := map[string]interface{}{}
 	values["description"] = obj.Description
+
 	values["extra_annotations"] = obj.ExtraAnnotations
+
 	values["extra_labels"] = obj.ExtraLabels
+
 	return values, nil
 }

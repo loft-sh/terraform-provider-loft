@@ -22,7 +22,6 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access holds the access rights for users and teams",
 			Optional:    true,
-			Computed:    true,
 		},
 		"cluster_ref": {
 			Type:     schema.TypeList,
@@ -33,7 +32,6 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "ClusterRef is the reference to the connected cluster holding this space",
 			Optional:    true,
-			Computed:    true,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -98,14 +96,17 @@ func CreateManagementV1SpaceInstanceSpec(data map[string]interface{}) *managemen
 
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
+			if v == nil {
+				continue
+			}
 			if item := CreateStorageV1Access(v.(map[string]interface{})); item != nil {
 				accessItems = append(accessItems, *item)
 			}
 		}
 		ret.Access = accessItems
 
-		if v, ok := data["cluster_ref"]; ok && len(v.([]interface{})) > 0 {
-			ret.ClusterRef = *CreateStorageV1ClusterRef(v.(map[string]interface{}))
+		if v, ok := data["cluster_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.ClusterRef = *CreateStorageV1ClusterRef(v[0].(map[string]interface{}))
 		}
 
 		if v, ok := data["description"].(string); ok && len(v) > 0 {
@@ -118,21 +119,30 @@ func CreateManagementV1SpaceInstanceSpec(data map[string]interface{}) *managemen
 
 		var extraAccessRulesItems []agentstoragev1.InstanceAccessRule
 		for _, v := range data["extra_access_rules"].([]interface{}) {
+			if v == nil {
+				continue
+			}
 			if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 				extraAccessRulesItems = append(extraAccessRulesItems, *item)
 			}
 		}
 		ret.ExtraAccessRules = extraAccessRulesItems
 
-		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].(map[string]interface{}))
+		if v, ok := data["owner"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Owner = CreateStorageV1UserOrTeam(v[0].(map[string]interface{}))
+		}
 
 		if v, ok := data["parameters"].(string); ok && len(v) > 0 {
 			ret.Parameters = v
 		}
 
-		ret.Template = CreateStorageV1SpaceTemplateDefinition(data["template"].(map[string]interface{}))
+		if v, ok := data["template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Template = CreateStorageV1SpaceTemplateDefinition(v[0].(map[string]interface{}))
+		}
 
-		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].(map[string]interface{}))
+		if v, ok := data["template_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.TemplateRef = CreateStorageV1TemplateRef(v[0].(map[string]interface{}))
+		}
 
 	}
 
@@ -147,7 +157,6 @@ func ReadManagementV1SpaceInstanceSpec(obj *managementv1.SpaceInstanceSpec) (int
 	}
 
 	values := map[string]interface{}{}
-
 	var accessItems []interface{}
 	for _, v := range obj.Access {
 		item, err := ReadStorageV1Access(&v)
@@ -162,7 +171,9 @@ func ReadManagementV1SpaceInstanceSpec(obj *managementv1.SpaceInstanceSpec) (int
 	if err != nil {
 		return nil, err
 	}
-	values["cluster_ref"] = []interface{}{clusterRef}
+	if clusterRef != nil {
+		values["cluster_ref"] = []interface{}{clusterRef}
+	}
 
 	values["description"] = obj.Description
 
@@ -182,20 +193,27 @@ func ReadManagementV1SpaceInstanceSpec(obj *managementv1.SpaceInstanceSpec) (int
 	if err != nil {
 		return nil, err
 	}
-	values["owner"] = []interface{}{owner}
+	if owner != nil {
+		values["owner"] = []interface{}{owner}
+	}
+
 	values["parameters"] = obj.Parameters
 
 	template, err := ReadStorageV1SpaceTemplateDefinition(obj.Template)
 	if err != nil {
 		return nil, err
 	}
-	values["template"] = []interface{}{template}
+	if template != nil {
+		values["template"] = []interface{}{template}
+	}
 
 	templateRef, err := ReadStorageV1TemplateRef(obj.TemplateRef)
 	if err != nil {
 		return nil, err
 	}
-	values["template_ref"] = templateRef
+	if templateRef != nil {
+		values["template_ref"] = []interface{}{templateRef}
+	}
 
 	return values, nil
 }

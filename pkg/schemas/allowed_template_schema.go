@@ -42,7 +42,6 @@ func CreateStorageV1AllowedTemplate(data map[string]interface{}) *storagev1.Allo
 	}
 
 	ret := &storagev1.AllowedTemplate{}
-
 	if v, ok := data["group"].(string); ok && len(v) > 0 {
 		ret.Group = v
 	}
@@ -69,8 +68,12 @@ func ReadStorageV1AllowedTemplate(obj *storagev1.AllowedTemplate) (interface{}, 
 
 	values := map[string]interface{}{}
 	values["group"] = obj.Group
+
 	values["is_default"] = obj.IsDefault
+
 	values["kind"] = obj.Kind
+
 	values["name"] = obj.Name
+
 	return values, nil
 }

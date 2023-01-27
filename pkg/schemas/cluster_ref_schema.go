@@ -32,7 +32,6 @@ func CreateStorageV1ClusterRef(data map[string]interface{}) *storagev1.ClusterRe
 	}
 
 	ret := &storagev1.ClusterRef{}
-
 	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
 		ret.Cluster = v
 	}
@@ -51,6 +50,8 @@ func ReadStorageV1ClusterRef(obj *storagev1.ClusterRef) (interface{}, error) {
 
 	values := map[string]interface{}{}
 	values["cluster"] = obj.Cluster
+
 	values["namespace"] = obj.Namespace
+
 	return values, nil
 }

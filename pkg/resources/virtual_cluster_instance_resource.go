@@ -41,11 +41,11 @@ func virtualClusterInstanceAttributes() map[string]*schema.Schema {
 		},
 		"metadata": utils.MetadataSchema("VirtualClusterInstance", true, false),
 		"spec": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: schemas.ManagementV1VirtualClusterInstanceSpecSchema(),
 			},
+			Required: true,
 		},
 	}
 }

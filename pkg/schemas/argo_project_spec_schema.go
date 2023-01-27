@@ -53,25 +53,28 @@ func CreateStorageV1ArgoProjectSpec(data map[string]interface{}) *storagev1.Argo
 	}
 
 	ret := &storagev1.ArgoProjectSpec{}
-
 	if v, ok := data["enabled"].(bool); ok {
 		ret.Enabled = v
 	}
 
-	if metadata := CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].(map[string]interface{})); metadata != nil {
-		ret.Metadata = *metadata
+	if v, ok := data["metadata"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.Metadata = *CreateStorageV1ArgoProjectSpecMetadata(v[0].(map[string]interface{}))
 	}
 
 	var rolesItems []storagev1.ArgoProjectRole
 	for _, v := range data["roles"].([]interface{}) {
-		item := *CreateStorageV1ArgoProjectRole(v.(map[string]interface{}))
-		rolesItems = append(rolesItems, item)
+		if v == nil {
+			continue
+		}
+		if item := CreateStorageV1ArgoProjectRole(v.(map[string]interface{})); item != nil {
+			rolesItems = append(rolesItems, *item)
+		}
 	}
 	ret.Roles = rolesItems
 
 	var sourceReposItems []string
-	for _, v := range data["source_repos"].([]string) {
-		sourceReposItems = append(sourceReposItems, v)
+	for _, v := range data["source_repos"].([]interface{}) {
+		sourceReposItems = append(sourceReposItems, v.(string))
 	}
 	ret.SourceRepos = sourceReposItems
 
@@ -106,7 +109,6 @@ func ReadStorageV1ArgoProjectSpec(obj *storagev1.ArgoProjectSpec) (interface{}, 
 	for _, v := range obj.SourceRepos {
 		sourceReposItems = append(sourceReposItems, v)
 	}
-
 	values["source_repos"] = sourceReposItems
 
 	return values, nil

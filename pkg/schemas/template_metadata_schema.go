@@ -38,7 +38,6 @@ func CreateStorageV1TemplateMetadata(data map[string]interface{}) *storagev1.Tem
 	}
 
 	ret := &storagev1.TemplateMetadata{}
-
 	ret.Annotations = utils.AttributesToMap(data["annotations"].(map[string]interface{}))
 
 	ret.Labels = utils.AttributesToMap(data["labels"].(map[string]interface{}))
@@ -53,6 +52,8 @@ func ReadStorageV1TemplateMetadata(obj *storagev1.TemplateMetadata) (interface{}
 
 	values := map[string]interface{}{}
 	values["annotations"] = obj.Annotations
+
 	values["labels"] = obj.Labels
+
 	return values, nil
 }

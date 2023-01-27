@@ -32,7 +32,6 @@ func CreateStorageV1UserOrTeam(data map[string]interface{}) *storagev1.UserOrTea
 	}
 
 	ret := &storagev1.UserOrTeam{}
-
 	if v, ok := data["team"].(string); ok && len(v) > 0 {
 		ret.Team = v
 	}
@@ -51,6 +50,8 @@ func ReadStorageV1UserOrTeam(obj *storagev1.UserOrTeam) (interface{}, error) {
 
 	values := map[string]interface{}{}
 	values["team"] = obj.Team
+
 	values["user"] = obj.User
+
 	return values, nil
 }

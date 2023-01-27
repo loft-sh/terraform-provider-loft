@@ -40,7 +40,6 @@ func CreateStorageV1ArgoSSOSpec(data map[string]interface{}) *storagev1.ArgoSSOS
 	}
 
 	ret := &storagev1.ArgoSSOSpec{}
-
 	var assignedRolesItems []string
 	for _, v := range data["assigned_roles"].([]interface{}) {
 		assignedRolesItems = append(assignedRolesItems, v.(string))
@@ -69,7 +68,10 @@ func ReadStorageV1ArgoSSOSpec(obj *storagev1.ArgoSSOSpec) (interface{}, error) {
 		assignedRolesItems = append(assignedRolesItems, v)
 	}
 	values["assigned_roles"] = assignedRolesItems
+
 	values["enabled"] = obj.Enabled
+
 	values["host"] = obj.Host
+
 	return values, nil
 }

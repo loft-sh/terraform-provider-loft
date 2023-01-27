@@ -40,11 +40,11 @@ func projectAttributes() map[string]*schema.Schema {
 		},
 		"metadata": utils.MetadataSchema("Project", true, true),
 		"spec": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type: schema.TypeList,
 			Elem: &schema.Resource{
 				Schema: schemas.ManagementV1ProjectSpecSchema(),
 			},
+			Required: true,
 		},
 	}
 }

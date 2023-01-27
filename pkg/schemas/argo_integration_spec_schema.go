@@ -62,7 +62,6 @@ func CreateStorageV1ArgoIntegrationSpec(data map[string]interface{}) *storagev1.
 	}
 
 	ret := &storagev1.ArgoIntegrationSpec{}
-
 	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
 		ret.Cluster = v
 	}
@@ -97,7 +96,9 @@ func ReadStorageV1ArgoIntegrationSpec(obj *storagev1.ArgoIntegrationSpec) (inter
 
 	values := map[string]interface{}{}
 	values["cluster"] = obj.Cluster
+
 	values["enabled"] = obj.Enabled
+
 	values["namespace"] = obj.Namespace
 
 	project, err := ReadStorageV1ArgoProjectSpec(obj.Project)
@@ -110,7 +111,9 @@ func ReadStorageV1ArgoIntegrationSpec(obj *storagev1.ArgoIntegrationSpec) (inter
 	if err != nil {
 		return nil, err
 	}
-	values["sso"] = []interface{}{sso}
+	if sso != nil {
+		values["sso"] = []interface{}{sso}
+	}
 
 	values["virtual_cluster_instance"] = obj.VirtualClusterInstance
 

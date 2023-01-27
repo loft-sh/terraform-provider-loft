@@ -27,7 +27,6 @@ func CreateStorageV1AllowedCluster(data map[string]interface{}) *storagev1.Allow
 	}
 
 	ret := &storagev1.AllowedCluster{}
-
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -42,5 +41,6 @@ func ReadStorageV1AllowedCluster(obj *storagev1.AllowedCluster) (interface{}, er
 
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
+
 	return values, nil
 }

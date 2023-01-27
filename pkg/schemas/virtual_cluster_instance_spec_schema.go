@@ -22,7 +22,6 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access to the virtual cluster object itself",
 			Optional:    true,
-			Computed:    true,
 		},
 		"cluster_ref": {
 			Type:     schema.TypeList,
@@ -33,7 +32,6 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "ClusterRef is the reference to the connected cluster holding this virtual cluster",
 			Optional:    true,
-			Computed:    true,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -98,14 +96,17 @@ func CreateManagementV1VirtualClusterInstanceSpec(data map[string]interface{}) *
 
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
+			if v == nil {
+				continue
+			}
 			if item := CreateStorageV1Access(v.(map[string]interface{})); item != nil {
 				accessItems = append(accessItems, *item)
 			}
 		}
 		ret.Access = accessItems
 
-		if value := CreateStorageV1VirtualClusterClusterRef(data["cluster_ref"].(map[string]interface{})); value != nil {
-			ret.ClusterRef = *value
+		if v, ok := data["cluster_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.ClusterRef = *CreateStorageV1VirtualClusterClusterRef(v[0].(map[string]interface{}))
 		}
 
 		if v, ok := data["description"].(string); ok && len(v) > 0 {
@@ -118,21 +119,30 @@ func CreateManagementV1VirtualClusterInstanceSpec(data map[string]interface{}) *
 
 		var extraAccessRulesItems []agentstoragev1.InstanceAccessRule
 		for _, v := range data["extra_access_rules"].([]interface{}) {
+			if v == nil {
+				continue
+			}
 			if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 				extraAccessRulesItems = append(extraAccessRulesItems, *item)
 			}
 		}
 		ret.ExtraAccessRules = extraAccessRulesItems
 
-		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].(map[string]interface{}))
+		if v, ok := data["owner"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Owner = CreateStorageV1UserOrTeam(v[0].(map[string]interface{}))
+		}
 
 		if v, ok := data["parameters"].(string); ok && len(v) > 0 {
 			ret.Parameters = v
 		}
 
-		ret.Template = CreateStorageV1VirtualClusterTemplateDefinition(data["template"].(map[string]interface{}))
+		if v, ok := data["template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Template = CreateStorageV1VirtualClusterTemplateDefinition(v[0].(map[string]interface{}))
+		}
 
-		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].(map[string]interface{}))
+		if v, ok := data["template_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.TemplateRef = CreateStorageV1TemplateRef(v[0].(map[string]interface{}))
+		}
 
 	}
 
@@ -147,7 +157,6 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	}
 
 	values := map[string]interface{}{}
-
 	var accessItems []interface{}
 	for _, v := range obj.Access {
 		item, err := ReadStorageV1Access(&v)
@@ -162,7 +171,9 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["cluster_ref"] = []interface{}{clusterRef}
+	if clusterRef != nil {
+		values["cluster_ref"] = []interface{}{clusterRef}
+	}
 
 	values["description"] = obj.Description
 
@@ -182,7 +193,9 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["owner"] = []interface{}{owner}
+	if owner != nil {
+		values["owner"] = []interface{}{owner}
+	}
 
 	values["parameters"] = obj.Parameters
 
@@ -190,13 +203,17 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["template"] = []interface{}{template}
+	if template != nil {
+		values["template"] = []interface{}{template}
+	}
 
 	templateRef, err := ReadStorageV1TemplateRef(obj.TemplateRef)
 	if err != nil {
 		return nil, err
 	}
-	values["template_ref"] = templateRef
+	if templateRef != nil {
+		values["template_ref"] = templateRef
+	}
 
 	return values, nil
 }

@@ -59,7 +59,6 @@ func CreateStorageV1Access(data map[string]interface{}) *storagev1.Access {
 	}
 
 	ret := &storagev1.Access{}
-
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -97,7 +96,6 @@ func ReadStorageV1Access(obj *storagev1.Access) (interface{}, error) {
 	}
 
 	values := map[string]interface{}{}
-
 	values["name"] = obj.Name
 
 	var subresourcesItems []interface{}

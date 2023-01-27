@@ -27,7 +27,6 @@ func CreateStorageV1VirtualClusterAccessPointIngressSpec(data map[string]interfa
 	}
 
 	ret := &agentstoragev1.VirtualClusterAccessPointIngressSpec{}
-
 	if v, ok := data["enabled"].(bool); ok {
 		ret.Enabled = v
 	}
@@ -36,7 +35,12 @@ func CreateStorageV1VirtualClusterAccessPointIngressSpec(data map[string]interfa
 }
 
 func ReadStorageV1VirtualClusterAccessPointIngressSpec(obj *agentstoragev1.VirtualClusterAccessPointIngressSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["enabled"] = obj.Enabled
+
 	return values, nil
 }

@@ -64,7 +64,7 @@ func TestAccResourceProject_allProperties(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceProjectCreateWithUser(configPath, projectName, user, 10),
+				Config: testAccResourceProjectCreateAllProperties(configPath, projectName, user, 10),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_project.test_user", "metadata.0.name", projectName),
 					resource.TestCheckResourceAttr("loft_project.test_user", "spec.0.owner.0.user", user),
@@ -82,7 +82,7 @@ func TestAccResourceProject_allProperties(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccResourceProjectCreateWithUser(configPath, projectName, user2, 20),
+				Config: testAccResourceProjectCreateAllProperties(configPath, projectName, user2, 20),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_project.test_user", "metadata.0.name", projectName),
 					resource.TestCheckResourceAttr("loft_project.test_user", "spec.0.owner.0.user", user2),
@@ -114,14 +114,14 @@ func testAccResourceProjectNoName(configPath string) string {
 	}
 
 	resource "loft_project" "test" {
-		metadata {
-		}
+		metadata {}
+		spec {}
 	}
 `,
 		configPath)
 }
 
-func testAccResourceProjectCreateWithUser(configPath, project, user string, quotaCount int) string {
+func testAccResourceProjectCreateAllProperties(configPath, project, user string, quotaCount int) string {
 	return fmt.Sprintf(`
 	terraform {
 		required_providers {
