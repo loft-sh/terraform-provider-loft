@@ -29,21 +29,20 @@ func StorageV1InstanceAccessSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1InstanceAccess(in []interface{}) *agentstoragev1.InstanceAccess {
-	if !utils.HasValue(in) {
+func CreateStorageV1InstanceAccess(data map[string]interface{}) *agentstoragev1.InstanceAccess {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.InstanceAccess{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["default_cluster_role"].(string); ok && len(v) > 0 {
 		ret.DefaultClusterRole = v
 	}
 
 	var rulesItems []agentstoragev1.InstanceAccessRule
 	for _, v := range data["rules"].([]interface{}) {
-		if item := CreateStorageV1InstanceAccessRule(v.([]interface{})); item != nil {
+		if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 			rulesItems = append(rulesItems, *item)
 		}
 	}

@@ -102,16 +102,13 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
+func CreateManagementV1ProjectSpec(data map[string]interface{}) *managementv1.ProjectSpec {
 	ret := storagev1.ProjectSpec{}
 
-	if utils.HasValue(in) {
-
-		data := in[0].(map[string]interface{})
-
+	if utils.HasKeys(data) {
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
-			if item := CreateStorageV1Access(v.([]interface{})); item != nil {
+			if item := CreateStorageV1Access(v.(map[string]interface{})); item != nil {
 				accessItems = append(accessItems, *item)
 			}
 		}
@@ -119,7 +116,11 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		var allowedClustersItems []storagev1.AllowedCluster
 		for _, v := range data["allowed_clusters"].([]interface{}) {
-			if item := CreateStorageV1AllowedCluster(v.([]interface{})); item != nil {
+			if v == nil {
+				continue
+			}
+
+			if item := CreateStorageV1AllowedCluster(v.(map[string]interface{})); item != nil {
 				allowedClustersItems = append(allowedClustersItems, *item)
 			}
 		}
@@ -127,13 +128,15 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		var allowedTemplatesItems []storagev1.AllowedTemplate
 		for _, v := range data["allowed_templates"].([]interface{}) {
-			if item := CreateStorageV1AllowedTemplate(v.([]interface{})); item != nil {
+			if item := CreateStorageV1AllowedTemplate(v.(map[string]interface{})); item != nil {
 				allowedTemplatesItems = append(allowedTemplatesItems, *item)
 			}
 		}
 		ret.AllowedTemplates = allowedTemplatesItems
 
-		ret.ArgoIntegration = CreateStorageV1ArgoIntegrationSpec(data["argo_c_d"].([]interface{}))
+		if v, ok := data["argo_c_d"].([]interface{}); ok && len(v) > 0 {
+			ret.ArgoIntegration = CreateStorageV1ArgoIntegrationSpec(v[0].(map[string]interface{}))
+		}
 
 		if v, ok := data["description"].(string); ok && len(v) > 0 {
 			ret.Description = v
@@ -145,20 +148,23 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 
 		var membersItems []storagev1.Member
 		for _, v := range data["members"].([]interface{}) {
-			if item := CreateStorageV1Member(v.([]interface{})); item != nil {
+			if item := CreateStorageV1Member(v.(map[string]interface{})); item != nil {
 				membersItems = append(membersItems, *item)
 			}
 		}
 		ret.Members = membersItems
 
-		ret.NamespacePattern = CreateStorageV1NamespacePattern(data["namespace_pattern"].([]interface{}))
-
-		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].([]interface{}))
-
-		if quotas := CreateStorageV1Quotas(data["quotas"].([]interface{})); quotas != nil {
-			ret.Quotas = *quotas
+		if v, ok := data["namespace_pattern"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.NamespacePattern = CreateStorageV1NamespacePattern(v[0].(map[string]interface{}))
 		}
 
+		if v, ok := data["owner"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Owner = CreateStorageV1UserOrTeam(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["quotas"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.Quotas = *CreateStorageV1Quotas(v[0].(map[string]interface{}))
+		}
 	}
 
 	return &managementv1.ProjectSpec{
@@ -167,6 +173,10 @@ func CreateManagementV1ProjectSpec(in []interface{}) *managementv1.ProjectSpec {
 }
 
 func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	var accessItems []interface{}
 	for _, v := range obj.Access {
@@ -200,7 +210,7 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	values["argo_c_d"] = argoCD
+	values["argo_c_d"] = []interface{}{argoCD}
 	values["description"] = obj.Description
 	values["display_name"] = obj.DisplayName
 	var membersItems []interface{}

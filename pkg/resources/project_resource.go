@@ -14,6 +14,7 @@ import (
 	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func ProjectResource() *schema.Resource {
@@ -98,7 +99,7 @@ func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	}
 
 	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
-	spec := schemas.CreateManagementV1ProjectSpec(d.Get("spec").([]interface{}))
+	spec := schemas.CreateManagementV1ProjectSpec(d.Get("spec.0").(map[string]interface{}))
 
 	instance, err := managementClient.Loft().ManagementV1().Projects().Create(ctx, &managementv1.Project{
 		ObjectMeta: metadata,
@@ -114,7 +115,41 @@ func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 }
 
 func projectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return nil
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	_, name := utils.ParseID(d.Id())
+	oldInstance, err := managementClient.Loft().ManagementV1().Projects().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	modifiedInstance := oldInstance.DeepCopy()
+
+	if d.HasChange("spec") {
+		if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
+			modifiedInstance.Spec = *schemas.CreateManagementV1ProjectSpec(v[0].(map[string]interface{}))
+		}
+	}
+
+	patch := ctrlclient.MergeFrom(oldInstance)
+	rawPatch, err := patch.Data(modifiedInstance)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if _, err := managementClient.Loft().ManagementV1().Projects().Patch(ctx, name, patch.Type(), rawPatch, metav1.PatchOptions{}); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return projectRead(ctx, d, meta)
 }
 
 func projectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

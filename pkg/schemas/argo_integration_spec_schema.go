@@ -56,14 +56,13 @@ func StorageV1ArgoIntegrationSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoIntegrationSpec(in []interface{}) *storagev1.ArgoIntegrationSpec {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoIntegrationSpec(data map[string]interface{}) *storagev1.ArgoIntegrationSpec {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoIntegrationSpec{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
 		ret.Cluster = v
 	}
@@ -76,9 +75,13 @@ func CreateStorageV1ArgoIntegrationSpec(in []interface{}) *storagev1.ArgoIntegra
 		ret.Namespace = v
 	}
 
-	ret.Project = CreateStorageV1ArgoProjectSpec(data["project"].([]interface{}))
+	if v, ok := data["project"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.Project = CreateStorageV1ArgoProjectSpec(v[0].(map[string]interface{}))
+	}
 
-	ret.SSO = CreateStorageV1ArgoSSOSpec(data["sso"].([]interface{}))
+	if v, ok := data["sso"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.SSO = CreateStorageV1ArgoSSOSpec(v[0].(map[string]interface{}))
+	}
 
 	if v, ok := data["virtual_cluster_instance"].(string); ok && len(v) > 0 {
 		ret.VirtualClusterInstance = v
@@ -107,7 +110,7 @@ func ReadStorageV1ArgoIntegrationSpec(obj *storagev1.ArgoIntegrationSpec) (inter
 	if err != nil {
 		return nil, err
 	}
-	values["sso"] = sso
+	values["sso"] = []interface{}{sso}
 
 	values["virtual_cluster_instance"] = obj.VirtualClusterInstance
 

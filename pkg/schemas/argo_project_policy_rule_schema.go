@@ -31,14 +31,13 @@ func StorageV1ArgoProjectPolicyRuleSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoProjectPolicyRule(in []interface{}) *storagev1.ArgoProjectPolicyRule {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoProjectPolicyRule(data map[string]interface{}) *storagev1.ArgoProjectPolicyRule {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoProjectPolicyRule{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["action"].(string); ok && len(v) > 0 {
 		ret.Action = v
 	}
@@ -55,6 +54,10 @@ func CreateStorageV1ArgoProjectPolicyRule(in []interface{}) *storagev1.ArgoProje
 }
 
 func ReadStorageV1ArgoProjectPolicyRule(obj *storagev1.ArgoProjectPolicyRule) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["action"] = obj.Action
 	values["application"] = obj.Application

@@ -37,14 +37,13 @@ func StorageV1InstanceAccessRuleSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1InstanceAccessRule(in []interface{}) *agentstoragev1.InstanceAccessRule {
-	if !utils.HasValue(in) {
+func CreateStorageV1InstanceAccessRule(data map[string]interface{}) *agentstoragev1.InstanceAccessRule {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.InstanceAccessRule{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
 		ret.ClusterRole = v
 	}
@@ -65,6 +64,10 @@ func CreateStorageV1InstanceAccessRule(in []interface{}) *agentstoragev1.Instanc
 }
 
 func ReadStorageV1InstanceAccessRule(obj *agentstoragev1.InstanceAccessRule) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["cluster_role"] = obj.ClusterRole
 	var teamsItems []interface{}

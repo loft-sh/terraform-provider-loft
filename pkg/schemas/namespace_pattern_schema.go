@@ -26,14 +26,13 @@ func StorageV1NamespacePatternSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1NamespacePattern(in []interface{}) *storagev1.NamespacePattern {
-	if !utils.HasValue(in) {
+func CreateStorageV1NamespacePattern(data map[string]interface{}) *storagev1.NamespacePattern {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.NamespacePattern{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["space"].(string); ok && len(v) > 0 {
 		ret.Space = v
 	}

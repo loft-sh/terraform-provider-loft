@@ -31,14 +31,13 @@ func StorageV1TemplateRefSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1TemplateRef(in []interface{}) *storagev1.TemplateRef {
-	if !utils.HasValue(in) {
+func CreateStorageV1TemplateRef(data map[string]interface{}) *storagev1.TemplateRef {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.TemplateRef{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}

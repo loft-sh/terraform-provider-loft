@@ -31,16 +31,14 @@ func StorageV1VirtualClusterHelmReleaseSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1VirtualClusterHelmRelease(in []interface{}) *agentstoragev1.VirtualClusterHelmRelease {
-	if !utils.HasValue(in) {
+func CreateStorageV1VirtualClusterHelmRelease(data map[string]interface{}) *agentstoragev1.VirtualClusterHelmRelease {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.VirtualClusterHelmRelease{}
 
-	data := in[0].(map[string]interface{})
-
-	if value := CreateStorageV1VirtualClusterHelmChart(data["chart"].([]interface{})); value != nil {
+	if value := CreateStorageV1VirtualClusterHelmChart(data["chart"].(map[string]interface{})); value != nil {
 		ret.Chart = *value
 	}
 
@@ -52,6 +50,10 @@ func CreateStorageV1VirtualClusterHelmRelease(in []interface{}) *agentstoragev1.
 }
 
 func ReadStorageV1VirtualClusterHelmRelease(obj *agentstoragev1.VirtualClusterHelmRelease) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	chart, err := ReadStorageV1VirtualClusterHelmChart(&obj.Chart)

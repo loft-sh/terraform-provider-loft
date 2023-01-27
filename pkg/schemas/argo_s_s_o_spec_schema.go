@@ -34,17 +34,16 @@ func StorageV1ArgoSSOSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoSSOSpec(in []interface{}) *storagev1.ArgoSSOSpec {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoSSOSpec(data map[string]interface{}) *storagev1.ArgoSSOSpec {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoSSOSpec{}
 
-	data := in[0].(map[string]interface{})
 	var assignedRolesItems []string
-	for _, v := range data["assigned_roles"].([]string) {
-		assignedRolesItems = append(assignedRolesItems, v)
+	for _, v := range data["assigned_roles"].([]interface{}) {
+		assignedRolesItems = append(assignedRolesItems, v.(string))
 	}
 	ret.AssignedRoles = assignedRolesItems
 
@@ -60,6 +59,10 @@ func CreateStorageV1ArgoSSOSpec(in []interface{}) *storagev1.ArgoSSOSpec {
 }
 
 func ReadStorageV1ArgoSSOSpec(obj *storagev1.ArgoSSOSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	var assignedRolesItems []interface{}
 	for _, v := range obj.AssignedRoles {

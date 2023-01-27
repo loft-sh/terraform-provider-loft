@@ -42,14 +42,13 @@ func StorageV1ArgoProjectRoleSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoProjectRole(data map[string]interface{}) *storagev1.ArgoProjectRole {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoProjectRole{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["description"].(string); ok && len(v) > 0 {
 		ret.Description = v
 	}
@@ -66,7 +65,7 @@ func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole
 
 	var rulesItems []storagev1.ArgoProjectPolicyRule
 	for _, v := range data["rules"].([]interface{}) {
-		if item := CreateStorageV1ArgoProjectPolicyRule(v.([]interface{})); item != nil {
+		if item := CreateStorageV1ArgoProjectPolicyRule(v.(map[string]interface{})); item != nil {
 			rulesItems = append(rulesItems, *item)
 		}
 	}
@@ -76,6 +75,10 @@ func CreateStorageV1ArgoProjectRole(in []interface{}) *storagev1.ArgoProjectRole
 }
 
 func ReadStorageV1ArgoProjectRole(obj *storagev1.ArgoProjectRole) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["description"] = obj.Description
 

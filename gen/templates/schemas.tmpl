@@ -129,20 +129,18 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 	{{ $pkgName = .Name | replace "com.github.loft-sh.api.v3.pkg.apis.management.v1" "managementv1" }}
 {{- end }}
 
-func Create{{ pascalize $modelName }}(in []interface{}) *{{ $pkgName }} {
+func Create{{ pascalize $modelName }}(data map[string]interface{}) *{{ $pkgName }} {
 {{- if stringContains $pkgName "management" }}
 	ret := {{ $pkgName | replace "management" "storage" }}{}
 
-	if utils.HasValue(in) {
+	if utils.HasKeys(data) {
 {{- else }}
-	if !utils.HasValue(in) {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &{{ $pkgName }}{}
 {{- end}}
-
-	data := in[0].(map[string]interface{})
 
 {{- range .Properties }}
 	{{- if .IsPrimitive }}
@@ -214,6 +212,10 @@ func Create{{ pascalize $modelName }}(in []interface{}) *{{ $pkgName }} {
 }
 
 func Read{{ pascalize $modelName }}(obj *{{ $pkgName }}) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	{{- range .Properties }}
 		{{- if or .IsPrimitive .IsMap }}

@@ -36,14 +36,13 @@ func StorageV1AllowedTemplateSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1AllowedTemplate(in []interface{}) *storagev1.AllowedTemplate {
-	if !utils.HasValue(in) {
+func CreateStorageV1AllowedTemplate(data map[string]interface{}) *storagev1.AllowedTemplate {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.AllowedTemplate{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["group"].(string); ok && len(v) > 0 {
 		ret.Group = v
 	}
@@ -64,6 +63,10 @@ func CreateStorageV1AllowedTemplate(in []interface{}) *storagev1.AllowedTemplate
 }
 
 func ReadStorageV1AllowedTemplate(obj *storagev1.AllowedTemplate) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["group"] = obj.Group
 	values["is_default"] = obj.IsDefault

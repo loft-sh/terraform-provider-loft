@@ -58,19 +58,18 @@ func StorageV1SpaceTemplateDefinitionSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1SpaceTemplateDefinition(in []interface{}) *storagev1.SpaceTemplateDefinition {
-	if !utils.HasValue(in) {
+func CreateStorageV1SpaceTemplateDefinition(data map[string]interface{}) *storagev1.SpaceTemplateDefinition {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.SpaceTemplateDefinition{}
 
-	data := in[0].(map[string]interface{})
-	ret.Access = CreateStorageV1InstanceAccess(data["access"].([]interface{}))
+	ret.Access = CreateStorageV1InstanceAccess(data["access"].(map[string]interface{}))
 
 	var appsItems []agentstoragev1.AppReference
 	for _, v := range data["apps"].([]interface{}) {
-		if item := CreateStorageV1AppReference(v.([]interface{})); item != nil {
+		if item := CreateStorageV1AppReference(v.(map[string]interface{})); item != nil {
 			appsItems = append(appsItems, *item)
 		}
 	}
@@ -78,14 +77,14 @@ func CreateStorageV1SpaceTemplateDefinition(in []interface{}) *storagev1.SpaceTe
 
 	var chartsItems []agentstoragev1.TemplateHelmChart
 	for _, v := range data["charts"].([]interface{}) {
-		if item := CreateStorageV1TemplateHelmChart(v.([]interface{})); item != nil {
+		if item := CreateStorageV1TemplateHelmChart(v.(map[string]interface{})); item != nil {
 			chartsItems = append(chartsItems, *item)
 		}
 	}
 	ret.Charts = chartsItems
 
 	if v, ok := data["metadata"]; ok && len(v.([]interface{})) > 0 {
-		if value := CreateStorageV1TemplateMetadata(data["metadata"].([]interface{})); value != nil {
+		if value := CreateStorageV1TemplateMetadata(data["metadata"].(map[string]interface{})); value != nil {
 			ret.TemplateMetadata = *value
 		}
 	}
@@ -98,6 +97,10 @@ func CreateStorageV1SpaceTemplateDefinition(in []interface{}) *storagev1.SpaceTe
 }
 
 func ReadStorageV1SpaceTemplateDefinition(obj *storagev1.SpaceTemplateDefinition) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	access, err := ReadStorageV1InstanceAccess(obj.Access)

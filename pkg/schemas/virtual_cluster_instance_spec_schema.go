@@ -91,22 +91,20 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateManagementV1VirtualClusterInstanceSpec(in []interface{}) *managementv1.VirtualClusterInstanceSpec {
+func CreateManagementV1VirtualClusterInstanceSpec(data map[string]interface{}) *managementv1.VirtualClusterInstanceSpec {
 	ret := storagev1.VirtualClusterInstanceSpec{}
 
-	if utils.HasValue(in) {
-
-		data := in[0].(map[string]interface{})
+	if utils.HasKeys(data) {
 
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
-			if item := CreateStorageV1Access(v.([]interface{})); item != nil {
+			if item := CreateStorageV1Access(v.(map[string]interface{})); item != nil {
 				accessItems = append(accessItems, *item)
 			}
 		}
 		ret.Access = accessItems
 
-		if value := CreateStorageV1VirtualClusterClusterRef(data["cluster_ref"].([]interface{})); value != nil {
+		if value := CreateStorageV1VirtualClusterClusterRef(data["cluster_ref"].(map[string]interface{})); value != nil {
 			ret.ClusterRef = *value
 		}
 
@@ -120,21 +118,21 @@ func CreateManagementV1VirtualClusterInstanceSpec(in []interface{}) *managementv
 
 		var extraAccessRulesItems []agentstoragev1.InstanceAccessRule
 		for _, v := range data["extra_access_rules"].([]interface{}) {
-			if item := CreateStorageV1InstanceAccessRule(v.([]interface{})); item != nil {
+			if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 				extraAccessRulesItems = append(extraAccessRulesItems, *item)
 			}
 		}
 		ret.ExtraAccessRules = extraAccessRulesItems
 
-		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].([]interface{}))
+		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].(map[string]interface{}))
 
 		if v, ok := data["parameters"].(string); ok && len(v) > 0 {
 			ret.Parameters = v
 		}
 
-		ret.Template = CreateStorageV1VirtualClusterTemplateDefinition(data["template"].([]interface{}))
+		ret.Template = CreateStorageV1VirtualClusterTemplateDefinition(data["template"].(map[string]interface{}))
 
-		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].([]interface{}))
+		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].(map[string]interface{}))
 
 	}
 
@@ -144,6 +142,10 @@ func CreateManagementV1VirtualClusterInstanceSpec(in []interface{}) *managementv
 }
 
 func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualClusterInstanceSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	var accessItems []interface{}

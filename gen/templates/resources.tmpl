@@ -28,6 +28,8 @@ import (
 	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
+	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 {{- $modelName := splitList "." .Name | last }}
@@ -90,14 +92,14 @@ func {{ camelize $modelName }}Read(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-{{ if not $isClusterScoped }}
-	namespace := d.Get("metadata.0.namespace").(string)
+{{- if $isClusterScoped }}
+	_, name := utils.ParseID(d.Id())
+{{- else }}
+	namespace, name := utils.ParseID(d.Id())
 	if namespace == "" {
 		return diag.Errorf("`namespace` is required for all namespaced resources")
 	}
-{{ end }}
-
-	name := d.Get("metadata.0.name").(string)
+{{- end }}
 	if name == "" {
 		return diag.Errorf("`name` is required for all resources")
 	}
@@ -118,7 +120,7 @@ func {{ camelize $modelName }}Read(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("{{ snakize .Name}}", {{ varname .Name }}); err != nil {
+	if err := d.Set("{{ snakize .Name}}", []interface{}{ {{ varname .Name }} }); err != nil {
 		return diag.FromErr(err)
 	}
 		{{ else if (eq .Name "spec") }}
@@ -127,7 +129,7 @@ func {{ camelize $modelName }}Read(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("{{ snakize .Name}}", {{ varname .Name }}); err != nil {
+	if err := d.Set("{{ snakize .Name}}", []interface{}{ {{ varname .Name }} }); err != nil {
 		return diag.FromErr(err)
 	}
 		{{- end}}
@@ -136,14 +138,108 @@ func {{ camelize $modelName }}Read(ctx context.Context, d *schema.ResourceData, 
 }
 
 func {{ camelize $modelName }}Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("FOO")
-	return nil
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
+	spec := schemas.Create{{.GoType | trimPrefix "ComGithubLoftShAPIV3PkgApis" | pascalize }}Spec(d.Get("spec.0").(map[string]interface{}))
+
+	{{ if $isClusterScoped }}
+	instance, err := managementClient.Loft().ManagementV1().{{ $modelsName }}().Create(ctx, &managementv1.{{ $modelName }}{
+		ObjectMeta: metadata,
+		Spec:       *spec,
+	}, metav1.CreateOptions{})
+	{{- else }}
+	instance, err := managementClient.Loft().ManagementV1().{{ $modelsName }}(metadata.Namespace).Create(ctx, &managementv1.{{ $modelName }}{
+		ObjectMeta: metadata,
+		Spec:       *spec,
+	}, metav1.CreateOptions{})
+	{{- end }}
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(utils.ReadId(instance.ObjectMeta))
+
+	return {{ varname $modelName }}Read(ctx, d, meta)
 }
 
 func {{ camelize $modelName }}Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return nil
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	{{- if $isClusterScoped }}
+	_, name := utils.ParseID(d.Id())
+	oldInstance, err := managementClient.Loft().ManagementV1().{{ $modelsName }}().Get(ctx, name, metav1.GetOptions{})
+	{{- else }}
+	namespace, name := utils.ParseID(d.Id())
+	oldInstance, err := managementClient.Loft().ManagementV1().{{ $modelsName }}(namespace).Get(ctx, name, metav1.GetOptions{})
+	{{- end }}
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	modifiedInstance := oldInstance.DeepCopy()
+
+	if d.HasChange("spec") {
+		if v, ok := d.Get("spec").([]interface{}); ok && len(v) > 0 {
+			modifiedInstance.Spec = *schemas.Create{{.GoType | trimPrefix "ComGithubLoftShAPIV3PkgApis" | pascalize }}Spec(v[0].(map[string]interface{}))
+		}
+	}
+
+	patch := ctrlclient.MergeFrom(oldInstance)
+	rawPatch, err := patch.Data(modifiedInstance)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	{{- if $isClusterScoped }}
+	if _, err := managementClient.Loft().ManagementV1().{{ $modelsName }}().Patch(ctx, name, patch.Type(), rawPatch, metav1.PatchOptions{}); err != nil {
+	{{- else }}
+	if _, err := managementClient.Loft().ManagementV1().{{ $modelsName }}(namespace).Patch(ctx, name, patch.Type(), rawPatch, metav1.PatchOptions{}); err != nil {
+	{{- end }}
+		return diag.FromErr(err)
+	}
+
+	return {{ varname $modelName }}Read(ctx, d, meta)
 }
 
 func {{ camelize $modelName }}Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	loftClient, ok := meta.(client.Client)
+	if !ok {
+		return diag.Errorf("Could not access loft client")
+	}
+
+	managementClient, err := loftClient.Management()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
+	{{- if $isClusterScoped }}
+	err = managementClient.Loft().ManagementV1().{{ $modelsName }}().Delete(ctx, metadata.Name, metav1.DeleteOptions{})
+	{{- else }}
+	err = managementClient.Loft().ManagementV1().{{ $modelsName }}(metadata.Namespace).Delete(ctx, metadata.Name, metav1.DeleteOptions{})
+	{{- end }}
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }

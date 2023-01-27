@@ -91,23 +91,21 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateManagementV1SpaceInstanceSpec(in []interface{}) *managementv1.SpaceInstanceSpec {
+func CreateManagementV1SpaceInstanceSpec(data map[string]interface{}) *managementv1.SpaceInstanceSpec {
 	ret := storagev1.SpaceInstanceSpec{}
 
-	if utils.HasValue(in) {
-
-		data := in[0].(map[string]interface{})
+	if utils.HasKeys(data) {
 
 		var accessItems []storagev1.Access
 		for _, v := range data["access"].([]interface{}) {
-			if item := CreateStorageV1Access(v.([]interface{})); item != nil {
+			if item := CreateStorageV1Access(v.(map[string]interface{})); item != nil {
 				accessItems = append(accessItems, *item)
 			}
 		}
 		ret.Access = accessItems
 
 		if v, ok := data["cluster_ref"]; ok && len(v.([]interface{})) > 0 {
-			ret.ClusterRef = *CreateStorageV1ClusterRef(v.([]interface{}))
+			ret.ClusterRef = *CreateStorageV1ClusterRef(v.(map[string]interface{}))
 		}
 
 		if v, ok := data["description"].(string); ok && len(v) > 0 {
@@ -120,21 +118,21 @@ func CreateManagementV1SpaceInstanceSpec(in []interface{}) *managementv1.SpaceIn
 
 		var extraAccessRulesItems []agentstoragev1.InstanceAccessRule
 		for _, v := range data["extra_access_rules"].([]interface{}) {
-			if item := CreateStorageV1InstanceAccessRule(v.([]interface{})); item != nil {
+			if item := CreateStorageV1InstanceAccessRule(v.(map[string]interface{})); item != nil {
 				extraAccessRulesItems = append(extraAccessRulesItems, *item)
 			}
 		}
 		ret.ExtraAccessRules = extraAccessRulesItems
 
-		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].([]interface{}))
+		ret.Owner = CreateStorageV1UserOrTeam(data["owner"].(map[string]interface{}))
 
 		if v, ok := data["parameters"].(string); ok && len(v) > 0 {
 			ret.Parameters = v
 		}
 
-		ret.Template = CreateStorageV1SpaceTemplateDefinition(data["template"].([]interface{}))
+		ret.Template = CreateStorageV1SpaceTemplateDefinition(data["template"].(map[string]interface{}))
 
-		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].([]interface{}))
+		ret.TemplateRef = CreateStorageV1TemplateRef(data["template_ref"].(map[string]interface{}))
 
 	}
 
@@ -144,6 +142,10 @@ func CreateManagementV1SpaceInstanceSpec(in []interface{}) *managementv1.SpaceIn
 }
 
 func ReadManagementV1SpaceInstanceSpec(obj *managementv1.SpaceInstanceSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	var accessItems []interface{}

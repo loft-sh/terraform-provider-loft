@@ -47,25 +47,24 @@ func StorageV1ArgoProjectSpecSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoProjectSpec(in []interface{}) *storagev1.ArgoProjectSpec {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoProjectSpec(data map[string]interface{}) *storagev1.ArgoProjectSpec {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoProjectSpec{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["enabled"].(bool); ok {
 		ret.Enabled = v
 	}
 
-	if metadata := CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].([]interface{})); metadata != nil {
+	if metadata := CreateStorageV1ArgoProjectSpecMetadata(data["metadata"].(map[string]interface{})); metadata != nil {
 		ret.Metadata = *metadata
 	}
 
 	var rolesItems []storagev1.ArgoProjectRole
 	for _, v := range data["roles"].([]interface{}) {
-		item := *CreateStorageV1ArgoProjectRole(v.([]interface{}))
+		item := *CreateStorageV1ArgoProjectRole(v.(map[string]interface{}))
 		rolesItems = append(rolesItems, item)
 	}
 	ret.Roles = rolesItems
@@ -80,6 +79,10 @@ func CreateStorageV1ArgoProjectSpec(in []interface{}) *storagev1.ArgoProjectSpec
 }
 
 func ReadStorageV1ArgoProjectSpec(obj *storagev1.ArgoProjectSpec) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["enabled"] = obj.Enabled
 

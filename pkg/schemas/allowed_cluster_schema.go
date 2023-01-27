@@ -21,14 +21,13 @@ func StorageV1AllowedClusterSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1AllowedCluster(in []interface{}) *storagev1.AllowedCluster {
-	if !utils.HasValue(in) {
+func CreateStorageV1AllowedCluster(data map[string]interface{}) *storagev1.AllowedCluster {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.AllowedCluster{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -37,6 +36,10 @@ func CreateStorageV1AllowedCluster(in []interface{}) *storagev1.AllowedCluster {
 }
 
 func ReadStorageV1AllowedCluster(obj *storagev1.AllowedCluster) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
 	return values, nil

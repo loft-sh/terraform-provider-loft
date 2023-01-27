@@ -26,14 +26,13 @@ func StorageV1ClusterRefSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ClusterRef(in []interface{}) *storagev1.ClusterRef {
-	if !utils.HasValue(in) {
+func CreateStorageV1ClusterRef(data map[string]interface{}) *storagev1.ClusterRef {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ClusterRef{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["cluster"].(string); ok && len(v) > 0 {
 		ret.Cluster = v
 	}
@@ -46,6 +45,10 @@ func CreateStorageV1ClusterRef(in []interface{}) *storagev1.ClusterRef {
 }
 
 func ReadStorageV1ClusterRef(obj *storagev1.ClusterRef) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["cluster"] = obj.Cluster
 	values["namespace"] = obj.Namespace

@@ -31,14 +31,13 @@ func StorageV1VirtualClusterHelmChartSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1VirtualClusterHelmChart(in []interface{}) *agentstoragev1.VirtualClusterHelmChart {
-	if !utils.HasValue(in) {
+func CreateStorageV1VirtualClusterHelmChart(data map[string]interface{}) *agentstoragev1.VirtualClusterHelmChart {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.VirtualClusterHelmChart{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -55,6 +54,10 @@ func CreateStorageV1VirtualClusterHelmChart(in []interface{}) *agentstoragev1.Vi
 }
 
 func ReadStorageV1VirtualClusterHelmChart(obj *agentstoragev1.VirtualClusterHelmChart) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
 	values["repo"] = obj.Repo

@@ -71,14 +71,13 @@ func StorageV1TemplateHelmChartSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1TemplateHelmChart(in []interface{}) *agentstoragev1.TemplateHelmChart {
-	if !utils.HasValue(in) {
+func CreateStorageV1TemplateHelmChart(data map[string]interface{}) *agentstoragev1.TemplateHelmChart {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.TemplateHelmChart{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["insecure_skip_tls_verify"].(bool); ok {
 		ret.InsecureSkipTlsVerify = v
 	}
@@ -127,6 +126,10 @@ func CreateStorageV1TemplateHelmChart(in []interface{}) *agentstoragev1.Template
 }
 
 func ReadStorageV1TemplateHelmChart(obj *agentstoragev1.TemplateHelmChart) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["insecure_skip_tls_verify"] = obj.InsecureSkipTlsVerify
 	values["name"] = obj.Name

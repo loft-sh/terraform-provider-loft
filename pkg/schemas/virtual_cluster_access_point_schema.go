@@ -26,16 +26,14 @@ func StorageV1VirtualClusterAccessPointSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1VirtualClusterAccessPoint(in []interface{}) *agentstoragev1.VirtualClusterAccessPoint {
-	if !utils.HasValue(in) {
+func CreateStorageV1VirtualClusterAccessPoint(data map[string]interface{}) *agentstoragev1.VirtualClusterAccessPoint {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.VirtualClusterAccessPoint{}
 
-	data := in[0].(map[string]interface{})
-
-	if value := CreateStorageV1VirtualClusterAccessPointIngressSpec(data["ingress"].([]interface{})); value != nil {
+	if value := CreateStorageV1VirtualClusterAccessPointIngressSpec(data["ingress"].(map[string]interface{})); value != nil {
 		ret.Ingress = *value
 	}
 
@@ -43,6 +41,10 @@ func CreateStorageV1VirtualClusterAccessPoint(in []interface{}) *agentstoragev1.
 }
 
 func ReadStorageV1VirtualClusterAccessPoint(obj *agentstoragev1.VirtualClusterAccessPoint) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	ingress, err := ReadStorageV1VirtualClusterAccessPointIngressSpec(&obj.Ingress)

@@ -53,39 +53,38 @@ func StorageV1AccessSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1Access(in []interface{}) *storagev1.Access {
-	if !utils.HasValue(in) {
+func CreateStorageV1Access(data map[string]interface{}) *storagev1.Access {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.Access{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
 
 	var subresourcesItems []string
-	for _, v := range data["subresources"].([]string) {
-		subresourcesItems = append(subresourcesItems, v)
+	for _, v := range data["subresources"].([]interface{}) {
+		subresourcesItems = append(subresourcesItems, v.(string))
 	}
 	ret.Subresources = subresourcesItems
 
 	var teamsItems []string
-	for _, v := range data["teams"].([]string) {
-		teamsItems = append(teamsItems, v)
+	for _, v := range data["teams"].([]interface{}) {
+		teamsItems = append(teamsItems, v.(string))
 	}
 	ret.Teams = teamsItems
 
 	var usersItems []string
-	for _, v := range data["users"].([]string) {
-		usersItems = append(usersItems, v)
+	for _, v := range data["users"].([]interface{}) {
+		usersItems = append(usersItems, v.(string))
 	}
 	ret.Users = usersItems
 
 	var verbsItems []string
-	for _, v := range data["verbs"].([]string) {
-		verbsItems = append(verbsItems, v)
+	for _, v := range data["verbs"].([]interface{}) {
+		verbsItems = append(verbsItems, v.(string))
 	}
 	ret.Verbs = verbsItems
 
@@ -93,6 +92,10 @@ func CreateStorageV1Access(in []interface{}) *storagev1.Access {
 }
 
 func ReadStorageV1Access(obj *storagev1.Access) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	values["name"] = obj.Name

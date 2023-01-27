@@ -21,14 +21,13 @@ func StorageV1VirtualClusterAccessPointIngressSpecSchema() map[string]*schema.Sc
 	}
 }
 
-func CreateStorageV1VirtualClusterAccessPointIngressSpec(in []interface{}) *agentstoragev1.VirtualClusterAccessPointIngressSpec {
-	if !utils.HasValue(in) {
+func CreateStorageV1VirtualClusterAccessPointIngressSpec(data map[string]interface{}) *agentstoragev1.VirtualClusterAccessPointIngressSpec {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.VirtualClusterAccessPointIngressSpec{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["enabled"].(bool); ok {
 		ret.Enabled = v
 	}

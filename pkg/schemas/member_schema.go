@@ -36,14 +36,13 @@ func StorageV1MemberSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1Member(in []interface{}) *storagev1.Member {
-	if !utils.HasValue(in) {
+func CreateStorageV1Member(data map[string]interface{}) *storagev1.Member {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.Member{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["cluster_role"].(string); ok && len(v) > 0 {
 		ret.ClusterRole = v
 	}
@@ -64,6 +63,10 @@ func CreateStorageV1Member(in []interface{}) *storagev1.Member {
 }
 
 func ReadStorageV1Member(obj *storagev1.Member) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["cluster_role"] = obj.ClusterRole
 	values["group"] = obj.Group

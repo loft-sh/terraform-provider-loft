@@ -48,18 +48,16 @@ func StorageV1VirtualClusterSpaceTemplateDefinitionSchema() map[string]*schema.S
 	}
 }
 
-func CreateStorageV1VirtualClusterSpaceTemplateDefinition(in []interface{}) *storagev1.VirtualClusterSpaceTemplateDefinition {
-	if !utils.HasValue(in) {
+func CreateStorageV1VirtualClusterSpaceTemplateDefinition(data map[string]interface{}) *storagev1.VirtualClusterSpaceTemplateDefinition {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.VirtualClusterSpaceTemplateDefinition{}
 
-	data := in[0].(map[string]interface{})
-
 	var appsItems []agentstoragev1.AppReference
 	for _, v := range data["apps"].([]interface{}) {
-		if item := CreateStorageV1AppReference(v.([]interface{})); item != nil {
+		if item := CreateStorageV1AppReference(v.(map[string]interface{})); item != nil {
 			appsItems = append(appsItems, *item)
 		}
 	}
@@ -67,13 +65,13 @@ func CreateStorageV1VirtualClusterSpaceTemplateDefinition(in []interface{}) *sto
 
 	var chartsItems []agentstoragev1.TemplateHelmChart
 	for _, v := range data["charts"].([]interface{}) {
-		if item := CreateStorageV1TemplateHelmChart(v.([]interface{})); item != nil {
+		if item := CreateStorageV1TemplateHelmChart(v.(map[string]interface{})); item != nil {
 			chartsItems = append(chartsItems, *item)
 		}
 	}
 	ret.Charts = chartsItems
 
-	if value := CreateStorageV1TemplateMetadata(data["metadata"].([]interface{})); value != nil {
+	if value := CreateStorageV1TemplateMetadata(data["metadata"].(map[string]interface{})); value != nil {
 		ret.TemplateMetadata = *value
 	}
 
@@ -85,6 +83,10 @@ func CreateStorageV1VirtualClusterSpaceTemplateDefinition(in []interface{}) *sto
 }
 
 func ReadStorageV1VirtualClusterSpaceTemplateDefinition(obj *storagev1.VirtualClusterSpaceTemplateDefinition) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 
 	var appsItems []interface{}

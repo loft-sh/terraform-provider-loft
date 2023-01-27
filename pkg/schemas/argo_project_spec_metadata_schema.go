@@ -37,14 +37,13 @@ func StorageV1ArgoProjectSpecMetadataSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1ArgoProjectSpecMetadata(in []interface{}) *storagev1.ArgoProjectSpecMetadata {
-	if !utils.HasValue(in) {
+func CreateStorageV1ArgoProjectSpecMetadata(data map[string]interface{}) *storagev1.ArgoProjectSpecMetadata {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.ArgoProjectSpecMetadata{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["description"].(string); ok && len(v) > 0 {
 		ret.Description = v
 	}
@@ -57,6 +56,10 @@ func CreateStorageV1ArgoProjectSpecMetadata(in []interface{}) *storagev1.ArgoPro
 }
 
 func ReadStorageV1ArgoProjectSpecMetadata(obj *storagev1.ArgoProjectSpecMetadata) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["description"] = obj.Description
 	values["extra_annotations"] = obj.ExtraAnnotations

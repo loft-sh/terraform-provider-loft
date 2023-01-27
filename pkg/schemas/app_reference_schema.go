@@ -41,14 +41,13 @@ func StorageV1AppReferenceSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1AppReference(in []interface{}) *agentstoragev1.AppReference {
-	if !utils.HasValue(in) {
+func CreateStorageV1AppReference(data map[string]interface{}) *agentstoragev1.AppReference {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &agentstoragev1.AppReference{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -73,6 +72,10 @@ func CreateStorageV1AppReference(in []interface{}) *agentstoragev1.AppReference 
 }
 
 func ReadStorageV1AppReference(obj *agentstoragev1.AppReference) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
 	values["namespace"] = obj.Namespace

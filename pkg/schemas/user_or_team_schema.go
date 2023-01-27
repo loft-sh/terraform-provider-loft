@@ -26,14 +26,13 @@ func StorageV1UserOrTeamSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1UserOrTeam(in []interface{}) *storagev1.UserOrTeam {
-	if !utils.HasValue(in) {
+func CreateStorageV1UserOrTeam(data map[string]interface{}) *storagev1.UserOrTeam {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.UserOrTeam{}
 
-	data := in[0].(map[string]interface{})
 	if v, ok := data["team"].(string); ok && len(v) > 0 {
 		ret.Team = v
 	}
@@ -46,6 +45,10 @@ func CreateStorageV1UserOrTeam(in []interface{}) *storagev1.UserOrTeam {
 }
 
 func ReadStorageV1UserOrTeam(obj *storagev1.UserOrTeam) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["team"] = obj.Team
 	values["user"] = obj.User

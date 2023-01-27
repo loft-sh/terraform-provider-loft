@@ -32,14 +32,13 @@ func StorageV1TemplateMetadataSchema() map[string]*schema.Schema {
 	}
 }
 
-func CreateStorageV1TemplateMetadata(in []interface{}) *storagev1.TemplateMetadata {
-	if !utils.HasValue(in) {
+func CreateStorageV1TemplateMetadata(data map[string]interface{}) *storagev1.TemplateMetadata {
+	if !utils.HasKeys(data) {
 		return nil
 	}
 
 	ret := &storagev1.TemplateMetadata{}
 
-	data := in[0].(map[string]interface{})
 	ret.Annotations = utils.AttributesToMap(data["annotations"].(map[string]interface{}))
 
 	ret.Labels = utils.AttributesToMap(data["labels"].(map[string]interface{}))
@@ -48,6 +47,10 @@ func CreateStorageV1TemplateMetadata(in []interface{}) *storagev1.TemplateMetada
 }
 
 func ReadStorageV1TemplateMetadata(obj *storagev1.TemplateMetadata) (interface{}, error) {
+	if obj == nil {
+		return nil, nil
+	}
+
 	values := map[string]interface{}{}
 	values["annotations"] = obj.Annotations
 	values["labels"] = obj.Labels
