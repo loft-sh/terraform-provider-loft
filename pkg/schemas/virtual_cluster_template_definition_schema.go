@@ -33,6 +33,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "AccessPoint defines settings to expose the virtual cluster directly via an ingress rather than through the (default) Loft proxy",
 			Optional:    true,
+			Computed:    true,
 		},
 		"apps": {
 			Type: schema.TypeList,
@@ -59,6 +60,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "HelmRelease is the helm release configuration for the virtual cluster.",
 			Optional:    true,
+			Computed:    true,
 		},
 		"metadata": {
 			Type:     schema.TypeList,
@@ -84,6 +86,7 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			},
 			Description: "SpaceTemplate holds the space template",
 			Optional:    true,
+			Computed:    true,
 		},
 	}
 }
@@ -154,7 +157,9 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 	if err != nil {
 		return nil, err
 	}
-	values["access"] = access
+	if access != nil {
+		values["access"] = []interface{}{access}
+	}
 
 	accessPoint, err := ReadStorageV1VirtualClusterAccessPoint(&obj.AccessPoint)
 	if err != nil {

@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
 	clientpkg "github.com/loft-sh/loftctl/v2/pkg/client"
 	"github.com/loft-sh/loftctl/v2/pkg/client/naming"
+	"github.com/loft-sh/loftctl/v2/pkg/kube"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/storage/names"
 	"regexp"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestAccResourceSpaceInstance_noNameOrGenerateName(t *testing.T) {
@@ -87,7 +91,7 @@ func TestAccResourceSpaceInstance_withTemplate(t *testing.T) {
 	defer logout(t, kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceInstanceCheckDestroy(kubeClient),
+		CheckDestroy:      spaceInstanceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -142,7 +146,7 @@ func TestAccResourceSpaceInstance_withTemplateRef(t *testing.T) {
 	defer logout(t, kubeClient, accessKey)
 
 	resource.Test(t, resource.TestCase{
-		CheckDestroy:      testAccSpaceInstanceCheckDestroy(kubeClient),
+		CheckDestroy:      spaceInstanceCheckDestroy(kubeClient),
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
@@ -340,6 +344,15 @@ PARAMS
 					"foo" = "bar"
 				}
 			}
+			objects = <<OBJECTS
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  foo: bar
+  hello: world
+OBJECTS
 		}
 	}
 }
@@ -407,7 +420,7 @@ resource "loft_space_instance" "test_user" {
 PARAMS
 		template_ref {
 			name = "example-template"
-			version = "0.0.1"
+			version = "0.0.0"
 			sync_once = false
 		}
 	}
@@ -442,41 +455,28 @@ func checkSpaceInstance(configPath, projectName, spaceName string, pred func(obj
 	}
 }
 
-func hasOwnerUser(user string) func(space *managementv1.SpaceInstance) error {
-	return func(spaceInstance *managementv1.SpaceInstance) error {
-		if spaceInstance.Spec.Owner == nil {
-			return fmt.Errorf(
-				"%s: User was not configured",
-				spaceInstance.GetName(),
-			)
+func spaceInstanceCheckDestroy(kubeClient kube.Interface) func(s *terraform.State) error {
+	return func(s *terraform.State) error {
+		var spaces []string
+		for _, resourceState := range s.RootModule().Resources {
+			spaces = append(spaces, resourceState.Primary.ID)
 		}
 
-		if spaceInstance.Spec.Owner.User != user {
-			return fmt.Errorf(
-				"%s: User didn't match %q, got %#v",
-				spaceInstance.GetName(),
-				user,
-				spaceInstance.Spec.Owner.User)
-		}
-		return nil
-	}
-}
+		for _, spacePath := range spaces {
+			tokens := strings.Split(spacePath, "/")
+			spaceNamespace := tokens[0]
+			spaceName := tokens[1]
 
-func hasOwnerTeam(team string) func(space *managementv1.SpaceInstance) error {
-	return func(spaceInstance *managementv1.SpaceInstance) error {
-		if spaceInstance.Spec.Owner == nil {
-			return fmt.Errorf(
-				"%s: Team was not configured",
-				spaceInstance.GetName(),
-			)
-		}
-
-		if spaceInstance.Spec.Owner.Team != team {
-			return fmt.Errorf(
-				"%s: Team didn't match %q, got %#v",
-				spaceInstance.GetName(),
-				team,
-				spaceInstance.Spec.Owner.Team)
+			err := wait.PollImmediate(1*time.Second, 60*time.Second, func() (bool, error) {
+				_, err := kubeClient.Loft().ManagementV1().SpaceInstances(spaceNamespace).Get(context.TODO(), spaceName, metav1.GetOptions{})
+				if errors.IsNotFound(err) {
+					return true, nil
+				}
+				return false, err
+			})
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	}
