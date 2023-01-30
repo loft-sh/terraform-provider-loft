@@ -73,7 +73,7 @@ func TestAccResourceVirtualClusterInstance_noNamespace(t *testing.T) {
 	})
 }
 
-func TestAccResourceVirtualClusterInstance_withTemplate(t *testing.T) {
+func TestAccResourceVirtualClusterInstance_withMinimalTemplate(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("my-vcluster-")
 	user := "admin"
 	user2 := "admin2"
