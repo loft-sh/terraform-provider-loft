@@ -22,9 +22,14 @@ func AttributesToMap(rawMap map[string]interface{}) map[string]string {
 }
 
 func MapToAttributes(rawMap map[string]string) map[string]interface{} {
-	var attr map[string]interface{}
+	attr := map[string]interface{}{}
 	for k, v := range rawMap {
 		attr[k] = v
 	}
+
+	if len(attr) > 0 {
+		return nil
+	}
+
 	return attr
 }
