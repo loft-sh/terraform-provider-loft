@@ -21,7 +21,6 @@ layout:
       source: data_sources.tmpl
       target: "{{ joinFilePath .Target }}/pkg/resources"
       file_name: "{{ splitList \".\" .Name | last | camelize }}_data_source.go"
-      skip_exists: true
 #    - name: definition
 #      source: asset:model
 #      target: "{{ joinFilePath .Target .ModelPackage }}"

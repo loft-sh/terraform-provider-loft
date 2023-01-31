@@ -124,6 +124,66 @@ func TestAccResourceSpaceInstance_withTemplate(t *testing.T) {
 					checkSpaceInstance(configPath, project, name, hasUser(user2)),
 				),
 			},
+			{
+				Config: testAccResourceSpaceInstanceCreateWithTemplate(configPath, user2, project, name) +
+					testAccDataSourceSpaceInstance(project, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "metadata.0.name", name),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "metadata.0.namespace", "loft-p-"+project),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.name", "instance-admin-access"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.users.0", "admin2"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.0", "use"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.1", "get"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.2", "update"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.3", "delete"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.4", "patch"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.name", "instance-access"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.teams.0", "loft-admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.users.0", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.users.1", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.verbs.0", "use"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.verbs.1", "get"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.cluster_ref.0.cluster", "loft-cluster"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.cluster_ref.0.namespace", "loft-default-s-my-space-instance-"+name),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.description", "Terraform Managed Space Instance"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.display_name", "Terraform Managed Space Instance"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.cluster_role", "loft:admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.teams.0", "loft-admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.users.0", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.owner.0.user", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.owner.0.team", ""),
+					resource.TestMatchResourceAttr("data.loft_space_instance.test_user", "spec.0.parameters", regexp.MustCompile(".+")),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.access.0.default_cluster_role", "loft-cluster-space-admin"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.access.0.rules.0.cluster_role", "loft-cluster-space-admin"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.access.0.rules.0.users.0", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.apps.0.name", "cert-issuer"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.apps.0.namespace", "default"),
+					resource.TestMatchResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.apps.0.parameters", regexp.MustCompile(".+")),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.apps.0.release_name", "cert-issuer"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.apps.0.version", "0.0.1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.insecure_skip_tls_verify", "true"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.name", "foo1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.password", "foo"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.release_name", "foo1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.release_namespace", "default"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.repo_url", "https://charts.example.com"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.timeout", "10"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.username", "foo1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.0.version", "0.0.1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.insecure_skip_tls_verify", "true"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.name", "foo2"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.password", "foo"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.release_name", "foo2"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.release_namespace", "default"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.repo_url", "https://charts.example.com"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.timeout", "10"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.username", "foo2"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.charts.1.version", "0.0.1"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.metadata.0.annotations.foo", "bar"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.metadata.0.labels.foo", "bar"),
+					resource.TestMatchResourceAttr("data.loft_space_instance.test_user", "spec.0.template.0.objects", regexp.MustCompile(".+")),
+				),
+			},
 		},
 	})
 }
@@ -177,6 +237,38 @@ func TestAccResourceSpaceInstance_withTemplateRef(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space_instance.test_user", "spec.0.owner.0.user", user2),
 					resource.TestCheckResourceAttr("loft_space_instance.test_user", "spec.0.owner.0.team", ""),
 					checkSpaceInstance(configPath, project, name, hasUser(user2)),
+				),
+			},
+			{
+				Config: testAccResourceSpaceInstanceCreateWithTemplateRef(configPath, user2, project, name) +
+					testAccDataSourceSpaceInstance(project, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "metadata.0.name", name),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "metadata.0.namespace", "loft-p-"+project),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.name", "instance-admin-access"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.users.0", "admin2"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.0", "use"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.1", "get"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.2", "update"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.3", "delete"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.0.verbs.4", "patch"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.name", "instance-access"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.teams.0", "loft-admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.users.0", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.verbs.0", "use"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.access.1.verbs.1", "get"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.cluster_ref.0.cluster", "loft-cluster"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.cluster_ref.0.namespace", "loft-default-s-my-space-instance-"+name),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.description", "Terraform Managed Space Instance"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.display_name", "Terraform Managed Space Instance"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.cluster_role", "loft:admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.teams.0", "loft-admins"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.extra_access_rules.0.users.0", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.owner.0.user", user2),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.owner.0.team", ""),
+					resource.TestMatchResourceAttr("data.loft_space_instance.test_user", "spec.0.parameters", regexp.MustCompile(".+")), resource.TestMatchResourceAttr("data.loft_space_instance.test_user", "spec.0.parameters", regexp.MustCompile(".+")),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template_ref.0.name", "example-template"),
+					resource.TestCheckResourceAttr("data.loft_space_instance.test_user", "spec.0.template_ref.0.version", "0.0.0"),
 				),
 			},
 		},
@@ -430,6 +522,20 @@ PARAMS
 		spaceName,
 		projectName,
 		user,
+	)
+}
+
+func testAccDataSourceSpaceInstance(projectName, spaceName string) string {
+	return fmt.Sprintf(`
+data "loft_space_instance" "test_user" {
+	metadata {
+		namespace = "loft-p-%s"
+		name = "%s"
+	}
+}
+`,
+		projectName,
+		spaceName,
 	)
 }
 

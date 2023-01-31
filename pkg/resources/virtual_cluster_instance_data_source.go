@@ -52,5 +52,5 @@ func dataSourceVirtualClusterInstanceRead(ctx context.Context, d *schema.Resourc
 	}
 	d.SetId(utils.ReadId(metadata))
 
-	return projectRead(ctx, d, meta)
+	return virtualClusterInstanceRead(ctx, d, meta)
 }

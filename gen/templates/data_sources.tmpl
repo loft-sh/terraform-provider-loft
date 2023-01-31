@@ -78,5 +78,5 @@ func dataSource{{ pascalize $modelName }}Read(ctx context.Context, d *schema.Res
 	{{- end }}
 	d.SetId(utils.ReadId(metadata))
 
-	return projectRead(ctx, d, meta)
+	return {{ camelize $modelName }}Read(ctx, d, meta)
 }

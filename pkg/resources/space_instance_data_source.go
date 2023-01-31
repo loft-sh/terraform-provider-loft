@@ -52,5 +52,5 @@ func dataSourceSpaceInstanceRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	d.SetId(utils.ReadId(metadata))
 
-	return projectRead(ctx, d, meta)
+	return spaceInstanceRead(ctx, d, meta)
 }
