@@ -53,11 +53,10 @@ func New() func() *schema.Provider {
 				"loft_space":            legacy.DataSourceSpace(),
 				"loft_virtual_cluster":  legacy.DataSourceVirtualCluster(),
 				"loft_virtual_clusters": legacy.DataSourceVirtualClusters(),
-{{/*    			{{- range .Models }}*/}}
-{{/*    			{{- $modelName := splitList "." .Name | last }}*/}}
-{{/*    			"loft_{{ $modelName | humanize | snakize }}": resources.{{ $modelName | pascalize }}DataSource(),*/}}
-{{/*    			"loft_{{ $modelName | humanize | snakize | pluralizeFirstWord }}": resources.{{ $modelName | pluralizeFirstWord | pascalize }}DataSource(),*/}}
-{{/*    			{{- end }}*/}}
+    			{{- range .Models }}
+    			{{- $modelName := splitList "." .Name | last }}
+    			"loft_{{ $modelName | humanize | snakize }}": resources.{{ $modelName | pascalize }}DataSource(),
+    			{{- end }}
     		},
     		ConfigureContextFunc: func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 				var (

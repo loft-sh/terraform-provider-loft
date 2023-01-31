@@ -28,10 +28,55 @@ import (
 )
 
 {{- $modelName := splitList "." .Name | last }}
+{{- $modelsName := $modelName | pluralizeFirstWord }}
+{{- $isClusterScoped := stringContains $modelName "Project" }}
+
 func {{ pascalize $modelName }}DataSource() *schema.Resource {
-	return nil
+	return &schema.Resource{
+		Description: "{{ .Description }}",
+		Schema:      {{ camelize $modelName }}DataSourceSchema(),
+		ReadContext: dataSource{{ pascalize $modelName }}Read,
+	}
 }
 
-func {{ pascalize $modelName | pluralizeFirstWord }}DataSource() *schema.Resource {
-return nil
+
+func {{ camelize $modelName }}DataSourceSchema() map[string]*schema.Schema {
+	attributes := {{ camelize $modelName }}Attributes()
+
+	metadataSchema := attributes["metadata"].Elem.(*schema.Resource)
+
+	metadataSchema.Schema["name"].Computed = false
+	metadataSchema.Schema["name"].Optional = false
+	metadataSchema.Schema["name"].Required = true
+	metadataSchema.Schema["name"].ConflictsWith = nil
+
+	metadataSchema.Schema["generate_name"].ConflictsWith = nil
+	metadataSchema.Schema["generate_name"].AtLeastOneOf = nil
+
+	{{ if not $isClusterScoped }}
+	metadataSchema.Schema["namespace"].Computed = false
+	metadataSchema.Schema["namespace"].Optional = false
+	metadataSchema.Schema["namespace"].Required = true
+	{{- end }}
+
+	attributes["spec"].Required = false
+	attributes["spec"].Computed = true
+
+	return attributes
+}
+
+func dataSource{{ pascalize $modelName }}Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	{{- if $isClusterScoped }}
+	metadata := metav1.ObjectMeta{
+		Name: d.Get("metadata.0.name").(string),
+	}
+	{{- else }}
+	metadata := metav1.ObjectMeta{
+		Namespace: d.Get("metadata.0.namespace").(string),
+		Name: d.Get("metadata.0.name").(string),
+	}
+	{{- end }}
+	d.SetId(utils.ReadId(metadata))
+
+	return projectRead(ctx, d, meta)
 }

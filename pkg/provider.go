@@ -55,10 +55,13 @@ func New() func() *schema.Provider {
 				"loft_virtual_cluster_instance": resources.VirtualClusterInstanceResource(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"loft_spaces":           legacy.DataSourceSpaces(),
-				"loft_space":            legacy.DataSourceSpace(),
-				"loft_virtual_cluster":  legacy.DataSourceVirtualCluster(),
-				"loft_virtual_clusters": legacy.DataSourceVirtualClusters(),
+				"loft_spaces":                   legacy.DataSourceSpaces(),
+				"loft_space":                    legacy.DataSourceSpace(),
+				"loft_virtual_cluster":          legacy.DataSourceVirtualCluster(),
+				"loft_virtual_clusters":         legacy.DataSourceVirtualClusters(),
+				"loft_project":                  resources.ProjectDataSource(),
+				"loft_space_instance":           resources.SpaceInstanceDataSource(),
+				"loft_virtual_cluster_instance": resources.VirtualClusterInstanceDataSource(),
 			},
 			ConfigureContextFunc: func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 				var (
