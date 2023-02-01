@@ -8,8 +8,12 @@ clean:
 	rm -Rf pkg/resources_gen
 	rm -Rf pkg/schemas_gen
 
+.PHONY: generate-docs
+generate-docs:
+	go generate ./...
+
 .PHONY: generate
-generate: clean
+generate-models: clean
 	swagger generate client \
 		--spec ./gen/swagger.json \
 		--template-dir ./gen/templates \
@@ -63,5 +67,5 @@ build-local:
 
 # Run acceptance tests
 .PHONY: testacc
-testacc: build-local
+testacc:
 	TF_ACC=1 TF_ACC_PROVIDER_NAMESPACE='loft-sh' go test ./tests/... -v $(TESTARGS) -timeout 120m
