@@ -22,6 +22,7 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access holds the access rights for users and teams",
 			Optional:    true,
+			Computed:    true,
 		},
 		"cluster_ref": {
 			Type:     schema.TypeList,
@@ -32,6 +33,7 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "ClusterRef is the reference to the connected cluster holding this space",
 			Optional:    true,
+			Computed:    true,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -60,6 +62,7 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Owner holds the owner of this object",
 			Optional:    true,
+			Computed:    true,
 		},
 		"parameters": {
 			Type:        schema.TypeString,

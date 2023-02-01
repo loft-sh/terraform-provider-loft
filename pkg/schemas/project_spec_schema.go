@@ -21,6 +21,7 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Access holds the access rights for users and teams",
 			Optional:    true,
+			Computed:    true,
 		},
 		"allowed_clusters": {
 			Type: schema.TypeList,
@@ -85,6 +86,7 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Owner holds the owner of this object",
 			Optional:    true,
+			Computed:    true,
 		},
 		"quotas": {
 			Type:     schema.TypeList,

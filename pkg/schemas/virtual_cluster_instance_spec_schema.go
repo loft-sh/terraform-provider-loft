@@ -62,6 +62,7 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "Owner holds the owner of this object",
 			Optional:    true,
+			Computed:    true,
 		},
 		"parameters": {
 			Type:        schema.TypeString,

@@ -73,6 +73,50 @@ func TestAccResourceSpaceInstance_noNamespace(t *testing.T) {
 	})
 }
 
+func TestAccResourceSpaceInstance_minimal(t *testing.T) {
+	name := names.SimpleNameGenerator.GenerateName("mycluster-")
+	user := "admin"
+	project := "default"
+
+	kubeClient, err := newKubeClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, accessKey, configPath, err := loginUser(kubeClient, "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer logout(t, kubeClient, accessKey)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccResourceSpaceInstanceCreateMinimal(configPath, project, name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("loft_space_instance.test_user", "metadata.0.name", name),
+					resource.TestCheckResourceAttr("loft_space_instance.test_user", "metadata.0.namespace", "loft-p-"+project),
+					resource.TestCheckResourceAttr("loft_space_instance.test_user", "spec.0.owner.0.user", user),
+					resource.TestCheckResourceAttr("loft_space_instance.test_user", "spec.0.owner.0.team", ""),
+					checkSpaceInstance(configPath, project, name, hasUser(user)),
+				),
+			},
+			{
+				ResourceName:      "loft_space_instance.test_user",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"metadata.0.generation",
+					"metadata.0.resource_version",
+				},
+			},
+		},
+	})
+}
+
 func TestAccResourceSpaceInstance_withTemplate(t *testing.T) {
 	name := names.SimpleNameGenerator.GenerateName("my-space-instance-")
 	user := "admin"
@@ -328,6 +372,38 @@ func testAccResourceSpaceInstanceNoNamespace(configPath, spaceName string) strin
 `,
 
 		configPath,
+		spaceName,
+	)
+}
+
+func testAccResourceSpaceInstanceCreateMinimal(configPath, project, spaceName string) string {
+	return fmt.Sprintf(`
+terraform {
+	required_providers {
+		loft = {
+			source = "registry.terraform.io/loft-sh/loft"
+		}
+	}
+}
+
+provider "loft" {
+	config_path = "%[1]s"
+}
+
+resource "loft_space_instance" "test_user" {
+	metadata {
+		namespace = "loft-p-%[2]s"
+		name = "%[3]s"
+	}
+	spec {
+		template_ref {
+			name = "isolated-space"
+		}
+	}
+}
+`,
+		configPath,
+		project,
 		spaceName,
 	)
 }
