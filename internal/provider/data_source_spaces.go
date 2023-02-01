@@ -17,6 +17,8 @@ func DataSourceSpaces() *schema.Resource {
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_spaces` data source provides information about all Loft spaces in the given `cluster`.",
 
+		DeprecationMessage: "`loft_spaces` has been deprecated and will be removed in a future release.",
+
 		ReadContext: dataSourceSpacesRead,
 
 		Schema: map[string]*schema.Schema{

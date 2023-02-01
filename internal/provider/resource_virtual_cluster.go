@@ -18,6 +18,8 @@ func ResourceVirtualCluster() *schema.Resource {
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.",
 
+		DeprecationMessage: "`loft_virtual_cluster` has been deprecated and will be removed in a future release. Please use `loft_virtual_cluster_instance` instead.",
+
 		CreateContext: resourceVirtualClusterCreate,
 		ReadContext:   resourceVirtualClusterRead,
 		UpdateContext: resourceVirtualClusterUpdate,

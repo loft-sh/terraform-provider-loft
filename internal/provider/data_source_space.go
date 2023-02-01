@@ -15,11 +15,11 @@ func DataSourceSpace() *schema.Resource {
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_space` data source provides information about an existing Loft space that matches the given `cluster` and `name`.",
 
+		DeprecationMessage: "`loft_space` has been deprecated and will be removed in a future release. Please use `loft_space_instance` instead.",
+
 		ReadContext: dataSourceSpaceRead,
 
 		Schema: spaceDataSourceAttributes(),
-
-		DeprecationMessage: "`loft_space` has been deprecated and will be removed in a future release. Please use `loft_space_instance` instead.",
 	}
 }
 

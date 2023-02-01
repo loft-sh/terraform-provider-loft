@@ -17,6 +17,8 @@ func DataSourceVirtualClusters() *schema.Resource {
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_clusters` data source provides information about all virtual clusters that match the given `cluster` and `namespace`.",
 
+		DeprecationMessage: "`loft_virtual_clusters` has been deprecated and will be removed in a future release.",
+
 		ReadContext: dataSourceVirtualClustersRead,
 
 		Schema: map[string]*schema.Schema{

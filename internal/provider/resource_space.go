@@ -19,6 +19,8 @@ func ResourceSpace() *schema.Resource {
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_space` resource is used to manage a Loft space.",
 
+		DeprecationMessage: "`loft_space` has been deprecated and will be removed in a future release. Please use `loft_space_instance` instead.",
+
 		CreateContext: resourceSpaceCreate,
 		ReadContext:   resourceSpaceRead,
 		UpdateContext: resourceSpaceUpdate,
