@@ -2,5 +2,6 @@ layout:
   models:
     - name: schemas
       source: schemas.tmpl
-      target: "{{ joinFilePath .Target }}/pkg/schemas_gen"
+      target: "{{ joinFilePath .Target }}/pkg/schemas"
       file_name: "{{ splitList \".\" .Name | last | camelize }}_schema.go"
+      skip_exists: true

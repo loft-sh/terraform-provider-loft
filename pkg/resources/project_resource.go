@@ -7,6 +7,7 @@ package resources
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
@@ -59,8 +60,11 @@ func projectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	_, name := utils.ParseID(d.Id())
+	if name == "" {
+		return diag.Errorf("`name` is required for all resources")
+	}
+
 	instance, err := managementClient.Loft().ManagementV1().Projects().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return diag.FromErr(err)
@@ -99,6 +103,7 @@ func projectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	}
 
 	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
+
 	spec := schemas.CreateManagementV1ProjectSpec(d.Get("spec.0").(map[string]interface{}))
 
 	instance, err := managementClient.Loft().ManagementV1().Projects().Create(ctx, &managementv1.Project{
@@ -124,7 +129,6 @@ func projectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	_, name := utils.ParseID(d.Id())
 	oldInstance, err := managementClient.Loft().ManagementV1().Projects().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -144,7 +148,6 @@ func projectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	if _, err := managementClient.Loft().ManagementV1().Projects().Patch(ctx, name, patch.Type(), rawPatch, metav1.PatchOptions{}); err != nil {
 		return diag.FromErr(err)
 	}
@@ -164,7 +167,6 @@ func projectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 	}
 
 	metadata := utils.CreateMetadata(d.Get("metadata").([]interface{}))
-
 	err = managementClient.Loft().ManagementV1().Projects().Delete(ctx, metadata.Name, metav1.DeleteOptions{})
 	if err != nil {
 		return diag.FromErr(err)

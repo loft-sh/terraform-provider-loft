@@ -7,9 +7,11 @@ layout:
   models:
     - name: resources
       source: resources.tmpl
-      target: "{{ joinFilePath .Target }}/pkg/resources_gen"
+      target: "{{ joinFilePath .Target }}/pkg/resources"
       file_name: "{{ splitList \".\" .Name | last | camelize }}_resource.go"
+      skip_exists: false
     - name: data_sources
       source: data_sources.tmpl
       target: "{{ joinFilePath .Target }}/pkg/resources"
       file_name: "{{ splitList \".\" .Name | last | camelize }}_data_source.go"
+      skip_exists: false

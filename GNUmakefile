@@ -3,17 +3,12 @@ GOARCH=$(shell go env GOARCH)
 
 default: testacc
 
-.PHONY: clean
-clean:
-	rm -Rf pkg/resources_gen
-	rm -Rf pkg/schemas_gen
-
 .PHONY: generate-docs
 generate-docs:
 	go generate ./...
 
 .PHONY: generate
-generate-models: clean
+generate-models:
 	swagger generate client \
 		--spec ./gen/swagger.json \
 		--template-dir ./gen/templates \
@@ -27,7 +22,6 @@ generate-models: clean
 		--spec ./gen/swagger.json \
 		--template-dir ./gen/templates \
 		--config-file ./gen/schemas.yml \
-		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.ProjectSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.ProjectSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.SpaceInstanceSpec" \
 		--model "com.github.loft-sh.api.v3.pkg.apis.management.v1.VirtualClusterInstanceSpec" \
