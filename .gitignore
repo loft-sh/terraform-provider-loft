@@ -29,3 +29,7 @@ terraform.tfstate.*
 # Generated provider implementation files
 pkg/resources_gen
 pkg/schemas_gen
+
+# Ignore IDEs
+.idea
+.vscode
