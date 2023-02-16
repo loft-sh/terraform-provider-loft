@@ -9,10 +9,10 @@ require (
 	github.com/loft-sh/agentapi/v2 v2.3.3-0.20221125083603-6094cede9a8e
 	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20221129143917-24edfe9469c9
 	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20221130145921-400f06280836
-	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.25.4
+	k8s.io/api v0.26.1
+	k8s.io/apimachinery v0.26.1
 	k8s.io/apiserver v0.25.4
-	k8s.io/client-go v0.25.4
+	k8s.io/client-go v0.26.1
 	sigs.k8s.io/controller-runtime v0.13.1
 )
 
@@ -156,12 +156,12 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221111202108-142d8a6fa32e // indirect
