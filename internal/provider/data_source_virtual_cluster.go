@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,10 +10,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceVirtualCluster() *schema.Resource {
+func DataSourceVirtualCluster() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_cluster` data source provides information about an existing virtual cluster that matches the given `cluster`, `namespace`, and `name`.",
+
+		DeprecationMessage: "`loft_virtual_cluster` has been deprecated and will be removed in a future release. Please use `loft_virtual_cluster_instance` instead.",
 
 		ReadContext: dataSourceVirtualClusterRead,
 
@@ -26,12 +29,13 @@ func dataSourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, m
 	virtualClusterName := d.Get("name").(string)
 	clusterName := d.Get("cluster").(string)
 	namespace := d.Get("namespace").(string)
-	apiClient, ok := meta.(*apiClient)
+
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -49,11 +53,11 @@ func dataSourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, m
 }
 
 func virtualClustersAttributes() map[string]*schema.Schema {
-	schema := virtualClusterAttributes()
-	schema["name"].Computed = false
-	schema["name"].ConflictsWith = nil
-	schema["name"].Optional = false
-	schema["name"].Required = true
-	schema["generate_name"].ConflictsWith = nil
-	return schema
+	attributes := virtualClusterAttributes()
+	attributes["name"].Computed = false
+	attributes["name"].ConflictsWith = nil
+	attributes["name"].Optional = false
+	attributes["name"].Required = true
+	attributes["generate_name"].ConflictsWith = nil
+	return attributes
 }

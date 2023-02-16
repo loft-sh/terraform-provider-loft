@@ -1,7 +1,14 @@
-package provider
+package tests
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	clusterv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
@@ -355,6 +362,65 @@ resource "loft_space" "test_name_and_generate_name" {
 		name,
 		prefix,
 	)
+}
+
+func checkSpace(configPath, clusterName, spaceName string, pred func(obj ctrlclient.Object) error) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		apiClient, err := client.NewClientFromPath(configPath)
+		if err != nil {
+			return err
+		}
+
+		clusterClient, err := apiClient.Cluster(clusterName)
+		if err != nil {
+			return err
+		}
+
+		space, err := clusterClient.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		return pred(space)
+	}
+}
+
+func spaceHasUser(user string) func(obj ctrlclient.Object) error {
+	return func(obj ctrlclient.Object) error {
+		space, ok := obj.(*clusterv1.Space)
+		if !ok {
+			return fmt.Errorf("object is not a space")
+		}
+
+		if space.Spec.User != user {
+			return fmt.Errorf(
+				"%s: User didn't match %q, got %#v",
+				space.GetName(),
+				user,
+				space.Spec.User)
+		}
+
+		return nil
+	}
+}
+
+func spaceHasTeam(team string) func(obj ctrlclient.Object) error {
+	return func(obj ctrlclient.Object) error {
+		space, ok := obj.(*clusterv1.Space)
+		if !ok {
+			return fmt.Errorf("object is not a space")
+		}
+
+		if space.Spec.Team != team {
+			return fmt.Errorf(
+				"%s: Team didn't match %q, got %#v",
+				space.GetName(),
+				team,
+				space.Spec.Team)
+		}
+
+		return nil
+	}
 }
 
 func toSecondsString(durationStr string) (string, error) {

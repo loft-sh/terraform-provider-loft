@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,10 +12,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceVirtualClusters() *schema.Resource {
+func DataSourceVirtualClusters() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_clusters` data source provides information about all virtual clusters that match the given `cluster` and `namespace`.",
+
+		DeprecationMessage: "`loft_virtual_clusters` has been deprecated and will be removed in a future release.",
 
 		ReadContext: dataSourceVirtualClustersRead,
 
@@ -23,7 +26,7 @@ func dataSourceVirtualClusters() *schema.Resource {
 				Description: "All virtual_clusters",
 				Type:        schema.TypeList,
 				Computed:    true,
-				Elem:        dataSourceVirtualCluster(),
+				Elem:        DataSourceVirtualCluster(),
 			},
 			"cluster": {
 				Description: "The cluster to list virtual_clusters from.",
@@ -45,12 +48,12 @@ func dataSourceVirtualClustersRead(ctx context.Context, d *schema.ResourceData, 
 	clusterName := d.Get("cluster").(string)
 	namespace := d.Get("namespace").(string)
 
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}

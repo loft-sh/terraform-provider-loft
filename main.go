@@ -2,9 +2,8 @@ package main
 
 import (
 	"flag"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/loft-sh/terraform-provider-loft/internal/provider"
+	loft "github.com/loft-sh/terraform-provider-loft/pkg"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -18,12 +17,12 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 var (
-	// these will be set by the goreleaser configuration
-	// to appropriate values for the compiled binary
-	version = "dev"
+// these will be set by the goreleaser configuration
+// to appropriate values for the compiled binary
+//version = "dev"
 
-	// goreleaser can also pass the specific commit if you want
-	// commit  string = ""
+// goreleaser can also pass the specific commit if you want
+// commit  string = ""
 )
 
 func main() {
@@ -37,7 +36,7 @@ func main() {
 
 		ProviderAddr: "registry.terraform.io/loft-sh/loft",
 
-		ProviderFunc: provider.New(version),
+		ProviderFunc: loft.New(),
 	}
 
 	plugin.Serve(opts)

@@ -11,7 +11,7 @@ The Loft Provider provides resources to manage your Loft Spaces and Virtual Clus
 
 ## Example Usage
 
-Create a Space using terraform
+Create a Project using terraform
 ```terraform
 terraform {
   required_providers {
@@ -23,13 +23,62 @@ terraform {
 
 provider "loft" {}
 
-resource "loft_space" "basic" {
-  name    = "basic-space"
-  cluster = "loft-cluster"
+resource "loft_project" "example-project" {
+  metadata {
+    name = "example-project"
+  }
+  spec {
+    access {
+      name         = "loft-admin-access"
+      verbs        = ["get", "update", "patch", "delete"]
+      subresources = ["*"]
+      users        = ["admin"]
+    }
+    access {
+      name         = "loft-access"
+      subresources = ["members", "clusters", "templates", "chartinfo", "charts"]
+      verbs        = ["get"]
+      users        = ["*"]
+    }
+    allowed_clusters {
+      name = "*"
+    }
+    allowed_templates {
+      kind  = "VirtualClusterTemplate"
+      group = "storage.loft.sh"
+      name  = "*"
+    }
+    allowed_templates {
+      kind  = "SpaceTemplate"
+      group = "storage.loft.sh"
+      name  = "*"
+    }
+    description  = "Terraform Managed Project"
+    display_name = "Terraform Managed Project"
+    members {
+      kind         = "User"
+      group        = "storage.loft.sh"
+      name         = "*"
+      cluster_role = "loft-management-project-user"
+    }
+    owner {
+      user = "admin"
+    }
+    quotas {
+      project = {
+        "spaceinstances"          = "10"
+        "virtualclusterinstances" = "10"
+      }
+      user = {
+        "spaceinstances"          = "10"
+        "virtualclusterinstances" = "10"
+      }
+    }
+  }
 }
 ```
 
-Create a Virtual Cluster using terraform
+Create a Space Instance using terraform
 ```terraform
 terraform {
   required_providers {
@@ -41,15 +90,44 @@ terraform {
 
 provider "loft" {}
 
-resource "loft_space" "basic" {
-  name    = "basic-space"
-  cluster = "loft-cluster"
+resource "loft_space_instance" "example-space" {
+  metadata {
+    namespace = "loft-p-example-project"
+    name      = "example-space"
+  }
+  spec {
+    template_ref {
+      name = "isolated-space"
+    }
+  }
+}
+```
+
+Create a Virtual Cluster Instance using terraform
+```terraform
+terraform {
+  required_providers {
+    loft = {
+      source = "registry.terraform.io/loft-sh/loft"
+    }
+  }
 }
 
-resource "loft_virtual_cluster" "basic" {
-  name      = "basic-virtual-cluster"
-  namespace = resource.loft_space.basic.name
-  cluster   = resource.loft_space.basic.cluster
+provider "loft" {}
+
+resource "loft_virtual_cluster_instance" "example-vcluster" {
+  metadata {
+    namespace = "loft-p-example-project"
+    name      = "example-vcluster"
+  }
+  spec {
+    owner {
+      user = "admin"
+    }
+    template_ref {
+      name = "isolated-vcluster"
+    }
+  }
 }
 ```
 

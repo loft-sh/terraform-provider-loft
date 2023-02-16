@@ -1,17 +1,14 @@
-package provider
+package tests
 
 import (
-	"context"
 	"fmt"
+	"github.com/loft-sh/terraform-provider-loft/internal/provider"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apiserver/pkg/storage/names"
 )
 
@@ -98,7 +95,7 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
-					checkSpace(configPath, cluster, name, hasUser(user)),
+					checkSpace(configPath, cluster, name, spaceHasUser(user)),
 				),
 			},
 			{
@@ -113,7 +110,7 @@ func TestAccResourceSpace_withGivenUser(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user2),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
-					checkSpace(configPath, cluster, name, hasUser(user2)),
+					checkSpace(configPath, cluster, name, spaceHasUser(user2)),
 				),
 			},
 		},
@@ -138,12 +135,11 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 	}
 	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
+	teamAccessKey, _, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer logout(t, kubeClient, teamAccessKey)
-	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
@@ -157,7 +153,7 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
-					checkSpace(configPath, cluster, name, hasTeam(team)),
+					checkSpace(configPath, cluster, name, spaceHasTeam(team)),
 				),
 			},
 			{
@@ -172,7 +168,7 @@ func TestAccResourceSpace_withGivenTeam(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team2),
-					checkSpace(configPath, cluster, name, hasTeam(team2)),
+					checkSpace(configPath, cluster, name, spaceHasTeam(team2)),
 				),
 			},
 		},
@@ -737,7 +733,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints),
-					checkSpace(configPath, cluster, name, hasLabel(SpaceLabelSpaceConstraints, spaceConstraints)),
+					checkSpace(configPath, cluster, name, hasLabel(provider.SpaceLabelSpaceConstraints, spaceConstraints)),
 				),
 			},
 			{
@@ -754,7 +750,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", spaceConstraints2),
-					checkSpace(configPath, cluster, name, hasLabel(SpaceLabelSpaceConstraints, spaceConstraints2)),
+					checkSpace(configPath, cluster, name, hasLabel(provider.SpaceLabelSpaceConstraints, spaceConstraints2)),
 				),
 			},
 			{
@@ -771,7 +767,7 @@ func TestAccResourceSpace_withSpaceConstraints(t *testing.T) {
 					resource.TestCheckResourceAttr("loft_space.test", "user", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "team", ""),
 					resource.TestCheckResourceAttr("loft_space.test", "space_constraints", ""),
-					checkSpace(configPath, cluster, name, noLabel(SpaceLabelSpaceConstraints)),
+					checkSpace(configPath, cluster, name, noLabel(provider.SpaceLabelSpaceConstraints)),
 				),
 			},
 			{
@@ -983,105 +979,4 @@ resource "loft_space" "test" {
 		configPath,
 		spaceName,
 	)
-}
-
-func checkSpace(configPath, clusterName, spaceName string, pred func(space *v1.Space) error) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		apiClient, err := client.NewClientFromPath(configPath)
-		if err != nil {
-			return err
-		}
-
-		clusterClient, err := apiClient.Cluster(clusterName)
-		if err != nil {
-			return err
-		}
-
-		space, err := clusterClient.Agent().ClusterV1().Spaces().Get(context.TODO(), spaceName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
-		return pred(space)
-	}
-}
-
-func hasAnnotation(annotation, value string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.GetAnnotations()[annotation] != value {
-			return fmt.Errorf(
-				"%s: Annotation '%s' didn't match %q, got %#v",
-				space.GetName(),
-				annotation,
-				value,
-				space.GetLabels()[annotation])
-		}
-		return nil
-	}
-}
-
-func noAnnotation(annotation string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.GetAnnotations()[annotation] != "" {
-			return fmt.Errorf(
-				"%s: Annotation '%s' should not be present",
-				space.GetName(),
-				annotation,
-			)
-		}
-		return nil
-	}
-}
-
-func hasLabel(label, value string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.GetLabels()[label] != value {
-			return fmt.Errorf(
-				"%s: Label '%s' didn't match %q, got %#v",
-				space.GetName(),
-				label,
-				value,
-				space.GetLabels()[label])
-		}
-		return nil
-	}
-}
-
-func noLabel(label string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.GetAnnotations()[label] != "" {
-			return fmt.Errorf(
-				"%s: Label '%s' should not be present",
-				space.GetName(),
-				label,
-			)
-		}
-		return nil
-	}
-}
-
-func hasUser(user string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.Spec.User != user {
-			return fmt.Errorf(
-				"%s: User didn't match %q, got %#v",
-				space.GetName(),
-				user,
-				space.Spec.User)
-		}
-		return nil
-	}
-}
-
-func hasTeam(team string) func(space *v1.Space) error {
-	return func(space *v1.Space) error {
-		if space.Spec.Team != team {
-			return fmt.Errorf(
-				"%s: Team didn't match %q, got %#v",
-				space.GetName(),
-				team,
-				space.Spec.Team)
-		}
-		return nil
-	}
 }

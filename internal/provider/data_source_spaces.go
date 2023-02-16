@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -11,10 +12,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceSpaces() *schema.Resource {
+func DataSourceSpaces() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_spaces` data source provides information about all Loft spaces in the given `cluster`.",
+
+		DeprecationMessage: "`loft_spaces` has been deprecated and will be removed in a future release.",
 
 		ReadContext: dataSourceSpacesRead,
 
@@ -23,7 +26,7 @@ func dataSourceSpaces() *schema.Resource {
 				Description: "All spaces",
 				Type:        schema.TypeList,
 				Computed:    true,
-				Elem:        dataSourceSpace(),
+				Elem:        DataSourceSpace(),
 			},
 			"cluster": {
 				Description: "The cluster to list spaces from.",
@@ -39,12 +42,12 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 
 	clusterName := d.Get("cluster").(string)
 
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -54,7 +57,7 @@ func dataSourceSpacesRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
-	spaces := []map[string]interface{}{}
+	var spaces []map[string]interface{}
 	for _, space := range spacesList.Items {
 		flattenedSpace, err := flattenSpace(clusterName, space)
 		if err != nil {

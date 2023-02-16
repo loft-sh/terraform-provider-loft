@@ -1,9 +1,9 @@
-package provider
+package tests
 
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	loft "github.com/loft-sh/terraform-provider-loft/pkg"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -34,14 +34,14 @@ import (
 var (
 	providerFactories = map[string]func() (*schema.Provider, error){
 		"loft": func() (*schema.Provider, error) {
-			return New("dev")(), nil
+			return loft.New()(), nil
 		},
 	}
 	rxPosNum = regexp.MustCompile("^[1-9][0-9]*$")
 )
 
 func TestProvider(t *testing.T) {
-	if err := New("dev")().InternalValidate(); err != nil {
+	if err := loft.New()().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
@@ -273,7 +273,7 @@ data "loft_spaces" "all" {
 	)
 }
 
-func testAccPreCheck(t *testing.T) {
+func testAccPreCheck(_ *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
 	// about the appropriate environment variables being set are common to see in a pre-check
 	// function.
@@ -479,7 +479,7 @@ func createTeamAccessKey(kubeClient kube.Interface, team string, key string) (*s
 
 func deleteAccessKey(kubeClient kube.Interface, accessKey *storagev1.AccessKey) error {
 	err := kubeClient.Loft().StorageV1().AccessKeys().Delete(context.TODO(), accessKey.GetName(), metav1.DeleteOptions{})
-	if err != nil && errors.IsNotFound(err) {
+	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
 
@@ -487,11 +487,7 @@ func deleteAccessKey(kubeClient kube.Interface, accessKey *storagev1.AccessKey) 
 }
 
 func loginAndSaveConfigFile(accessKey string) (client.Client, string, error) {
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return nil, "", err
-	}
-
+	tempDir := os.TempDir()
 	configPath := filepath.Join(tempDir, "config.json")
 
 	loftClient, err := client.NewClientFromPath(configPath)
@@ -534,15 +530,4 @@ func createTeamClusterAccess(loftClient client.Client, clusterName string, teamN
 	}
 
 	return clusterAccess, nil
-}
-
-func deleteClusterAccess(t *testing.T, c client.Client, clusterName string, teamName string) {
-	clusterClient, err := c.Cluster(clusterName)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if err := clusterClient.Agent().ClusterV1().LocalClusterAccesses().Delete(context.TODO(), teamName, metav1.DeleteOptions{}); err != nil {
-		t.Error(err)
-	}
 }

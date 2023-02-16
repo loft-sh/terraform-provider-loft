@@ -64,7 +64,7 @@ func isInternalKey(annotationKey string) bool {
 	}
 
 	// Specific to DaemonSet annotations, generated & controlled by the server.
-	if strings.Contains(annotationKey, "deprecated.daemonset.template.generation") {
+	if strings.Contains(annotationKey, "deprecated.daemonset.templates.generation") {
 		return true
 	}
 

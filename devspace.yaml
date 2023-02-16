@@ -1,5 +1,7 @@
 version: v2beta1
 
+name: terraform-provider-loft
+
 vars:
   LOFT_IMAGE: loftsh/loft
 
@@ -9,6 +11,7 @@ deployments:
       chart:
         name: loft
         repo: https://charts.loft.sh
+        version: v3.0.0-alpha.10
 
 dev:
   loft:

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/loft-sh/loftctl/v2/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,10 +10,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func dataSourceSpace() *schema.Resource {
+func DataSourceSpace() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_space` data source provides information about an existing Loft space that matches the given `cluster` and `name`.",
+
+		DeprecationMessage: "`loft_space` has been deprecated and will be removed in a future release. Please use `loft_space_instance` instead.",
 
 		ReadContext: dataSourceSpaceRead,
 
@@ -26,12 +29,12 @@ func dataSourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta inter
 	spaceName := d.Get("name").(string)
 	clusterName := d.Get("cluster").(string)
 
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -50,11 +53,11 @@ func dataSourceSpaceRead(ctx context.Context, d *schema.ResourceData, meta inter
 }
 
 func spaceDataSourceAttributes() map[string]*schema.Schema {
-	schema := spaceAttributes()
-	schema["name"].Computed = false
-	schema["name"].Optional = false
-	schema["name"].Required = true
-	schema["name"].ConflictsWith = nil
-	schema["generate_name"].ConflictsWith = nil
-	return schema
+	attributes := spaceAttributes()
+	attributes["name"].Computed = false
+	attributes["name"].Optional = false
+	attributes["name"].Required = true
+	attributes["name"].ConflictsWith = nil
+	attributes["generate_name"].ConflictsWith = nil
+	return attributes
 }

@@ -33,7 +33,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.17'
+        go-version: 1.19
       id: go
 
     - name: Check out terraform-provider-loft
@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.19
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -68,7 +68,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17'
+          go-version: 1.19
       
       - name: Check out terraform-provider-loft
         uses: actions/checkout@v3.0.2
@@ -100,7 +100,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.17'
+        go-version: 1.19
       id: go
 
     - name: Set up Devspace
@@ -126,7 +126,7 @@ jobs:
         image: kindest/node:v1.24.0@sha256:406fd86d48eaf4c04c7280cd1d2ca1d61e7d0d61ddef0125cb097bc7b82ed6a1
         
     - name: TF acceptance tests
-      timeout-minutes: 10
+      timeout-minutes: 12
       run: |
         devspace use namespace loft
         devspace run e2e  

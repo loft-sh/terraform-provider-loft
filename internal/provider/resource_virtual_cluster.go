@@ -2,20 +2,23 @@ package provider
 
 import (
 	"context"
+	client "github.com/loft-sh/loftctl/v2/pkg/client"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func resourceVirtualCluster() *schema.Resource {
+func ResourceVirtualCluster() *schema.Resource {
 	return &schema.Resource{
 		// This description is used by the documentation generator and the language server.
 		Description: "The `loft_virtual_cluster` resource is used to manage a Loft virtual cluster.",
+
+		DeprecationMessage: "`loft_virtual_cluster` has been deprecated and will be removed in a future release. Please use `loft_virtual_cluster_instance` instead.",
 
 		CreateContext: resourceVirtualClusterCreate,
 		ReadContext:   resourceVirtualClusterRead,
@@ -29,9 +32,9 @@ func resourceVirtualCluster() *schema.Resource {
 }
 
 func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	clusterName := d.Get("cluster").(string)
@@ -41,7 +44,7 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 	chartVersion := d.Get("chart_version").(string)
 	values := d.Get("values").(string)
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -57,7 +60,7 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 		},
 		Values: values,
 	}
-	virtualCluster.Spec.HelmRelease = &virtualClusterHelmRelease
+	virtualCluster.Spec.HelmRelease = virtualClusterHelmRelease
 
 	name := d.Get("name").(string)
 	if name != "" {
@@ -103,13 +106,13 @@ func resourceVirtualClusterCreate(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	clusterName, namespace, virtualClusterName := parseVirtualClusterId(d.Id())
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,13 +131,13 @@ func resourceVirtualClusterRead(ctx context.Context, d *schema.ResourceData, met
 
 func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	clusterName, namespace, virtualClusterName := parseVirtualClusterId(d.Id())
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,7 +203,7 @@ func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 		}
 	}
 
-	patch := client.MergeFrom(oldVirtualCluster)
+	patch := ctrlclient.MergeFrom(oldVirtualCluster)
 	rawPatch, err := patch.Data(modifiedVirtualCluster)
 	if err != nil {
 		return diag.FromErr(err)
@@ -219,21 +222,21 @@ func resourceVirtualClusterUpdate(ctx context.Context, d *schema.ResourceData, m
 }
 
 func resourceVirtualClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	apiClient, ok := meta.(*apiClient)
+	loftClient, ok := meta.(client.Client)
 	if !ok {
-		return diag.Errorf("Could not access apiClient")
+		return diag.Errorf("Could not access loft client")
 	}
 
 	clusterName := d.Get("cluster").(string)
 	namespace := d.Get("namespace").(string)
 	virtualClusterName := d.Get("name").(string)
 
-	clusterClient, err := apiClient.LoftClient.Cluster(clusterName)
+	clusterClient, err := loftClient.Cluster(clusterName)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Delete(context.TODO(), virtualClusterName, metav1.DeleteOptions{}); err != nil {
+	if err := clusterClient.Agent().StorageV1().VirtualClusters(namespace).Delete(ctx, virtualClusterName, metav1.DeleteOptions{}); err != nil {
 		return diag.FromErr(err)
 	}
 

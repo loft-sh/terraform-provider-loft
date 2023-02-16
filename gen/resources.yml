@@ -1,0 +1,17 @@
+layout:
+  application:
+    - name: provider 
+      source: "provider.tmpl"
+      target: "{{ joinFilePath .Target }}/pkg"
+      file_name: "provider.go"
+  models:
+    - name: resources
+      source: resources.tmpl
+      target: "{{ joinFilePath .Target }}/pkg/resources"
+      file_name: "{{ splitList \".\" .Name | last | camelize }}_resource.go"
+      skip_exists: false
+    - name: data_sources
+      source: data_sources.tmpl
+      target: "{{ joinFilePath .Target }}/pkg/resources"
+      file_name: "{{ splitList \".\" .Name | last | camelize }}_data_source.go"
+      skip_exists: false

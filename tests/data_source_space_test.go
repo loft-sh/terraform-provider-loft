@@ -1,4 +1,4 @@
-package provider
+package tests
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 				Config: testAccResourceSpaceCreateWithUser(configPath, user, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_user", "cluster", cluster),
-					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestMatchResourceAttr("loft_space.test_user", "name", regexp.MustCompile(`^myspace-.*`)),
 					resource.TestCheckResourceAttr("loft_space.test_user", "user", user),
 					resource.TestCheckResourceAttr("loft_space.test_user", "team", ""),
 				),
@@ -44,7 +44,7 @@ func TestAccDataSourceSpace_user(t *testing.T) {
 					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),
-					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace-.*`)),
 					resource.TestCheckResourceAttr("data.loft_space.test", "user", user),
 					resource.TestCheckResourceAttr("data.loft_space.test", "team", ""),
 				),
@@ -70,12 +70,11 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 	}
 	defer logout(t, kubeClient, adminAccessKey)
 
-	teamAccessKey, clusterAccess, _, err := loginTeam(kubeClient, loftClient, cluster, team)
+	teamAccessKey, _, _, err := loginTeam(kubeClient, loftClient, cluster, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer logout(t, kubeClient, teamAccessKey)
-	defer deleteClusterAccess(t, loftClient, cluster, clusterAccess.GetName())
 
 	resource.Test(t, resource.TestCase{
 		CheckDestroy:      testAccSpaceCheckDestroy(kubeClient),
@@ -86,7 +85,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 				Config: testAccResourceSpaceCreateWithTeam(configPath, team, cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("loft_space.test_team", "cluster", cluster),
-					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestMatchResourceAttr("loft_space.test_team", "name", regexp.MustCompile(`^myspace-.*`)),
 					resource.TestCheckResourceAttr("loft_space.test_team", "team", team),
 					resource.TestCheckResourceAttr("loft_space.test_team", "user", ""),
 				),
@@ -96,7 +95,7 @@ func TestAccDataSourceSpace_team(t *testing.T) {
 					testAccDataSourceSpaceRead(cluster, spaceName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.loft_space.test", "cluster", cluster),
-					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace\-.*`)),
+					resource.TestMatchResourceAttr("data.loft_space.test", "name", regexp.MustCompile(`^myspace-.*`)),
 					resource.TestCheckResourceAttr("data.loft_space.test", "team", team),
 					resource.TestCheckResourceAttr("data.loft_space.test", "user", ""),
 				),
