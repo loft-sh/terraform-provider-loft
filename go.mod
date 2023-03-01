@@ -10,7 +10,7 @@ require (
 	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20221129143917-24edfe9469c9
 	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20221130145921-400f06280836
 	k8s.io/api v0.26.1
-	k8s.io/apimachinery v0.26.1
+	k8s.io/apimachinery v0.26.2
 	k8s.io/apiserver v0.25.4
 	k8s.io/client-go v0.26.1
 	sigs.k8s.io/controller-runtime v0.13.1
