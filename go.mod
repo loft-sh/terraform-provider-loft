@@ -6,9 +6,9 @@ require (
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.25.0
-	github.com/loft-sh/agentapi/v2 v2.3.3-0.20221125083603-6094cede9a8e
-	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20221129143917-24edfe9469c9
-	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20221130145921-400f06280836
+	github.com/loft-sh/agentapi/v2 v2.3.3
+	github.com/loft-sh/api/v2 v2.3.2
+	github.com/loft-sh/loftctl/v2 v2.3.2
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.2
 	k8s.io/apiserver v0.25.4
@@ -164,6 +164,7 @@ require (
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.2.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221111202108-142d8a6fa32e // indirect
 	google.golang.org/grpc v1.51.0 // indirect
@@ -172,6 +173,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	k8s.io/apiextensions-apiserver v0.25.4 // indirect
 	k8s.io/component-base v0.25.4 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221110221610-a28e98eb7c70 // indirect
