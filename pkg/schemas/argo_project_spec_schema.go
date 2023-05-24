@@ -7,7 +7,7 @@ package schemas
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	storagev1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+	storagev1 "github.com/loft-sh/api/v3/pkg/apis/storage/v1"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 

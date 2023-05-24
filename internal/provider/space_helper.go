@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	agentv1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/cluster/v1"
 )
 
 const (

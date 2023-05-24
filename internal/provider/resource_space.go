@@ -2,15 +2,16 @@ package provider
 
 import (
 	"context"
-	client "github.com/loft-sh/loftctl/v2/pkg/client"
 	"strconv"
 	"time"
+
+	client "github.com/loft-sh/loftctl/v3/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	agentv1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/cluster/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

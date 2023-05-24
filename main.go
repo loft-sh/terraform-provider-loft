@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	loft "github.com/loft-sh/terraform-provider-loft/pkg"
 )

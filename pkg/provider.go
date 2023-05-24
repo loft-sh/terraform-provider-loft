@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
+	"github.com/loft-sh/loftctl/v3/pkg/client"
 	legacy "github.com/loft-sh/terraform-provider-loft/internal/provider"
 	"github.com/loft-sh/terraform-provider-loft/pkg/resources"
 )

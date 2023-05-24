@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	managementv1 "github.com/loft-sh/api/v2/pkg/apis/management/v1"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
+	managementv1 "github.com/loft-sh/api/v3/pkg/apis/management/v1"
+	"github.com/loft-sh/loftctl/v3/pkg/client"
 	"github.com/loft-sh/terraform-provider-loft/pkg/schemas"
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

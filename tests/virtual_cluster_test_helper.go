@@ -3,8 +3,9 @@ package tests
 import (
 	"context"
 	"fmt"
-	agentv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
+
+	agentv1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/cluster/v1"
+	"github.com/loft-sh/loftctl/v3/pkg/client"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

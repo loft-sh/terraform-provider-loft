@@ -3,13 +3,14 @@ package tests
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	clusterv1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
+	clusterv1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/cluster/v1"
+	"github.com/loft-sh/loftctl/v3/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
-	"time"
 )
 
 func testAccResourceSpaceCreateWithoutUserOrTeam(configPath string, clusterName, spaceName string) string {

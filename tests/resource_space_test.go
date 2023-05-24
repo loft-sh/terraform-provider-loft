@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/loft-sh/terraform-provider-loft/internal/provider"
 	"regexp"
 	"testing"
 
+	"github.com/loft-sh/terraform-provider-loft/internal/provider"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/cluster/v1"
+	v1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/cluster/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apiserver/pkg/storage/names"
 )
