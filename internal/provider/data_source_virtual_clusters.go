@@ -2,12 +2,13 @@ package provider
 
 import (
 	"context"
-	"github.com/loft-sh/loftctl/v2/pkg/client"
 	"strings"
+
+	"github.com/loft-sh/loftctl/v3/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	v1 "github.com/loft-sh/agentapi/v2/pkg/apis/loft/storage/v1"
+	v1 "github.com/loft-sh/agentapi/v3/pkg/apis/loft/storage/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

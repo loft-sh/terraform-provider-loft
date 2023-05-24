@@ -2,7 +2,8 @@ package tests
 
 import (
 	"fmt"
-	v1 "github.com/loft-sh/api/v2/pkg/apis/storage/v1"
+
+	v1 "github.com/loft-sh/api/v3/pkg/apis/storage/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
