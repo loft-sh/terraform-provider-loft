@@ -6,7 +6,7 @@ require (
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.25.0
-	github.com/loft-sh/agentapi/v2 v2.3.3-0.20221125083603-6094cede9a8e
+	github.com/loft-sh/agentapi/v2 v2.3.3
 	github.com/loft-sh/api/v2 v2.0.3-beta.5.0.20221129143917-24edfe9469c9
 	github.com/loft-sh/loftctl/v2 v2.0.3-beta.5.0.20221130145921-400f06280836
 	k8s.io/api v0.26.1
