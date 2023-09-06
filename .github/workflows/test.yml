@@ -37,7 +37,7 @@ jobs:
       id: go
 
     - name: Check out terraform-provider-loft
-      uses: actions/checkout@v3.0.2
+      uses: actions/checkout@v4
 
     - name: Get dependencies
       run: |
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: 1.19
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -71,7 +71,7 @@ jobs:
           go-version: 1.19
       
       - name: Check out terraform-provider-loft
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v4
       
       - name: Generate docs
         run: go generate ./...
@@ -113,7 +113,7 @@ jobs:
         terraform_wrapper: false
     
     - name: Check out terraform-provider-loft
-      uses: actions/checkout@v3.0.2
+      uses: actions/checkout@v4
     
     - name: Get Dependencies
       run: |
