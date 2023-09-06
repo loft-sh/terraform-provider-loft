@@ -39,7 +39,7 @@ jobs:
           passphrase: ${{ secrets.TERRAFORM_REGISTRY_GPG_PRIVATE_KEY_PASSPHRASE }}
       -
         name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4.4.0
+        uses: goreleaser/goreleaser-action@v4.6.0
         with:
           version: latest
           args: release --rm-dist --timeout 60m
