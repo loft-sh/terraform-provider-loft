@@ -18,9 +18,19 @@ func StorageV1VirtualClusterHelmChartSchema() map[string]*schema.Schema {
 			Description: "the name of the helm chart",
 			Optional:    true,
 		},
+		"password": {
+			Type:        schema.TypeString,
+			Description: "The password that is required for this repository",
+			Optional:    true,
+		},
 		"repo": {
 			Type:        schema.TypeString,
 			Description: "the repo of the helm chart",
+			Optional:    true,
+		},
+		"username": {
+			Type:        schema.TypeString,
+			Description: "The username that is required for this repository",
 			Optional:    true,
 		},
 		"version": {
@@ -41,8 +51,16 @@ func CreateStorageV1VirtualClusterHelmChart(data map[string]interface{}) *agents
 		ret.Name = v
 	}
 
+	if v, ok := data["password"].(string); ok && len(v) > 0 {
+		ret.Password = v
+	}
+
 	if v, ok := data["repo"].(string); ok && len(v) > 0 {
 		ret.Repo = v
+	}
+
+	if v, ok := data["username"].(string); ok && len(v) > 0 {
+		ret.Username = v
 	}
 
 	if v, ok := data["version"].(string); ok && len(v) > 0 {
@@ -60,7 +78,11 @@ func ReadStorageV1VirtualClusterHelmChart(obj *agentstoragev1.VirtualClusterHelm
 	values := map[string]interface{}{}
 	values["name"] = obj.Name
 
+	values["password"] = obj.Password
+
 	values["repo"] = obj.Repo
+
+	values["username"] = obj.Username
 
 	values["version"] = obj.Version
 

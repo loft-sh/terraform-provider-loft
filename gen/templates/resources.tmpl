@@ -48,7 +48,7 @@ func {{ pascalize $modelName }}Resource() *schema.Resource {
 	}
 }
 
-{{- $isClusterScoped := stringContains $modelName "Project" }}
+{{- $isClusterScoped := or (stringContains $modelName "Project") (stringContains $modelName "VirtualClusterTemplate") }}
 
 func {{ camelize $modelName }}Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{

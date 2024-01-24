@@ -51,6 +51,11 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			Description: "Charts are helm charts that should get deployed",
 			Optional:    true,
 		},
+		"forward_token": {
+			Type:        schema.TypeBool,
+			Description: "ForwardToken signals the proxy to pass through the used token to the virtual Kubernetes api server and do a TokenReview there.",
+			Optional:    true,
+		},
 		"helm_release": {
 			Type:     schema.TypeList,
 			MinItems: 1,
@@ -59,6 +64,17 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 				Schema: StorageV1VirtualClusterHelmReleaseSchema(),
 			},
 			Description: "HelmRelease is the helm release configuration for the virtual cluster.",
+			Optional:    true,
+			Computed:    true,
+		},
+		"instance_template": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1VirtualClusterInstanceTemplateDefinitionSchema(),
+			},
+			Description: "InstanceTemplate holds the virtual cluster instance template",
 			Optional:    true,
 			Computed:    true,
 		},
@@ -77,6 +93,17 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 			Description: "Objects are Kubernetes style yamls that should get deployed into the virtual cluster",
 			Optional:    true,
 		},
+		"pro": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1VirtualClusterProSpecSchema(),
+			},
+			Description: "Pro defines the pro settings for the virtual cluster",
+			Optional:    true,
+			Computed:    true,
+		},
 		"space_template": {
 			Type:     schema.TypeList,
 			MinItems: 1,
@@ -85,6 +112,17 @@ func StorageV1VirtualClusterTemplateDefinitionSchema() map[string]*schema.Schema
 				Schema: StorageV1VirtualClusterSpaceTemplateDefinitionSchema(),
 			},
 			Description: "SpaceTemplate holds the space template",
+			Optional:    true,
+			Computed:    true,
+		},
+		"workload_virtual_cluster_template": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1WorkloadVirtualClusterTemplateDefinitionSchema(),
+			},
+			Description: "WorkloadVirtualClusterTemplateDefinition holds the workload cluster specific deployment options. Needs to be non-nil in order to deploy the virtual cluster in workload cluster mode.",
 			Optional:    true,
 			Computed:    true,
 		},
@@ -128,8 +166,16 @@ func CreateStorageV1VirtualClusterTemplateDefinition(data map[string]interface{}
 	}
 	ret.Charts = chartsItems
 
+	if v, ok := data["forward_token"].(bool); ok {
+		ret.ForwardToken = v
+	}
+
 	if v, ok := data["helm_release"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 		ret.HelmRelease = *CreateStorageV1VirtualClusterHelmRelease(v[0].(map[string]interface{}))
+	}
+
+	if v, ok := data["instance_template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.InstanceTemplate = *CreateStorageV1VirtualClusterInstanceTemplateDefinition(v[0].(map[string]interface{}))
 	}
 
 	if v, ok := data["metadata"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
@@ -140,8 +186,16 @@ func CreateStorageV1VirtualClusterTemplateDefinition(data map[string]interface{}
 		ret.Objects = v
 	}
 
+	if v, ok := data["pro"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.Pro = *CreateStorageV1VirtualClusterProSpec(v[0].(map[string]interface{}))
+	}
+
 	if v, ok := data["space_template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 		ret.SpaceTemplate = *CreateStorageV1VirtualClusterSpaceTemplateDefinition(v[0].(map[string]interface{}))
+	}
+
+	if v, ok := data["workload_virtual_cluster_template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.WorkloadVirtualClusterTemplateDefinition = CreateStorageV1WorkloadVirtualClusterTemplateDefinition(v[0].(map[string]interface{}))
 	}
 
 	return ret
@@ -189,12 +243,20 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 	}
 	values["charts"] = chartsItems
 
+	values["forward_token"] = obj.ForwardToken
+
 	helmRelease, err := ReadStorageV1VirtualClusterHelmRelease(&obj.HelmRelease)
 	if err != nil {
 		return nil, err
 	}
-	if helmRelease != nil {
-		values["helm_release"] = []interface{}{helmRelease}
+	values["helm_release"] = []interface{}{helmRelease}
+
+	instanceTemplate, err := ReadStorageV1VirtualClusterInstanceTemplateDefinition(&obj.InstanceTemplate)
+	if err != nil {
+		return nil, err
+	}
+	if instanceTemplate != nil {
+		values["instance_template"] = []interface{}{instanceTemplate}
 	}
 
 	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
@@ -207,12 +269,28 @@ func ReadStorageV1VirtualClusterTemplateDefinition(obj *storagev1.VirtualCluster
 
 	values["objects"] = obj.Objects
 
+	pro, err := ReadStorageV1VirtualClusterProSpec(&obj.Pro)
+	if err != nil {
+		return nil, err
+	}
+	if pro != nil {
+		values["pro"] = []interface{}{pro}
+	}
+
 	spaceTemplate, err := ReadStorageV1VirtualClusterSpaceTemplateDefinition(&obj.SpaceTemplate)
 	if err != nil {
 		return nil, err
 	}
 	if spaceTemplate != nil {
 		values["space_template"] = []interface{}{spaceTemplate}
+	}
+
+	workloadVirtualClusterTemplate, err := ReadStorageV1WorkloadVirtualClusterTemplateDefinition(obj.WorkloadVirtualClusterTemplateDefinition)
+	if err != nil {
+		return nil, err
+	}
+	if workloadVirtualClusterTemplate != nil {
+		values["workload_virtual_cluster_template"] = []interface{}{workloadVirtualClusterTemplate}
 	}
 
 	return values, nil

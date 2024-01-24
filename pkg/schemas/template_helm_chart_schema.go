@@ -28,6 +28,16 @@ func StorageV1TemplateHelmChartSchema() map[string]*schema.Schema {
 			Description: "The password that is required for this repository",
 			Optional:    true,
 		},
+		"password_ref": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1ChartSecretRefSchema(),
+			},
+			Description: "The password that is required for this repository",
+			Optional:    true,
+		},
 		"release_name": {
 			Type:        schema.TypeString,
 			Description: "ReleaseName is the preferred release name of the app",
@@ -50,6 +60,16 @@ func StorageV1TemplateHelmChartSchema() map[string]*schema.Schema {
 		},
 		"username": {
 			Type:        schema.TypeString,
+			Description: "The username that is required for this repository",
+			Optional:    true,
+		},
+		"username_ref": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1ChartSecretRefSchema(),
+			},
 			Description: "The username that is required for this repository",
 			Optional:    true,
 		},
@@ -89,6 +109,10 @@ func CreateStorageV1TemplateHelmChart(data map[string]interface{}) *agentstorage
 		ret.Password = v
 	}
 
+	if v, ok := data["password_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.PasswordRef = CreateStorageV1ChartSecretRef(v[0].(map[string]interface{}))
+	}
+
 	if v, ok := data["release_name"].(string); ok && len(v) > 0 {
 		ret.ReleaseName = v
 	}
@@ -107,6 +131,10 @@ func CreateStorageV1TemplateHelmChart(data map[string]interface{}) *agentstorage
 
 	if v, ok := data["username"].(string); ok && len(v) > 0 {
 		ret.Username = v
+	}
+
+	if v, ok := data["username_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.UsernameRef = CreateStorageV1ChartSecretRef(v[0].(map[string]interface{}))
 	}
 
 	if v, ok := data["values"].(string); ok && len(v) > 0 {
@@ -136,6 +164,12 @@ func ReadStorageV1TemplateHelmChart(obj *agentstoragev1.TemplateHelmChart) (inte
 
 	values["password"] = obj.Password
 
+	passwordRef, err := ReadStorageV1ChartSecretRef(obj.PasswordRef)
+	if err != nil {
+		return nil, err
+	}
+	values["password_ref"] = passwordRef
+
 	values["release_name"] = obj.ReleaseName
 
 	values["release_namespace"] = obj.ReleaseNamespace
@@ -145,6 +179,12 @@ func ReadStorageV1TemplateHelmChart(obj *agentstoragev1.TemplateHelmChart) (inte
 	values["timeout"] = obj.Timeout
 
 	values["username"] = obj.Username
+
+	usernameRef, err := ReadStorageV1ChartSecretRef(obj.UsernameRef)
+	if err != nil {
+		return nil, err
+	}
+	values["username_ref"] = usernameRef
 
 	values["values"] = obj.Values
 

@@ -11,7 +11,7 @@ deployments:
       chart:
         name: loft
         repo: https://charts.loft.sh
-        version: v3.1.1
+        version: v3.4.0-beta.11
 
 dev:
   loft:

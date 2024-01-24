@@ -40,6 +40,17 @@ func StorageV1SpaceTemplateDefinitionSchema() map[string]*schema.Schema {
 			Description: "Charts are helm charts that should get deployed",
 			Optional:    true,
 		},
+		"instance_template": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1SpaceInstanceTemplateDefinitionSchema(),
+			},
+			Description: "InstanceTemplate holds the space instance template",
+			Optional:    true,
+			Computed:    true,
+		},
 		"metadata": {
 			Type:     schema.TypeList,
 			MinItems: 1,
@@ -91,6 +102,10 @@ func CreateStorageV1SpaceTemplateDefinition(data map[string]interface{}) *storag
 	}
 	ret.Charts = chartsItems
 
+	if v, ok := data["instance_template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		ret.InstanceTemplate = *CreateStorageV1SpaceInstanceTemplateDefinition(v[0].(map[string]interface{}))
+	}
+
 	if v, ok := data["metadata"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 		ret.TemplateMetadata = *CreateStorageV1TemplateMetadata(v[0].(map[string]interface{}))
 	}
@@ -135,6 +150,14 @@ func ReadStorageV1SpaceTemplateDefinition(obj *storagev1.SpaceTemplateDefinition
 		chartsItems = append(chartsItems, item)
 	}
 	values["charts"] = chartsItems
+
+	instanceTemplate, err := ReadStorageV1SpaceInstanceTemplateDefinition(&obj.InstanceTemplate)
+	if err != nil {
+		return nil, err
+	}
+	if instanceTemplate != nil {
+		values["instance_template"] = []interface{}{instanceTemplate}
+	}
 
 	metadata, err := ReadStorageV1TemplateMetadata(&obj.TemplateMetadata)
 	if err != nil {
