@@ -53,6 +53,7 @@ func New() func() *schema.Provider {
 				"loft_project":                  resources.ProjectResource(),
 				"loft_space_instance":           resources.SpaceInstanceResource(),
 				"loft_virtual_cluster_instance": resources.VirtualClusterInstanceResource(),
+				"loft_virtual_cluster_template": resources.VirtualClusterTemplateResource(),
 			},
 			DataSourcesMap: map[string]*schema.Resource{
 				"loft_spaces":                   legacy.DataSourceSpaces(),
@@ -62,6 +63,7 @@ func New() func() *schema.Provider {
 				"loft_project":                  resources.ProjectDataSource(),
 				"loft_space_instance":           resources.SpaceInstanceDataSource(),
 				"loft_virtual_cluster_instance": resources.VirtualClusterInstanceDataSource(),
+				"loft_virtual_cluster_template": resources.VirtualClusterTemplateDataSource(),
 			},
 			ConfigureContextFunc: func(c context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 				var (

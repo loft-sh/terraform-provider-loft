@@ -11,22 +11,22 @@ import (
 	"github.com/loft-sh/terraform-provider-loft/pkg/utils"
 )
 
-func StorageV1AllowedClusterSchema() map[string]*schema.Schema {
+func StorageV1AllowedRunnerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
-			Description: "Name is the name of the cluster that is allowed to create an environment in.",
+			Description: "Name is the name of the runner that is allowed to create an environment in.",
 			Optional:    true,
 		},
 	}
 }
 
-func CreateStorageV1AllowedCluster(data map[string]interface{}) *storagev1.AllowedCluster {
+func CreateStorageV1AllowedRunner(data map[string]interface{}) *storagev1.AllowedRunner {
 	if !utils.HasKeys(data) {
 		return nil
 	}
 
-	ret := &storagev1.AllowedCluster{}
+	ret := &storagev1.AllowedRunner{}
 	if v, ok := data["name"].(string); ok && len(v) > 0 {
 		ret.Name = v
 	}
@@ -34,7 +34,7 @@ func CreateStorageV1AllowedCluster(data map[string]interface{}) *storagev1.Allow
 	return ret
 }
 
-func ReadStorageV1AllowedCluster(obj *storagev1.AllowedCluster) (interface{}, error) {
+func ReadStorageV1AllowedRunner(obj *storagev1.AllowedRunner) (interface{}, error) {
 	if obj == nil {
 		return nil, nil
 	}

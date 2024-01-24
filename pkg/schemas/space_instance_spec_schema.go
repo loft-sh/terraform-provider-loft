@@ -66,7 +66,7 @@ func ManagementV1SpaceInstanceSpecSchema() map[string]*schema.Schema {
 		},
 		"parameters": {
 			Type:        schema.TypeString,
-			Description: "Parameters are values to pass to the template",
+			Description: "Parameters are values to pass to the template. The values should be encoded as YAML string where each parameter is represented as a top-level field key.",
 			Optional:    true,
 		},
 		"template": {

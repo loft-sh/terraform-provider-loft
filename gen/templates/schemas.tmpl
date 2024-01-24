@@ -125,6 +125,8 @@ func {{ pascalize $modelName }}Schema() map[string]*schema.Schema {
 	{{ $pkgName = .Name | replace "com.github.loft-sh.agentapi.v3.pkg.apis.loft.storage.v1" "agentstoragev1" }}
 {{- else if (stringContains .Name "com.github.loft-sh.api.v3.pkg.apis.storage.v1") }}
 	{{ $pkgName = .Name | replace "com.github.loft-sh.api.v3.pkg.apis.storage.v1" "storagev1" }}
+{{- else if (stringContains .Name "io.k8s.api.core.v1") }}
+	{{ $pkgName = .Name | replace "io.k8s.api.core.v1" "corev1" }}
 {{- else }}
 	{{ $pkgName = .Name | replace "com.github.loft-sh.api.v3.pkg.apis.management.v1" "managementv1" }}
 {{- end }}

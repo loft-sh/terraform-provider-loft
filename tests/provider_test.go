@@ -39,7 +39,16 @@ var (
 		},
 	}
 	rxPosNum = regexp.MustCompile("^[1-9][0-9]*$")
+	loftHost = resolveLoftHost()
 )
+
+func resolveLoftHost() string {
+	host := os.Getenv("LOFT_HOST")
+	if host == "" {
+		host = "https://localhost:8443"
+	}
+	return host
+}
 
 func TestProvider(t *testing.T) {
 	if err := loft.New()().InternalValidate(); err != nil {
@@ -81,7 +90,6 @@ func TestAccProvider_withConfigPath(t *testing.T) {
 func TestAccProvider_withAccessKey(t *testing.T) {
 	user := "admin"
 	clusterName := "loft-cluster"
-	host := "https://localhost:8443"
 
 	kubeClient, err := newKubeClient()
 	if err != nil {
@@ -104,7 +112,7 @@ func TestAccProvider_withAccessKey(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccProviderWithAccessKey(host, accessKey.Spec.Key, true, clusterName),
+				Config: testAccProviderWithAccessKey(loftHost, accessKey.Spec.Key, true, clusterName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr("data.loft_spaces.all", "spaces.#", rxPosNum),
 				),
@@ -166,7 +174,6 @@ func TestAccProvider_withAccessKeyNoHost(t *testing.T) {
 
 func TestAccProvider_withHostNoAccessKey(t *testing.T) {
 	clusterName := "loft-cluster"
-	host := "https://localhost:8443"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -190,7 +197,7 @@ func TestAccProvider_withHostNoAccessKey(t *testing.T) {
 						cluster = "%s"
 					}
 					`,
-					host,
+					loftHost,
 					clusterName,
 				),
 				ExpectError: regexp.MustCompile("all of `access_key,host` must be specified"),
@@ -201,7 +208,6 @@ func TestAccProvider_withHostNoAccessKey(t *testing.T) {
 
 func TestAccProvider_withInvalidAccessKey(t *testing.T) {
 	clusterName := "loft-cluster"
-	host := "https://localhost:8443"
 
 	kubeClient, err := newKubeClient()
 	if err != nil {
@@ -217,7 +223,7 @@ func TestAccProvider_withInvalidAccessKey(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccProviderWithAccessKey(host, string(newUUID), true, clusterName),
+				Config:      testAccProviderWithAccessKey(loftHost, string(newUUID), true, clusterName),
 				ExpectError: regexp.MustCompile(`loft access key not found`),
 			},
 		},
@@ -496,7 +502,7 @@ func loginAndSaveConfigFile(accessKey string) (client.Client, string, error) {
 		return nil, "", err
 	}
 
-	if err := loftClient.LoginWithAccessKey("https://localhost:8443", accessKey, true); err != nil {
+	if err := loftClient.LoginWithAccessKey(loftHost, accessKey, true); err != nil {
 		return nil, "", err
 	}
 

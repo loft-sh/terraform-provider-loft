@@ -31,6 +31,14 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			Description: "AllowedClusters are target clusters that are allowed to target with environments.",
 			Optional:    true,
 		},
+		"allowed_runners": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: StorageV1AllowedRunnerSchema(),
+			},
+			Description: "AllowedRunners are target runners that are allowed to target with DevPod environments.",
+			Optional:    true,
+		},
 		"allowed_templates": {
 			Type: schema.TypeList,
 			Elem: &schema.Resource{
@@ -48,6 +56,17 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			},
 			Description: "ArgoIntegration holds information about ArgoCD Integration",
 			Optional:    true,
+		},
+		"automatic_import": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1AutomaticImportSchema(),
+			},
+			Description: "AutomaticImport imports vClusters & Namespace automatically",
+			Optional:    true,
+			Computed:    true,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -98,6 +117,37 @@ func ManagementV1ProjectSpecSchema() map[string]*schema.Schema {
 			Description: "Quotas define the quotas inside the project",
 			Optional:    true,
 		},
+		"rancher": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1RancherIntegrationSpecSchema(),
+			},
+			Description: "RancherIntegration holds information about Rancher Integration",
+			Optional:    true,
+		},
+		"require_template": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1RequireTemplateSchema(),
+			},
+			Description: "RequireTemplate configures if a template is required for instance creation.",
+			Optional:    true,
+			Computed:    true,
+		},
+		"vault": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1VaultIntegrationSpecSchema(),
+			},
+			Description: "VaultIntegration holds information about Vault Integration",
+			Optional:    true,
+		},
 	}
 }
 
@@ -128,6 +178,17 @@ func CreateManagementV1ProjectSpec(data map[string]interface{}) *managementv1.Pr
 		}
 		ret.AllowedClusters = allowedClustersItems
 
+		var allowedRunnersItems []storagev1.AllowedRunner
+		for _, v := range data["allowed_runners"].([]interface{}) {
+			if v == nil {
+				continue
+			}
+			if item := CreateStorageV1AllowedRunner(v.(map[string]interface{})); item != nil {
+				allowedRunnersItems = append(allowedRunnersItems, *item)
+			}
+		}
+		ret.AllowedRunners = allowedRunnersItems
+
 		var allowedTemplatesItems []storagev1.AllowedTemplate
 		for _, v := range data["allowed_templates"].([]interface{}) {
 			if v == nil {
@@ -141,6 +202,10 @@ func CreateManagementV1ProjectSpec(data map[string]interface{}) *managementv1.Pr
 
 		if v, ok := data["argo_c_d"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 			ret.ArgoIntegration = CreateStorageV1ArgoIntegrationSpec(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["automatic_import"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.AutomaticImport = *CreateStorageV1AutomaticImport(v[0].(map[string]interface{}))
 		}
 
 		if v, ok := data["description"].(string); ok && len(v) > 0 {
@@ -172,6 +237,18 @@ func CreateManagementV1ProjectSpec(data map[string]interface{}) *managementv1.Pr
 
 		if v, ok := data["quotas"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 			ret.Quotas = *CreateStorageV1Quotas(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["rancher"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.RancherIntegration = CreateStorageV1RancherIntegrationSpec(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["require_template"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.RequireTemplate = *CreateStorageV1RequireTemplate(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["vault"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.VaultIntegration = CreateStorageV1VaultIntegrationSpec(v[0].(map[string]interface{}))
 		}
 
 	}
@@ -207,6 +284,16 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 	}
 	values["allowed_clusters"] = allowedClustersItems
 
+	var allowedRunnersItems []interface{}
+	for _, v := range obj.AllowedRunners {
+		item, err := ReadStorageV1AllowedRunner(&v)
+		if err != nil {
+			return nil, err
+		}
+		allowedRunnersItems = append(allowedRunnersItems, item)
+	}
+	values["allowed_runners"] = allowedRunnersItems
+
 	var allowedTemplatesItems []interface{}
 	for _, v := range obj.AllowedTemplates {
 		item, err := ReadStorageV1AllowedTemplate(&v)
@@ -223,6 +310,14 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 	}
 	if argoCD != nil {
 		values["argo_c_d"] = []interface{}{argoCD}
+	}
+
+	automaticImport, err := ReadStorageV1AutomaticImport(&obj.AutomaticImport)
+	if err != nil {
+		return nil, err
+	}
+	if automaticImport != nil {
+		values["automatic_import"] = []interface{}{automaticImport}
 	}
 
 	values["description"] = obj.Description
@@ -261,6 +356,30 @@ func ReadManagementV1ProjectSpec(obj *managementv1.ProjectSpec) (interface{}, er
 	}
 	if quotas != nil {
 		values["quotas"] = []interface{}{quotas}
+	}
+
+	rancher, err := ReadStorageV1RancherIntegrationSpec(obj.RancherIntegration)
+	if err != nil {
+		return nil, err
+	}
+	if rancher != nil {
+		values["rancher"] = []interface{}{rancher}
+	}
+
+	requireTemplate, err := ReadStorageV1RequireTemplate(&obj.RequireTemplate)
+	if err != nil {
+		return nil, err
+	}
+	if requireTemplate != nil {
+		values["require_template"] = []interface{}{requireTemplate}
+	}
+
+	vault, err := ReadStorageV1VaultIntegrationSpec(obj.VaultIntegration)
+	if err != nil {
+		return nil, err
+	}
+	if vault != nil {
+		values["vault"] = []interface{}{vault}
 	}
 
 	return values, nil

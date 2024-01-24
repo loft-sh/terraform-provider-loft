@@ -66,7 +66,7 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 		},
 		"parameters": {
 			Type:        schema.TypeString,
-			Description: "Parameters are values to pass to the template",
+			Description: "Parameters are values to pass to the template. The values should be encoded as YAML string where each parameter is represented as a top-level field key.",
 			Optional:    true,
 		},
 		"template": {
@@ -87,6 +87,16 @@ func ManagementV1VirtualClusterInstanceSpecSchema() map[string]*schema.Schema {
 				Schema: StorageV1TemplateRefSchema(),
 			},
 			Description: "TemplateRef holds the virtual cluster template reference",
+			Optional:    true,
+		},
+		"workload_cluster_ref": {
+			Type:     schema.TypeList,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: StorageV1VirtualClusterClusterRefSchema(),
+			},
+			Description: "WorkloadClusterRef is the reference to the connected cluster holding this virtual cluster's workloads.",
 			Optional:    true,
 		},
 	}
@@ -145,6 +155,10 @@ func CreateManagementV1VirtualClusterInstanceSpec(data map[string]interface{}) *
 
 		if v, ok := data["template_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 			ret.TemplateRef = CreateStorageV1TemplateRef(v[0].(map[string]interface{}))
+		}
+
+		if v, ok := data["workload_cluster_ref"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+			ret.WorkloadClusterRef = CreateStorageV1VirtualClusterClusterRef(v[0].(map[string]interface{}))
 		}
 
 	}
@@ -216,6 +230,14 @@ func ReadManagementV1VirtualClusterInstanceSpec(obj *managementv1.VirtualCluster
 	}
 	if templateRef != nil {
 		values["template_ref"] = []interface{}{templateRef}
+	}
+
+	workloadClusterRef, err := ReadStorageV1VirtualClusterClusterRef(obj.WorkloadClusterRef)
+	if err != nil {
+		return nil, err
+	}
+	if workloadClusterRef != nil {
+		values["workload_cluster_ref"] = []interface{}{workloadClusterRef}
 	}
 
 	return values, nil

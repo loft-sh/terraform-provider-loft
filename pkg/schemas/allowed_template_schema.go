@@ -25,7 +25,7 @@ func StorageV1AllowedTemplateSchema() map[string]*schema.Schema {
 		},
 		"kind": {
 			Type:        schema.TypeString,
-			Description: "Kind of the template that is allowed. Currently only supports VirtualClusterTemplate & SpaceTemplate",
+			Description: "Kind of the template that is allowed. Currently only supports DevPodWorkspaceTemplate, VirtualClusterTemplate & SpaceTemplate",
 			Optional:    true,
 		},
 		"name": {
