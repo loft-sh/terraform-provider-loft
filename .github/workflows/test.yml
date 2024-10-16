@@ -56,7 +56,7 @@ jobs:
           go-version: 1.19
       - uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
           args: -v --max-same-issues=50 --timeout=5m
 
