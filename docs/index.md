@@ -9,6 +9,9 @@ description: |-
 
 The Loft Provider provides resources to manage your Loft Spaces and Virtual Clusters using Terraform.
 
+~> This provider is deprecated for Loft versions 3.4 and above, and all versions of vCluster Platform. Users can now use the [kubernetes terraform provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest) with a [platform authenticated kube config](https://www.vcluster.com/docs/platform/api/authentication#log-in-via-cli).
+
+
 ## Example Usage
 
 Create a Project using terraform
