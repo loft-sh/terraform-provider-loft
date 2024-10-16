@@ -1,3 +1,7 @@
+# DEPRECATED #
+
+This provider is no longer maintained. Users can now use the [kubernetes terraform provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest) with a [platform authenticated kube config](https://www.vcluster.com/docs/platform/api/authentication#log-in-via-cli).
+
 # Terraform Provider Loft (terraform-provider-loft)
 Manage Loft Spaces and Virtual Clusters using terraform.
 
